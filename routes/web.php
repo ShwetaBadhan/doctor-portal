@@ -11,7 +11,7 @@ use App\Http\Controllers\AppointmentController;
 
 // ============ GUEST ROUTES ============
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
 });
 
