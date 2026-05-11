@@ -9,12 +9,24 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 
+// ============ ROOT ROUTE ============
+// Option A: Redirect root to login (Recommended)
+Route::get('/', function () {
+    return redirect()->route('login');
+})->name('home'); // Give it a different name
+
+// Option B: Show login directly at root (if you prefer)
+// Route::get('/', [LoginController::class, 'showLoginForm'])->name('home');
+
+
 // ============ GUEST ROUTES ============
 Route::middleware('guest')->group(function () {
-    Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
+    // ✅ GET /login → Show login form (named 'login' for forms)
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    
+    // ✅ POST /login → Process login (can be named or unnamed)
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
 });
-
 // ============ AUTH ROUTES ============
 Route::middleware('auth')->group(function () {
     
