@@ -79,6 +79,7 @@
                                         3 => ['icon' => 'ti ti-heartbeat', 'label' => 'Vitals'],
                                         4 => ['icon' => 'ti ti-notes', 'label' => 'Symptoms'],
                                         5 => ['icon' => 'ti ti-pills', 'label' => 'Treatment'],
+                                        6 => ['icon' => 'ti ti-file', 'label' => 'Documents'],
                                     ];
                                 @endphp
                                 @foreach($steps as $num => $step)
@@ -168,7 +169,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Gender<span class="text-danger ms-1">*</span></label>
-                                        <select class="form-select @error('gender') is-invalid @enderror" name="gender" required>
+                                        <select class="select @error('gender') is-invalid @enderror" name="gender" required>
                                             <option value="">Select</option>
                                             <option value="male" {{ old('gender', $patient->gender) == 'male' ? 'selected' : '' }}>Male</option>
                                             <option value="female" {{ old('gender', $patient->gender) == 'female' ? 'selected' : '' }}>Female</option>
@@ -181,7 +182,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Blood Group</label>
-                                        <select class="form-select @error('blood_group') is-invalid @enderror" name="blood_group">
+                                        <select class="select @error('blood_group') is-invalid @enderror" name="blood_group">
                                             <option value="">Select</option>
                                             @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bg)
                                                 <option value="{{ $bg }}" {{ old('blood_group', $patient->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
@@ -202,7 +203,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Status<span class="text-danger ms-1">*</span></label>
-                                        <select class="form-select @error('status') is-invalid @enderror" name="status" required>
+                                        <select class="select @error('status') is-invalid @enderror" name="status" required>
                                             <option value="">Select</option>
                                             <option value="available" {{ old('status', $patient->status) == 'available' ? 'selected' : '' }}>Available</option>
                                             <option value="unavailable" {{ old('status', $patient->status) == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
@@ -285,7 +286,7 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label">Cerebral Fluid</label>
-                                        <select class="form-select" name="cerebral_fluid">
+                                        <select class="select" name="cerebral_fluid">
                                             @foreach(['normal'=>'Normal','shrink'=>'Shrink','expand'=>'Expand'] as $val => $txt)
                                                 <option value="{{ $val }}" {{ old('cerebral_fluid', $patient->cerebral_fluid) == $val ? 'selected' : '' }}>{{ $txt }}</option>
                                             @endforeach
@@ -316,7 +317,6 @@
                                     'Self Talk', 'Self Bite', 'Bite Other', 'Self Hit', 'Hit Other',
                                     'Self Laugh', 'Self Cry'
                                 ];
-                                // Helper to get stored symptoms (handle JSON or array)
                                 $existingSyms = is_array($patient->existing_symptoms) ? $patient->existing_symptoms : json_decode($patient->existing_symptoms, true) ?? [];
                                 $nonExistingSyms = is_array($patient->non_existing_symptoms) ? $patient->non_existing_symptoms : json_decode($patient->non_existing_symptoms, true) ?? [];
                             @endphp
@@ -477,6 +477,87 @@
                         </div>
                     </div>
 
+                    <!-- Step 6: Documents (Test Reports) -->
+                    <div class="card step-content" data-step="6">
+                        <div class="card-body pb-0">
+                            <h6 class="fw-bold mb-3">Test Reports & Documents</h6>
+                            
+                            <!-- Existing Reports -->
+                            @if($patient->test_reports && count($patient->test_reports))
+                            <div class="mb-4">
+                                <label class="form-label fw-medium">Existing Reports</label>
+                                <div class="row">
+                                    @foreach($patient->test_reports as $index => $reportPath)
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card border h-100">
+                                            <div class="card-body text-center">
+                                                @php
+                                                    $ext = pathinfo($reportPath, PATHINFO_EXTENSION);
+                                                    $icons = [
+                                                        'pdf' => 'ti ti-file-text text-danger',
+                                                        'jpg' => 'ti ti-photo text-primary',
+                                                        'jpeg' => 'ti ti-photo text-primary',
+                                                        'png' => 'ti ti-photo text-primary',
+                                                        'doc' => 'ti ti-file-text text-info',
+                                                        'docx' => 'ti ti-file-text text-info',
+                                                    ];
+                                                    $icon = $icons[$ext] ?? 'ti ti-file text-muted';
+                                                    $fileName = basename($reportPath);
+                                                @endphp
+                                                
+                                                <div class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
+                                                    <i class="{{ $icon }} fs-24"></i>
+                                                </div>
+                                                
+                                                <p class="small text-truncate mb-2" title="{{ $fileName }}">{{ $fileName }}</p>
+                                                
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ Storage::url($reportPath) }}" class="btn btn-light" target="_blank" title="View">
+                                                        <i class="ti ti-eye"></i>
+                                                    </a>
+                                                    <a href="{{ Storage::url($reportPath) }}" class="btn btn-light" download title="Download">
+                                                        <i class="ti ti-download"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-light text-danger" 
+                                                            onclick="removeExistingReport({{ $index }}, '{{ $fileName }}')" 
+                                                            title="Remove">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                            
+                            <!-- Upload New Reports -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Upload New Reports</label>
+                                <input type="file" 
+                                       class="form-control @error('test_reports.*') is-invalid @enderror" 
+                                       name="test_reports[]" 
+                                       multiple 
+                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                       id="testReportsInput">
+                                <small class="text-muted d-block mt-1">
+                                    <i class="ti ti-info-circle me-1"></i>
+                                    Allowed: PDF, JPG, PNG, DOC, DOCX (Max 5MB each)
+                                </small>
+                                @error('test_reports.*')
+                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            
+                            <!-- Hidden input to track reports to remove -->
+                            <input type="hidden" name="remove_reports" id="removeReportsInput" value="">
+                            
+                            <!-- File Preview Area for new uploads -->
+                            <div id="file-preview" class="mt-3"></div>
+                        </div>
+                    </div>
+
                     <!-- Navigation Buttons -->
                     <div class="d-flex align-items-center justify-content-between mt-3">
                         <button type="button" class="btn btn-light" id="prevBtn" disabled>
@@ -512,21 +593,55 @@
     .step-content.active { display: block; }
     .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; }
     .form-check-inline { margin-right: 0; margin-bottom: 2px; }
+    
+    /* File preview styles */
+    .file-preview-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        background: #f8f9fa;
+        margin-bottom: 8px;
+    }
+    .file-preview-item .file-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+    .file-preview-item .file-info { flex: 1; min-width: 0; }
+    .file-preview-item .file-name {
+        font-weight: 500;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    .file-preview-item .file-size { font-size: 11px; color: #6c757d; }
+    .file-preview-item .file-remove { color: #dc3545; cursor: pointer; padding: 4px; }
+    
     @media (max-width: 768px) {
         .checkbox-grid { grid-template-columns: 1fr; }
         .progress-steps { flex-wrap: wrap; gap: 8px; }
         .step-item { flex: 0 0 30%; }
+        .file-preview-item .file-name { max-width: 150px; }
     }
 </style>
 
-<!-- SweetAlert2 CDN (if not already in master layout) -->
+<!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Minimal JS for Step Navigation -->
+<!-- Minimal JS for Step Navigation + File Preview -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
-    const totalSteps = 5;
+    const totalSteps = 6; // ✅ Updated to 6 steps
     const steps = document.querySelectorAll('.step-content');
     const stepItems = document.querySelectorAll('.step-item');
     const progressLines = document.querySelectorAll('.progress-line');
@@ -535,6 +650,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const resetBtn = document.getElementById('resetBtn');
     const form = document.getElementById('patientForm');
+    const fileInput = document.getElementById('testReportsInput');
+    const filePreview = document.getElementById('file-preview');
+    const removeReportsInput = document.getElementById('removeReportsInput');
 
     function showStep(step) {
         steps.forEach(s => s.classList.remove('active'));
@@ -581,7 +699,100 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('non-existing-count').textContent = nonExistCount;
     }
 
+    // File Preview Functions
+    function getFileIcon(ext) {
+        const icons = {
+            'pdf': 'ti ti-file-text text-danger',
+            'jpg': 'ti ti-photo text-primary',
+            'jpeg': 'ti ti-photo text-primary',
+            'png': 'ti ti-photo text-primary',
+            'doc': 'ti ti-file-text text-info',
+            'docx': 'ti ti-file-text text-info',
+        };
+        return icons[ext.toLowerCase()] || 'ti ti-file text-muted';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function updateFilePreview(files) {
+        filePreview.innerHTML = '';
+        Array.from(files).forEach((file, index) => {
+            const ext = file.name.split('.').pop();
+            const iconClass = getFileIcon(ext);
+            
+            const item = document.createElement('div');
+            item.className = 'file-preview-item';
+            item.innerHTML = `
+                <div class="file-icon"><i class="${iconClass} fs-14"></i></div>
+                <div class="file-info">
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+                <div class="file-remove" onclick="removeNewFile(${index})">
+                    <i class="ti ti-x fs-14"></i>
+                </div>
+            `;
+            filePreview.appendChild(item);
+        });
+    }
+
+    // Remove newly selected file (before upload)
+    window.removeNewFile = function(index) {
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+        for (let i = 0; i < files.length; i++) {
+            if (i !== index) dt.items.add(files[i]);
+        }
+        fileInput.files = dt.files;
+        updateFilePreview(fileInput.files);
+    };
+
+    // Remove existing report (mark for deletion)
+    window.removeExistingReport = function(index, fileName) {
+        Swal.fire({
+            title: 'Remove Report?',
+            html: `Remove <strong>${fileName}</strong> from this patient?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, remove',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#dc3545'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Add to hidden input for server to delete
+                let removed = removeReportsInput.value ? JSON.parse(removeReportsInput.value) : [];
+                removed.push(index);
+                removeReportsInput.value = JSON.stringify(removed);
+                
+                // Hide the report card visually
+                event.target.closest('.col-md-4').style.display = 'none';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Removed!',
+                    text: 'Report will be deleted on save.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        });
+    };
+
     // Event Listeners
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            updateFilePreview(e.target.files);
+        });
+    }
+
     nextBtn.addEventListener('click', () => {
         if (validateStep(currentStep)) {
             if (currentStep < totalSteps) {

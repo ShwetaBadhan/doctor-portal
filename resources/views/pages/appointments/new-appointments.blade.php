@@ -38,6 +38,7 @@
 
                                     <div class="row">
                                         <!-- Patient -->
+                                        <!-- Patient Dropdown -->
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label class="form-label mb-1 fw-medium">Patient<span
@@ -47,7 +48,7 @@
                                                     <option value="">Select Patient</option>
                                                     @foreach ($patients as $patient)
                                                         <option value="{{ $patient->id }}"
-                                                            {{ old('patient_id') == $patient->id ? 'selected' : '' }}>
+                                                            {{ (old('patient_id') ?? $selectedPatient) == $patient->id ? 'selected' : '' }}>
                                                             {{ $patient->first_name }} {{ $patient->last_name }}
                                                             ({{ $patient->patient_id }})
                                                         </option>

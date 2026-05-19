@@ -137,7 +137,7 @@
                             <!-- Route -->
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Route of Administration</label>
-                                <select class="form-select @error('route') is-invalid @enderror" name="route">
+                                <select class="select @error('route') is-invalid @enderror" name="route">
                                     <option value="">Select Route</option>
                                     <option value="ORAL" {{ old('route') == 'ORAL' ? 'selected' : '' }}>ORAL</option>
                                     <option value="EXTERNAL" {{ old('route') == 'EXTERNAL' ? 'selected' : '' }}>EXTERNAL (APPLY)</option>

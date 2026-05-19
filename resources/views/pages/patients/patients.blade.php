@@ -1,8 +1,8 @@
 @extends('layout.master')
 @section('content')
     <!-- ========================
-               Start Page Content
-              ========================= -->
+                       Start Page Content
+                      ========================= -->
 
     <div class="page-wrapper">
 
@@ -35,6 +35,7 @@
                     </div> --}}
                     <div
                         class="bg-white border shadow-sm rounded px-1 pb-0 text-center d-flex align-items-center justify-content-center">
+
                         <a href="{{ route('patients.index') }}"
                             class="bg-light rounded p-1 d-flex align-items-center justify-content-center"> <i
                                 class="ti ti-list fs-14 text-body"></i></a>
@@ -42,9 +43,11 @@
                             class="bg-white rounded p-1 d-flex align-items-center justify-content-center"> <i
                                 class="ti ti-layout-grid fs-14 text-body"></i> </a>
                     </div>
+                    @can('create-patients')
+                        <a href="{{ route('patients.create') }}" class="btn btn-primary ms-2 fs-13 btn-md"><i
+                                class="ti ti-plus me-1"></i>New Patient</a>
+                    @endcan
 
-                    <a href="{{ route('patients.create') }}" class="btn btn-primary ms-2 fs-13 btn-md"><i
-                            class="ti ti-plus me-1"></i>New Patient</a>
                 </div>
             </div>
             <!-- End Page Header -->
@@ -66,7 +69,7 @@
 
             </div>
             <!--  End Filter -->
- <!-- SweetAlert Session Messages -->
+            <!-- SweetAlert Session Messages -->
             @if (session('success'))
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -193,12 +196,13 @@
                                 <!-- Actions -->
                                 <td class="action-item">
                                     <div class="d-flex align-items-center gap-1">
-                                        <!-- Appointment Button (optional) -->
-                                        <a href="{{ route('appointments.create', $patient->id) }}"
-                                            class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1 me-1"
-                                            title="Appointment">
-                                            <i class="ti ti-calendar-cog"></i>
-                                        </a>
+                                        @can('view-patient-appointment')
+                                            <!-- Appointment Button (optional) -->
+                                            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                                                class="btn btn-primary">
+                                                <i class="ti ti-calendar-event me-1"></i>
+                                            </a>
+                                        @endcan
                                         <a href="javascript:void(0);"
                                             class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1"
                                             data-bs-toggle="dropdown" title="More">
@@ -206,23 +210,39 @@
                                         </a>
                                         <ul class="dropdown-menu p-2">
                                             <li>
-                                                <a href="{{ route('patients.edit', $patient->id) }}"
-                                                    class="dropdown-item d-flex align-items-center">Edit</a>
+                                                @can('edit-patients')
+                                                    <a href="{{ route('patients.edit', $patient->id) }}"
+                                                        class="dropdown-item d-flex align-items-center">Edit</a>
+                                                @endcan
+
                                             </li>
                                             <li>
-                                                <a href="{{ route('patients.show', $patient->id) }}"
-                                                    class="dropdown-item d-flex align-items-center">View</a>
+                                                @can('view-patient-details')
+                                                    <a href="{{ route('patients.show', $patient->id) }}"
+                                                        class="dropdown-item d-flex align-items-center">View</a>
+                                                @endcan
                                             </li>
-                                            <!-- Inside the actions dropdown -->
-                                            <!-- Inside your actions dropdown -->
                                             <li>
-                                                <!-- Trigger modal with data attributes -->
-                                                <a href="javascript:void(0);"
-                                                    class="dropdown-item d-flex align-items-center text-danger"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#delete_modal{{ $patient->id }}">
-                                                    <i class="ti ti-trash me-2 fs-14"></i> Delete
-                                                </a>
+                                                <!-- Assign Medicines Button (opens patient-specific modal) -->
+                                            <li>
+                                                @can('assign-medicines-to-patients')
+                                                    <a href="javascript:void(0);"
+                                                        class="dropdown-item d-flex align-items-center" data-bs-toggle="modal"
+                                                        data-bs-target="#assignModal{{ $patient->id }}">
+                                                        <i class="ti ti-pills me-2 fs-14"></i> Assign Medicines
+                                                    </a>
+                                                @endcan
+                                            </li>
+                                            <li>
+                                                @can('delete-patients')
+                                                    <!-- Trigger modal with data attributes -->
+                                                    <a href="javascript:void(0);"
+                                                        class="dropdown-item d-flex align-items-center text-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#delete_modal{{ $patient->id }}">
+                                                        <i class="ti ti-trash me-2 fs-14"></i> Delete
+                                                    </a>
+                                                @endcan
                                             </li>
                                         </ul>
                                     </div>
@@ -285,8 +305,8 @@
     </div>
 
     <!-- ========================
-               End Page Content
-              ========================= -->
+                       End Page Content
+                      ========================= -->
 
     <!-- Start Delete Modal  -->
     <div class="modal fade" id="delete_modal">
@@ -313,4 +333,69 @@
         </div>
     </div>
     <!-- End Delete Modal  -->
+    <!-- Assign Medicine Modals (One per patient) -->
+    @foreach ($patients as $patient)
+        <div class="modal fade" id="assignModal{{ $patient->id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form action="{{ route('patients.medicines.assign-group', $patient->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="ti ti-pills me-2"></i>Assign Medicines
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted mb-3">
+                                Select a group to auto-assign all medicines to <strong>{{ $patient->first_name }}
+                                    {{ $patient->last_name }}</strong>
+                            </p>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Medicine Group <span
+                                        class="text-danger">*</span></label>
+                                <select name="medicine_group_id" class="select" required>
+                                    <option value="">Select group...</option>
+                                    @foreach ($medicineGroups as $group)
+                                        <option value="{{ $group->id }}">
+                                            {{ $group->name }}
+                                            @if ($group->code)
+                                                <span class="text-muted">({{ $group->code }})</span>
+                                            @endif
+                                            - {{ $group->medicines_count }} medicines
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" name="start_date" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" name="end_date" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ti ti-check me-1"></i> Assign Group
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
+    <!-- Success/Error Messages -->
+    <div id="assignMessage"></div>
 @endsection

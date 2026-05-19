@@ -178,7 +178,7 @@
                                                 <div class="mb-3">
                                                     <label class="form-label">Role<span
                                                             class="text-danger ms-1">*</span></label>
-                                                    <select name="role" id="edit_role" class="form-select select"
+                                                    <select name="role" id="edit_role" class="select select"
                                                         required>
                                                         @foreach ($roles as $role)
                                                             <option value="{{ $role->name }}">{{ $role->name }}
@@ -311,7 +311,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Role<span class="text-danger ms-1">*</span></label>
-                            <select name="role" class="form-select select" required>
+                            <select name="role" class="select select" required>
                                 <option value="">Select Role</option>
                                 @foreach ($roles as $role)
                                     <option value="{{ $role->name }}"
@@ -331,7 +331,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                            <select name="status" class="form-select select" required>
+                            <select name="status" class="select select" required>
                                 <option value="1"
                                     {{ old('status') === '1' || old('status') === null ? 'selected' : '' }}>Active</option>
                                 <option value="0" {{ old('status') === '0' ? 'selected' : '' }}>Inactive</option>

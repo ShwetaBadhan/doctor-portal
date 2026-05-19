@@ -23,7 +23,7 @@ class Medicine extends Model
         'sort_order' => 'integer',
     ];
 
-    public function group(): BelongsTo
+     public function group(): BelongsTo
     {
         return $this->belongsTo(MedicineGroup::class, 'medicine_group_id');
     }
@@ -36,4 +36,5 @@ class Medicine extends Model
         if ($this->instructions) $parts[] = "({$this->instructions})";
         return implode(' -> ', $parts);
     }
+
 }

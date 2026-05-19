@@ -52,7 +52,7 @@
                     </div>
 					
                     <!-- AI Assistance -->
-					<a href="javascript:void(0);" class="btn btn-liner-gradient me-3 d-lg-flex d-none">AI Assistance<i class="ti ti-chart-bubble-filled ms-1"></i></a>
+					{{-- <a href="javascript:void(0);" class="btn btn-liner-gradient me-3 d-lg-flex d-none">AI Assistance<i class="ti ti-chart-bubble-filled ms-1"></i></a> --}}
                     <!-- AI Assistance -->
 
                     <!-- Appointment -->
@@ -64,11 +64,11 @@
                     <!-- Appointment -->
 
                     <!-- Settings -->
-                    <div class="header-item">
+                    {{-- <div class="header-item">
                         <div class="dropdown me-2">
                             <a href="profile-settings.html" class="btn topbar-link"><i class="ti ti-settings-2"></i></a>
                         </div> 
-                    </div> 
+                    </div>  --}}
                     <!-- Settings -->                   
 
                     <!-- Light/Dark Mode Button -->
@@ -80,7 +80,7 @@
                     
 					
 					<!-- Notification Dropdown -->
-                    <div class="header-item">
+                    {{-- <div class="header-item">
 						<div class="dropdown me-3">
 						
 							<button class="topbar-link btn btn-icon topbar-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown" data-bs-offset="0,24" type="button" aria-haspopup="false" aria-expanded="false">
@@ -208,18 +208,18 @@
 								
 							</div>
 						</div>
-					</div>
+					</div> --}}
 					
 					<!-- User Dropdown -->
 					<div class="dropdown profile-dropdown d-flex align-items-center justify-content-center">
                         <a href="javascript:void(0);" class="topbar-link dropdown-toggle drop-arrow-none position-relative" data-bs-toggle="dropdown" data-bs-offset="0,22" aria-haspopup="false" aria-expanded="false">
-                            <img src="assets/img/users/user-01.jpg" width="32" class="rounded-circle d-flex" alt="user-image">
+                            <img src="{{ url ('assets/img/users/user-01.jpg')}}" width="32" class="rounded-circle d-flex" alt="user-image">
                             <span class="online text-success"><i class="ti ti-circle-filled d-flex bg-white rounded-circle border border-1 border-white"></i></span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end dropdown-menu-md p-2">
                         
                             <div class="d-flex align-items-center bg-light rounded-3 p-2 mb-2">
-                                <img src="assets/img/users/user-01.jpg" class="rounded-circle" width="42" height="42" alt="">
+                                <img src="{{ url ('assets/img/users/user-01.jpg')}}" class="rounded-circle" width="42" height="42" alt="">
                                 <div class="ms-2">
                                     <p class="fw-medium text-dark mb-0">Jimmy Anderson</p>
                                     <span class="d-block fs-13">Administrator</span>
@@ -227,13 +227,13 @@
                             </div>
 
                             <!-- Item-->
-                            <a href="profile-settings.html" class="dropdown-item">
+                            {{-- <a href="profile-settings.html" class="dropdown-item">
                                 <i class="ti ti-user-circle me-1 align-middle"></i>
                                 <span class="align-middle">Profile Settings</span>
-                            </a>
+                            </a> --}}
 
                             <!-- Item-->
-                            <a href="account-settings.html" class="dropdown-item">
+                            {{-- <a href="account-settings.html" class="dropdown-item">
                                 <i class="ti ti-settings me-1 align-middle"></i>
                                 <span class="align-middle">Account Settings</span>
                             </a>
@@ -248,7 +248,7 @@
                             <a href="transactions.html" class="dropdown-item">
                                 <i class="ti ti-transition-right me-1 align-middle"></i>
                                 <span class="align-middle">Transactions</span>
-                            </a>
+                            </a> --}}
 
                                         
                             

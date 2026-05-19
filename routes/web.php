@@ -10,6 +10,8 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\MedicineGroupController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ShipmentController;
 
 // ============ ROOT ROUTE ============
 // Option A: Redirect root to login (Recommended)
@@ -40,14 +42,29 @@ Route::middleware('auth')->group(function () {
     // ✅ Logout Route
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
-    // ✅ Patient Resource Routes (ALL CRUD)
+  // ✅ Patient Resource Routes (ALL CRUD)
     Route::resource('patients', PatientController::class);
     
-    // Optional: Limit to specific actions only
-     Route::resource('patients', PatientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'show', 'destroy']);
+    // Patient Medicine Assignment Routes (No admin prefix)
+Route::get('patients/{patient}/medicines', [PatientController::class, 'medicinesTab'])
+    ->name('patients.medicines');
 
+Route::post('patients/{patient}/medicines/assign-group', [PatientController::class, 'assignMedicineGroup'])
+    ->name('patients.medicines.assign-group');
 
+Route::post('patients/{patient}/medicines/assign-individual', [PatientController::class, 'assignIndividualMedicine'])
+    ->name('patients.medicines.assign-individual');
 
+Route::put('patients/medicines/{patientMedicine}', [PatientController::class, 'updatePatientMedicine'])
+    ->name('patients.medicines.update');
+
+Route::delete('patients/medicines/{patientMedicine}', [PatientController::class, 'removePatientMedicine'])
+    ->name('patients.medicines.destroy');
+     // Report routes
+    Route::post('{patient}/reports/upload', [PatientController::class, 'uploadReport'])
+        ->name('reports.upload');
+    Route::delete('{patient}/reports/{index}', [PatientController::class, 'deleteReport'])
+        ->name('reports.delete');
      });
 // doctors
 
@@ -84,7 +101,8 @@ Route::middleware('auth')->group(function () {
     // ✅ This creates ALL CRUD routes with proper names
     Route::resource('appointments', AppointmentController::class);
 });
-
+Route::get('appointments/create', [AppointmentController::class, 'create'])
+    ->name('appointments.create');
 // Route::get('/appointments', function () {
 //     return view('pages.appointments.appointments');
 // })->name('appointments');
@@ -161,3 +179,23 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
     
     // Medicines - Simple resource routes  
     Route::resource('medicines', MedicineController::class);
+
+
+
+     // Invoice CRUD
+    Route::resource('invoices', InvoiceController::class);
+    
+    // Quick actions
+    Route::get('invoices/print/{invoice}', [InvoiceController::class, 'print'])
+        ->name('invoices.print');
+
+         // Shipment CRUD
+    Route::resource('shipments', ShipmentController::class);
+    
+    // Quick status update
+    Route::patch('shipments/{shipment}/status', [ShipmentController::class, 'updateStatus'])
+        ->name('shipments.update-status');
+    
+    // Dashboard counters
+    Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
+        ->name('shipments.dashboard');

@@ -77,6 +77,7 @@
                                         3 => ['icon' => 'ti ti-heartbeat', 'label' => 'Vitals'],
                                         4 => ['icon' => 'ti ti-notes', 'label' => 'Symptoms'],
                                         5 => ['icon' => 'ti ti-pills', 'label' => 'Treatment'],
+                                        6 => ['icon' => 'ti ti-file', 'label' => 'Documents'],
                                     ];
                                 @endphp
                                 @foreach($steps as $num => $step)
@@ -153,7 +154,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Gender<span class="text-danger ms-1">*</span></label>
-                                        <select class="form-select @error('gender') is-invalid @enderror" name="gender" required>
+                                        <select class="select @error('gender') is-invalid @enderror" name="gender" required>
                                             <option value="">Select Gender</option>
                                             <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
                                             <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
@@ -165,7 +166,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Blood Group</label>
-                                        <select class="form-select @error('blood_group') is-invalid @enderror" name="blood_group">
+                                        <select class="select @error('blood_group') is-invalid @enderror" name="blood_group">
                                             <option value="">Select Blood Group</option>
                                             @foreach(['O+','O-','A+','A-','B+','B-','AB+','AB-'] as $bg)
                                                 <option value="{{ $bg }}" {{ old('blood_group') == $bg ? 'selected' : '' }}>{{ $bg }}</option>
@@ -174,6 +175,7 @@
                                         @error('blood_group')<span class="invalid-feedback">{{ $message }}</span>@enderror
                                     </div>
                                 </div>
+                                
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Primary Doctor</label>
@@ -184,7 +186,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label mb-1 fw-medium">Status<span class="text-danger ms-1">*</span></label>
-                                        <select class="form-select @error('status') is-invalid @enderror" name="status" required>
+                                        <select class="select @error('status') is-invalid @enderror" name="status" required>
                                             <option value="">Select Status</option>
                                             <option value="available" {{ old('status') == 'available' ? 'selected' : '' }}>Available</option>
                                             <option value="unavailable" {{ old('status') == 'unavailable' ? 'selected' : '' }}>Unavailable</option>
@@ -266,7 +268,7 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label">Cerebral Fluid</label>
-                                        <select class="form-select" name="cerebral_fluid">
+                                        <select class="select" name="cerebral_fluid">
                                             @foreach(['normal','shrink','expand'] as $opt)
                                                 <option value="{{ $opt }}" {{ old('cerebral_fluid') == $opt ? 'selected' : '' }}>{{ ucfirst($opt) }}</option>
                                             @endforeach
@@ -453,6 +455,38 @@
                         </div>
                     </div>
 
+                    <!-- Step 6: Documents (Test Reports) -->
+                    <div class="card step-content" data-step="6">
+                        <div class="card-body pb-0">
+                            <h6 class="fw-bold mb-3">Test Reports & Documents</h6>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-medium">Upload Reports</label>
+                                        <input type="file" 
+                                               class="form-control @error('test_reports.*') is-invalid @enderror" 
+                                               name="test_reports[]" 
+                                               multiple 
+                                               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                               id="testReportsInput">
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="ti ti-info-circle me-1"></i>
+                                            Allowed: PDF, JPG, PNG, DOC, DOCX (Max 5MB each)
+                                        </small>
+                                        @error('test_reports.*')
+                                            <span class="invalid-feedback d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    
+                                    <!-- File Preview Area -->
+                                    <div id="file-preview" class="mt-3">
+                                        <!-- Preview items will be added here by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Navigation Buttons -->
                     <div class="d-flex align-items-center justify-content-between mt-3">
                         <button type="button" class="btn btn-light" id="prevBtn" disabled>
@@ -488,20 +522,65 @@
     .step-content.active { display: block; }
     .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; }
     .form-check-inline { margin-right: 0; margin-bottom: 2px; }
+    
+    /* File preview styles */
+    .file-preview-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        background: #f8f9fa;
+        margin-bottom: 8px;
+    }
+    .file-preview-item .file-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+    .file-preview-item .file-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .file-preview-item .file-name {
+        font-weight: 500;
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    .file-preview-item .file-size {
+        font-size: 11px;
+        color: #6c757d;
+    }
+    .file-preview-item .file-remove {
+        color: #dc3545;
+        cursor: pointer;
+        padding: 4px;
+    }
+    
     @media (max-width: 768px) {
         .checkbox-grid { grid-template-columns: 1fr; }
         .progress-steps { flex-wrap: wrap; gap: 8px; }
         .step-item { flex: 0 0 30%; }
+        .file-preview-item .file-name { max-width: 150px; }
     }
 </style>
-    <!-- SweetAlert2 CDN (if not already in master layout) -->
+
+<!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Minimal JS for Step Navigation -->
+<!-- Minimal JS for Step Navigation + File Preview -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     let currentStep = 1;
-    const totalSteps = 5;
+    const totalSteps = 6; // ✅ FIXED: Updated from 5 to 6
     const steps = document.querySelectorAll('.step-content');
     const stepItems = document.querySelectorAll('.step-item');
     const progressLines = document.querySelectorAll('.progress-line');
@@ -510,6 +589,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const resetBtn = document.getElementById('resetBtn');
     const form = document.getElementById('patientForm');
+    const fileInput = document.getElementById('testReportsInput');
+    const filePreview = document.getElementById('file-preview');
 
     function showStep(step) {
         steps.forEach(s => s.classList.remove('active'));
@@ -556,7 +637,69 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('non-existing-count').textContent = nonExistCount;
     }
 
+    // File Preview Functionality
+    function getFileIcon(ext) {
+        const icons = {
+            'pdf': 'ti ti-file-text text-danger',
+            'jpg': 'ti ti-photo text-primary',
+            'jpeg': 'ti ti-photo text-primary',
+            'png': 'ti ti-photo text-primary',
+            'doc': 'ti ti-file-text text-info',
+            'docx': 'ti ti-file-text text-info',
+        };
+        return icons[ext.toLowerCase()] || 'ti ti-file text-muted';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function updateFilePreview(files) {
+        filePreview.innerHTML = '';
+        Array.from(files).forEach((file, index) => {
+            const ext = file.name.split('.').pop();
+            const iconClass = getFileIcon(ext);
+            
+            const item = document.createElement('div');
+            item.className = 'file-preview-item';
+            item.innerHTML = `
+                <div class="file-icon">
+                    <i class="${iconClass} fs-14"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-size">${formatFileSize(file.size)}</div>
+                </div>
+                <div class="file-remove" onclick="removeFile(${index})">
+                    <i class="ti ti-x fs-14"></i>
+                </div>
+            `;
+            filePreview.appendChild(item);
+        });
+    }
+
+    // Make removeFile globally accessible
+    window.removeFile = function(index) {
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+        for (let i = 0; i < files.length; i++) {
+            if (i !== index) dt.items.add(files[i]);
+        }
+        fileInput.files = dt.files;
+        updateFilePreview(fileInput.files);
+    };
+
     // Event Listeners
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            updateFilePreview(e.target.files);
+        });
+    }
+
     nextBtn.addEventListener('click', () => {
         if (validateStep(currentStep)) {
             if (currentStep < totalSteps) {
@@ -595,6 +738,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.reset();
                 currentStep = 1;
                 showStep(1);
+                filePreview.innerHTML = '';
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                 Swal.fire({
                     icon: 'success',
@@ -618,6 +762,4 @@ document.addEventListener('DOMContentLoaded', function() {
     showStep(1);
 });
 </script>
-
 @endsection
-

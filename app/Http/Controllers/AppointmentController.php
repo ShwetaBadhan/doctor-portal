@@ -22,13 +22,16 @@ class AppointmentController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        $patients = Patient::select('id', 'first_name', 'last_name', 'patient_id')->get();
-        $nextId = 'AP' . str_pad(Appointment::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT);
-        // ✅ Your view path (new-appointments.blade.php)
-        return view('pages.appointments.new-appointments', compact('patients', 'nextId'));
-    }
+public function create(Request $request)
+{
+    $patients = Patient::select('id', 'first_name', 'last_name', 'patient_id')->get();
+    $nextId = 'AP' . str_pad(Appointment::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT);
+    
+    // ✅ Get patient_id from query parameter
+    $selectedPatient = $request->query('patient_id');
+    
+    return view('pages.appointments.new-appointments', compact('patients', 'nextId', 'selectedPatient'));
+}
 
     /**
      * Store a newly created resource in storage.

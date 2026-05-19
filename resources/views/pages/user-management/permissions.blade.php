@@ -164,7 +164,7 @@
                                                 <div class="mb-3">
                                                     <label class="form-label">Guard</label>
                                                     <select name="guard_name" id="edit_guard_name"
-                                                        class="form-select select">
+                                                        class="select select">
                                                         <option value="web"
                                                             {{ old('guard', $permission->guard) == '1' ? 'selected' : '' }}>
                                                             Web</option>
@@ -245,7 +245,7 @@
                         <!-- Guard Name -->
                         <div class="mb-3">
                             <label class="form-label">Guard</label>
-                            <select name="guard_name" class="form-select select">
+                            <select name="guard_name" class="select select">
                                 <option value="web" {{ old('guard_name') == 'web' ? 'selected' : '' }}>Web</option>
                                 <option value="api" {{ old('guard_name') == 'api' ? 'selected' : '' }}>API</option>
                             </select>
@@ -254,7 +254,7 @@
                         <!-- Status -->
                         <div class="mb-0">
                             <label class="form-label">Status<span class="text-danger ms-1">*</span></label>
-                            <select name="status" class="form-select select" required>
+                            <select name="status" class="select select" required>
                                 <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Active</option>
                                 <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Inactive</option>
                             </select>

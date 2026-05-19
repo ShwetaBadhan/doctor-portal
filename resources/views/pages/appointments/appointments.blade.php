@@ -35,11 +35,13 @@
                         <i class="ti ti-calendar-event fs-14 text-body"></i>
                     </a>
                 </div>
-
-                <!-- Create Button -->
+                 @can('create-appointments')
+                      <!-- Create Button -->
                 <a href="{{ route('appointments.create') }}" class="btn btn-primary ms-2 fs-13 btn-md">
                     <i class="ti ti-plus me-1"></i> New Appointment
                 </a>
+                 @endcan
+               
             </div>
         </div>
 
@@ -163,23 +165,30 @@
                                         </a>
                                         <ul class="dropdown-menu p-2">
                                             <li>
-                                                <a href="{{ route('appointments.edit', $appointment->id) }}" class="dropdown-item d-flex align-items-center">
+                                            @can('edit-appointments')
+                                                 <a href="{{ route('appointments.edit', $appointment->id) }}" class="dropdown-item d-flex align-items-center">
                                                     <i class="ti ti-edit me-2 fs-14"></i> Edit
                                                 </a>
+                                            @endcan
+                                               
                                             </li>
                                             <li>
+                                            @can('view-appointment-details')
                                                 <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center" 
                                                    data-bs-toggle="offcanvas" 
                                                    data-bs-target="#view_details_{{ $appointment->id }}">
                                                     <i class="ti ti-eye me-2 fs-14"></i> View
                                                 </a>
+                                                 @endcan
                                             </li>
                                             <li>
+                                             @can('delete-appointments')
                                                 <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center text-danger" 
                                                    data-bs-toggle="modal" 
                                                    data-bs-target="#delete_modal_{{ $appointment->id }}">
                                                     <i class="ti ti-trash me-2 fs-14"></i> Delete
                                                 </a>
+                                                @endcan
                                             </li>
                                         </ul>
                                     </div>
@@ -250,7 +259,7 @@
                                             </div>
                                             <div class="col-lg-6 col-md-6">
                                                 <div class="mb-3">
-                                                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                    <select name="status" class="select form-select-sm" onchange="this.form.submit()">
                                                         @foreach(['schedule' => 'Schedule', 'confirmed' => 'Confirmed', 'checked_in' => 'Checked In', 'checked_out' => 'Checked Out', 'cancelled' => 'Cancelled'] as $val => $label)
                                                             <option value="{{ $val }}" {{ $appointment->status == $val ? 'selected' : '' }}>{{ $label }}</option>
                                                         @endforeach

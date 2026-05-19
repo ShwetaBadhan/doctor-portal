@@ -8,9 +8,12 @@
             <h6 class="fw-bold mb-0">
                 <i class="ti ti-pill me-2 text-primary"></i>Medicine Groups
             </h6>
-            <a href="{{ route('medicine-groups.create') }}" class="btn btn-primary">
+            @can('create-medicine-groups')
+                <a href="{{ route('medicine-groups.create') }}" class="btn btn-primary">
                 <i class="ti ti-plus me-1"></i> Add New Group
-            </a>
+            </a> 
+            @endcan
+           
         </div>
 
         <!-- Success Message -->
@@ -75,15 +78,21 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('medicine-groups.show', $group) }}" class="btn btn-light" title="View Details">
+                                        @can('view-medicine-group-details')
+                                             <a href="{{ route('medicine-groups.show', $group) }}" class="btn btn-light" title="View Details">
                                             <i class="ti ti-eye"></i>
-                                        </a>
+                                        </a> 
+                                        @endcan
+                                      @can('edit-medicine-groups')
                                         <a href="{{ route('medicine-groups.edit', $group) }}" class="btn btn-light" title="Edit">
                                             <i class="ti ti-edit"></i>
                                         </a>
+                                          @endcan
+                                        @can('delete-medicine-groups')
                                         <button onclick="confirmDelete({{ $group->id }}, '{{ $group->name }}')" class="btn btn-light text-danger" title="Delete">
                                             <i class="ti ti-trash"></i>
                                         </button>
+                                          @endcan
                                     </div>
                                 </td>
                             </tr>

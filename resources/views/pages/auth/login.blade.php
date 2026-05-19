@@ -131,7 +131,7 @@
                                         </div>
 
                                         <!-- Copyright -->
-                                        <p class="text-dark text-center">Copyright &copy; {{ date('Y') }} - Doctor Portal.</p>
+                                        <p class="text-dark text-center">Copyright &copy; {{ date('Y') }} - E-Bio Cares.</p>
                                     </div>
                                 </form>
                             </div>

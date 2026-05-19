@@ -66,7 +66,8 @@ class PatientRequest extends FormRequest
             'therapy_history' => 'nullable|string',
             'remarks' => 'nullable|string',
 
-
+  'test_reports' => 'nullable|array',
+        'test_reports.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // Max 5MB
             
         ];
     }
