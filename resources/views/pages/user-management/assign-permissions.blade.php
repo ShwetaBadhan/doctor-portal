@@ -9,26 +9,23 @@
             <a href="{{ route('roles.index') }}"><i class="ti ti-chevron-left me-1"></i>Roles</a>
         </h6>
 
-        <!-- Page Header with Role Switcher -->
-        <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 mb-3 pb-3 border-bottom">
-            <div class="flex-grow-1">
-                <h4 class="fw-bold mb-0">Assign Permissions</h4>
-            </div>
-            <div class="text-end d-flex">
-                <div class="dropdown">
-                    <a href="javascript:void(0);" class="dropdown-toggle btn bg-white btn-md d-inline-flex align-items-center fw-normal rounded border text-dark px-2 py-1 fs-14" data-bs-toggle="dropdown">
-                       <span class="text-body me-1">Role : </span> {{ $role->name }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end p-2">
-                        @foreach(\App\Models\Role::orderBy('name')->get() as $r)
-                        <li>
-                            <a href="{{ route('roles.permissions.manage', $r) }}" class="dropdown-item rounded-1 {{ $r->id === $role->id ? 'active' : '' }}">
-                                {{ $r->name }}
-                            </a>
-                        </li>
-                        @endforeach
-                    </ul>
-                </div>
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 class="fw-bold mb-0">Assign Permissions - {{ $role->name }}</h4>
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Switch Role: {{ $role->name }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    @foreach(\App\Models\Role::orderBy('name')->get() as $r)
+                    <li>
+                        <a href="{{ route('roles.permissions.manage', $r) }}" 
+                           class="dropdown-item {{ $r->id === $role->id ? 'active' : '' }}">
+                            {{ $r->name }}
+                        </a>
+                    </li>
+                    @endforeach
+                </ul>
             </div>
         </div>
 
@@ -39,75 +36,70 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
 
-        <!-- Permissions Form -->
-        <form action="{{ route('roles.permissions.assign', $role) }}" method="POST" id="permissionsForm">
+        <!-- Single Permissions Table -->
+        <form action="{{ route('roles.permissions.assign', $role) }}" method="POST">
             @csrf
-
-            @forelse($permissions as $groupName => $groupPerms)
-            <div class="card mb-3">
-                <div class="card-header">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h6 class="fw-bold mb-0">{{ $groupName ?: 'General' }}</h6>
-                        <div class="form-check form-check-md">
-                            <input class="form-check-input select-all-group" type="checkbox" data-group-index="{{ $loop->index }}">
-                            <label class="form-check-label">Allow All</label>
-                        </div>
+            
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0">All Permissions</h6>
+                    <div class="form-check form-check-md">
+                        <input class="form-check-input" type="checkbox" id="selectAll">
+                        <label class="form-check-label fw-medium" for="selectAll">Select All</label>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive border">
-                        <table class="table table-nowrap mb-0">
-                            <thead class="thead-light">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 datatable">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Permission</th>
-                                    <th class="text-center" width="120">Assign</th>
+                                    <th width="50">
+                                        <div class="form-check form-check-md">
+                                            <input class="form-check-input" type="checkbox" id="selectAllHeader">
+                                        </div>
+                                    </th>
+                                    <th>Permission Name</th>
+                                    <th>Identifier</th>
+                                    <th width="150">Group</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                @foreach($groupPerms as $perm)
-                                <tr>
-                                    <td>
-                                        <p class="fw-medium text-dark mb-0">{{ ucwords(str_replace('_', ' ', $perm->name)) }}</p>
-                                        <small class="text-muted">{{ $perm->name }}</small>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="form-check form-check-md d-inline-block">
-                                            <input class="form-check-input perm-check" 
-                                                   type="checkbox" 
-                                                   name="permissions[]" 
-                                                   value="{{ $perm->name }}" 
-                                                   data-group-index="{{ $loop->parent->index }}" 
-                                                   {{ in_array($perm->name, $rolePermissions) ? 'checked' : '' }}>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
+                           <tbody>
+    @foreach($permissions as $permission)
+    <tr>
+        <td>
+            <div class="form-check form-check-md">
+                <input class="form-check-input perm-checkbox" 
+                       type="checkbox" 
+                       name="permissions[]" 
+                       value="{{ $permission->name }}"
+                       id="perm_{{ $permission->id }}"
+                       {{-- ✅ KEY FIX: Check if role has this permission --}}
+                       {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}>
+            </div>
+        </td>
+        <td>
+            <label for="perm_{{ $permission->id }}" class="fw-medium mb-0" style="cursor: pointer;">
+                {{ ucwords(str_replace('_', ' ', $permission->name)) }}
+            </label>
+        </td>
+        <td><code class="text-muted small">{{ $permission->name }}</code></td>
+        <td>
+            <span class="badge bg-light text-dark border">
+                {{ $permission->group_name ?? 'General' }}
+            </span>
+        </td>
+    </tr>
+    @endforeach
+</tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            @empty
-            <div class="alert alert-info text-center py-4">
-                <i class="ti ti-info-circle me-2 fs-5"></i> No permissions available. 
-                <a href="{{ route('permissions.index') }}" class="fw-bold">Create permissions</a> first.
-            </div>
-            @endforelse
 
             <!-- Action Buttons -->
             <div class="d-flex justify-content-end gap-2 mt-3">
-                <a href="{{ route('roles.index') }}" class="btn btn-white border">Cancel</a>
+                <a href="{{ route('roles.index') }}" class="btn btn-light">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="ti ti-check me-1"></i> Save Permissions
                 </button>
@@ -117,31 +109,34 @@
     </div>
 </div>
 
-@endsection
 
-@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ✅ Select All per group
-    document.querySelectorAll('.select-all-group').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const groupIndex = this.dataset.groupIndex;
-            const isChecked = this.checked;
-            document.querySelectorAll(`.perm-check[data-group-index="${groupIndex}"]`).forEach(perm => {
-                perm.checked = isChecked;
-            });
-        });
-    });
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.perm-checkbox');
 
-    // ✅ Update "Select All" state when individual checkboxes change
-    document.querySelectorAll('.perm-check').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const groupIndex = this.dataset.groupIndex;
-            const allPermsInGroup = document.querySelectorAll(`.perm-check[data-group-index="${groupIndex}"]`);
-            const selectAllCheckbox = document.querySelector(`.select-all-group[data-group-index="${groupIndex}"]`);
-            selectAllCheckbox.checked = Array.from(allPermsInGroup).every(c => c.checked);
+    // Initialize Select All state based on pre-checked permissions
+    if (selectAll && checkboxes.length > 0) {
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        selectAll.checked = allChecked;
+    }
+
+    // Select All functionality
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    }
+
+    // Update Select All when individual checkboxes change
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            if (selectAll) selectAll.checked = allChecked;
         });
     });
 });
 </script>
-@endpush
+
+
+@endsection

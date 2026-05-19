@@ -38,8 +38,9 @@
                 <li class="menu-title"><span>Main Menu</span></li>
                 <li>
                     <ul>
+                        <!-- Dashboard -->
                         <li class="submenu">
-                            <a href="{{ route('dashboard') }}" class="active">
+                            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                 <i class="ti ti-layout-dashboard"></i><span>Dashboard</span>
                             </a>
                         </li>
@@ -51,15 +52,26 @@
                     <ul>
                         <!-- Patients Menu -->
                         @can('view-patients')
+                        @php
+                            $patientsActive = request()->routeIs('patients.*');
+                        @endphp
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $patientsActive ? 'active' : '' }}">
                                 <i class="ti ti-user-heart"></i><span>Patients</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul>
-                                <li><a href="{{ route('patients.index') }}">Patients</a></li>
+                            <ul style="display: {{ $patientsActive ? 'block' : 'none' }};">
+                                <li>
+                                    <a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index') ? 'active' : '' }}">
+                                        Patients
+                                    </a>
+                                </li>
                                 @can('create-patients')
-                                <li><a href="{{ route('patients.create') }}">Create Patient</a></li>
+                                <li>
+                                    <a href="{{ route('patients.create') }}" class="{{ request()->routeIs('patients.create') ? 'active' : '' }}">
+                                        Create Patient
+                                    </a>
+                                </li>
                                 @endcan
                             </ul>
                         </li>
@@ -67,15 +79,26 @@
 
                         <!-- Appointments Menu -->
                         @can('view-appointments')
+                        @php
+                            $appointmentsActive = request()->routeIs('appointments.*');
+                        @endphp
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $appointmentsActive ? 'active' : '' }}">
                                 <i class="ti ti-calendar-check"></i><span>Appointments</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul>
-                                <li><a href="{{ route('appointments.index') }}">Appointments</a></li>
+                            <ul style="display: {{ $appointmentsActive ? 'block' : 'none' }};">
+                                <li>
+                                    <a href="{{ route('appointments.index') }}" class="{{ request()->routeIs('appointments.index') ? 'active' : '' }}">
+                                        Appointments
+                                    </a>
+                                </li>
                                 @can('create-appointments')
-                                <li><a href="{{ route('appointments.create') }}">New Appointment</a></li>
+                                <li>
+                                    <a href="{{ route('appointments.create') }}" class="{{ request()->routeIs('appointments.create') ? 'active' : '' }}">
+                                        New Appointment
+                                    </a>
+                                </li>
                                 @endcan
                             </ul>
                         </li>
@@ -83,21 +106,24 @@
 
                         <!-- Medicines Menu -->
                         @can('view-medicine-groups')
+                        @php
+                            $medicinesActive = request()->routeIs('medicine-groups.*');
+                        @endphp
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $medicinesActive ? 'active' : '' }}">
                                 <i class="ti ti-pill"></i>
                                 <span>Medicines</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul style="display: none;">
+                            <ul style="display: {{ $medicinesActive ? 'block' : 'none' }};">
                                 <li>
-                                    <a href="{{ route('medicine-groups.index') }}">
+                                    <a href="{{ route('medicine-groups.index') }}" class="{{ request()->routeIs('medicine-groups.index') ? 'active' : '' }}">
                                         Medicine Groups
                                     </a>
                                 </li>
                                 @can('create-medicine-groups')
                                 <li>
-                                    <a href="{{ route('medicine-groups.create') }}">
+                                    <a href="{{ route('medicine-groups.create') }}" class="{{ request()->routeIs('medicine-groups.create') ? 'active' : '' }}">
                                         Add New Group
                                     </a>
                                 </li>
@@ -108,21 +134,24 @@
 
                         <!-- Invoices Menu -->
                         @can('view-invoices')
+                        @php
+                            $invoicesActive = request()->routeIs('invoices.*');
+                        @endphp
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $invoicesActive ? 'active' : '' }}">
                                 <i class="ti ti-file-invoice"></i>
                                 <span>Invoices</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul style="display: none;">
+                            <ul style="display: {{ $invoicesActive ? 'block' : 'none' }};">
                                 <li>
-                                    <a href="{{ route('invoices.index') }}">
+                                    <a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}">
                                         Invoices
                                     </a>
                                 </li>
                                 @can('create-invoices')
                                 <li>
-                                    <a href="{{ route('invoices.create') }}">
+                                    <a href="{{ route('invoices.create') }}" class="{{ request()->routeIs('invoices.create') ? 'active' : '' }}">
                                         Create Invoice
                                     </a>
                                 </li>
@@ -133,21 +162,24 @@
 
                         <!-- Shipments Menu -->
                         @can('view-shipments')
+                        @php
+                            $shipmentsActive = request()->routeIs('shipments.*');
+                        @endphp
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $shipmentsActive ? 'active' : '' }}">
                                 <i class="ti ti-truck-delivery"></i>
                                 <span>Shipments</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul style="display: none;">
+                            <ul style="display: {{ $shipmentsActive ? 'block' : 'none' }};">
                                 <li>
-                                    <a href="{{ route('shipments.index') }}">
+                                    <a href="{{ route('shipments.index') }}" class="{{ request()->routeIs('shipments.index') ? 'active' : '' }}">
                                         Shipments
                                     </a>
                                 </li>
                                 @can('create-shipments')
                                 <li>
-                                    <a href="{{ route('shipments.create') }}">
+                                    <a href="{{ route('shipments.create') }}" class="{{ request()->routeIs('shipments.create') ? 'active' : '' }}">
                                         Create Shipment
                                     </a>
                                 </li>
@@ -161,19 +193,34 @@
 
                 <!-- Administration Menu (Only for Admin/Super Admin) -->
                 @can('view-users')
+                @php
+                    $adminActive = request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*');
+                @endphp
                 <li class="menu-title"><span>Administration</span></li>
                 <li>
                     <ul>
                         <li class="submenu">
-                            <a href="javascript:void(0);">
+                            <a href="javascript:void(0);" class="{{ $adminActive ? 'active' : '' }}">
                                 <i class="ti ti-user"></i><span>Users</span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <ul>
-                                <li><a href="{{ route('users.index') }}">Users</a></li>
+                            <ul style="display: {{ $adminActive ? 'block' : 'none' }};">
+                                <li>
+                                    <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
+                                        Users
+                                    </a>
+                                </li>
                                 @can('view-roles')
-                                <li><a href="{{ route('roles.index') }}">Roles</a></li>
-                                <li><a href="{{ route('permissions.index') }}">Permissions</a></li>
+                                <li>
+                                    <a href="{{ route('roles.index') }}" class="{{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                                        Roles
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('permissions.index') }}" class="{{ request()->routeIs('permissions.*') ? 'active' : '' }}">
+                                        Permissions
+                                    </a>
+                                </li>
                                 @endcan
                             </ul>
                         </li>

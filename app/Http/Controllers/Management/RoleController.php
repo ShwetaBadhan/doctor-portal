@@ -73,30 +73,27 @@ class RoleController extends Controller
         return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');
     }
 
+// In RoleController.php
 public function managePermissions(Role $role)
 {
-    // Get active permissions grouped by group_name
-    $permissions = Permission::where('status', true)
-        ->orderBy('group_name')
-        ->orderBy('name')
-        ->get()
-        ->groupBy('group_name');
-
-    // Current role's assigned permission names
+    $permissions = Permission::orderBy('group_name')->orderBy('name')->get();
     $rolePermissions = $role->permissions->pluck('name')->toArray();
-
+    
     return view('pages.user-management.assign-permissions', compact('role', 'permissions', 'rolePermissions'));
 }
 
 public function assignPermissions(Request $request, Role $role)
 {
-    $request->validate([
-        'permissions' => 'sometimes|array',
+    $validated = $request->validate([
+        'permissions' => 'array',
+        'permissions.*' => 'exists:permissions,name'
     ]);
 
-    // Sync permissions by NAME (Spatie best practice)
-    $role->syncPermissions($request->permissions ?? []);
+    $role->syncPermissions($validated['permissions'] ?? []);
 
-    return redirect()->route('roles.index')->with('success', 'Permissions updated successfully!');
+    return redirect()->route('roles.permissions.assign', $role)
+        ->with('success', 'Permissions updated successfully!');
 }
+
+
 }
