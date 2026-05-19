@@ -40,7 +40,7 @@
                                         
                                         <!-- Logo -->
                                         <div class="mx-auto mb-4 text-center">
-                                            <img src="{{ asset('assets/img/logo.svg') }}" class="img-fluid" alt="Logo">
+                                            <img src="{{ asset('assets/img/logo.jpeg') }}" class="img-fluid" alt="Logo">
                                         </div>
 
                                         <!-- Card -->
