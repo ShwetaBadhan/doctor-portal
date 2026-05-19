@@ -8,6 +8,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\MedicineGroupController;
+use App\Http\Controllers\MedicineController;
 
 // ============ ROOT ROUTE ============
 // Option A: Redirect root to login (Recommended)
@@ -149,3 +151,13 @@ Route::post('/users', [UserController::class, 'store'])->name('users.store');
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show'); // 👈 ADD THIS
 Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+
+
+ // Medicine Groups (Simple resource)
+   
+    // Medicine Groups - Simple resource routes
+    Route::resource('medicine-groups', MedicineGroupController::class);
+    
+    // Medicines - Simple resource routes  
+    Route::resource('medicines', MedicineController::class);
