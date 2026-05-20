@@ -80,7 +80,7 @@
                 <!-- Action Buttons -->
                 <div class="col-xl-3 col-lg-4">
                     <div class="p-3 text-lg-end">
-                        <div class="mb-4">
+                        {{-- <div class="mb-4">
                             <a href="tel:{{ $patient->phone }}" class="btn btn-outline-white shadow-sm rounded-circle d-inline-flex align-items-center p-2 fs-14 me-2" title="Call">
                                 <i class="ti ti-phone"></i>
                             </a>
@@ -90,7 +90,7 @@
                             <a href="javascript:void(0);" class="btn btn-outline-white shadow-sm rounded-circle d-inline-flex align-items-center p-2 fs-14" title="Video">
                                 <i class="ti ti-video"></i>
                             </a>
-                        </div>
+                        </div> --}}
                          @can('view-patient-appointment')
                         <a href="{{ route('appointment-calendar', ['patient_id' => $patient->id]) }}" class="btn btn-primary">
                             <i class="ti ti-calendar-event me-1"></i>Book Appointment
@@ -710,19 +710,88 @@
                 </div>
             </div>
 
-            <!-- Appointments Tab -->
-            <div class="tab-pane" id="appointments">
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="ti ti-calendar-event fs-1 text-muted"></i>
-                        <h5 class="mt-3">Appointments</h5>
-                        <p class="text-muted mb-4">View and manage all appointments for this patient.</p>
-                        <a href="{{ route('appointments.index', ['patient_id' => $patient->id]) }}" class="btn btn-primary">
-                            <i class="ti ti-list me-1"></i>View Appointments
-                        </a>
-                    </div>
-                </div>
+           <!-- Appointments Tab -->
+<div class="tab-pane" id="appointments">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">
+            <i class="ti ti-calendar-event me-2 text-primary"></i>Appointments for {{ $patient->first_name }}
+        </h6>
+        <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-sm btn-primary">
+            <i class="ti ti-plus me-1"></i> New Appointment
+        </a>
+    </div>
+
+    @if($patient->appointments && $patient->appointments->count())
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($patient->appointments->sortByDesc('appointment_date') as $appointment)
+                        <tr>
+                            <td>
+                                <div class="fw-medium">{{ $appointment->appointment_date->format('d M Y') }}</div>
+                                <small class="text-muted">{{ $appointment->appointment_time ?? 'N/A' }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ ucfirst(str_replace('_', ' ', $appointment->appointment_type)) }}
+                                </span>
+                            </td>
+                            <td>{{ Str::limit($appointment->reason, 50) }}</td>
+                            <td>
+                                @php
+                                    $statusColors = [
+                                        'schedule' => 'warning',
+                                        'confirmed' => 'info',
+                                        'checked_in' => 'primary',
+                                        'checked_out' => 'success',
+                                        'cancelled' => 'secondary'
+                                    ];
+                                @endphp
+                                <span class="badge bg-{{ $statusColors[$appointment->status] ?? 'light' }} bg-opacity-10 text-{{ $statusColors[$appointment->status] ?? 'dark' }} border border-{{ $statusColors[$appointment->status] ?? 'light' }}">
+                                    {{ ucfirst(str_replace('_', ' ', $appointment->status)) }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('appointments.show', $appointment) }}" class="btn btn-light" title="View">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                    <a href="{{ route('appointments.edit', $appointment) }}" class="btn btn-light" title="Edit">
+                                        <i class="ti ti-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+        </div>
+    </div>
+    @else
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="ti ti-calendar-off fs-1 text-muted"></i>
+            <h5 class="mt-3">No Appointments Yet</h5>
+            <p class="text-muted mb-4">This patient has no scheduled appointments.</p>
+            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary">
+                <i class="ti ti-plus me-1"></i> Schedule First Appointment
+            </a>
+        </div>
+    </div>
+    @endif
+</div>
 
         </div>
     </div>

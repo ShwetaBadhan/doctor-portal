@@ -12,6 +12,7 @@ use App\Http\Controllers\MedicineGroupController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ShipmentController;
+use App\Http\Controllers\DashboardController;
 
 // ============ ROOT ROUTE ============
 // Option A: Redirect root to login (Recommended)
@@ -35,9 +36,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     
     // ✅ Single Dashboard
-    Route::get('/dashboard', function () {
-        return view('pages.dashboard');
-    })->name('dashboard');
+    
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->name('dashboard')
+    ->middleware(['auth']);
     
     // ✅ Logout Route
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
@@ -65,6 +67,17 @@ Route::delete('patients/medicines/{patientMedicine}', [PatientController::class,
         ->name('reports.upload');
     Route::delete('{patient}/reports/{index}', [PatientController::class, 'deleteReport'])
         ->name('reports.delete');
+        Route::get('{patient}/welcome-letter', [PatientController::class, 'showWelcomeLetter'])
+            ->name('welcome-letter');
+        Route::get('{patient}/welcome-letter/download', [PatientController::class, 'downloadWelcomeLetter'])
+            ->name('welcome-letter.download');
+        Route::post('{patient}/send-welcome-email', [PatientController::class, 'sendWelcomeEmail'])
+            ->name('send-welcome-email');
+            
+    Route::get('{patient}/diagnosis-report', [PatientController::class, 'generateDiagnosisReport'])
+        ->name('diagnosis-report');
+    Route::get('{patient}/download-report', [PatientController::class, 'downloadReport'])
+        ->name('download-report');
      });
 // doctors
 
@@ -143,20 +156,14 @@ Route::get('appointments/create', [AppointmentController::class, 'create'])
 
 
 
-
-// Roles CRUD
 Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
-Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
 Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
-Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
 Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
 Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
-Route::get('/roles/{role}', [RoleController::class, 'show'])->name('roles.show');
 
-// Roles Permission Management
-Route::get('assign-permissions', [RoleController::class, 'managePermissions'])->name('roles.permissions.manage');
-Route::post('assign-permissions', [RoleController::class, 'assignPermissions'])->name('roles.permissions.assign');
-
+// ✅ Permissions Management Routes
+Route::get('/roles/{role}/permissions', [RoleController::class, 'getPermissionsModal'])->name('roles.permissions.modal');
+Route::put('/roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.updatePermissions');
 
     // Permissions CRUD
 Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
@@ -197,5 +204,5 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
         ->name('shipments.update-status');
     
     // Dashboard counters
-    Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
-        ->name('shipments.dashboard');
+    // Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
+    //     ->name('shipments.dashboard');

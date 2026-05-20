@@ -41,6 +41,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'view-patient-appointment', 'group_name' => 'Patients'],
             ['name' => 'download-patient-reports', 'group_name' => 'Patients'],
             ['name' => 'delete-patient-reports', 'group_name' => 'Patients'],
+            ['name' => 'send-patient-welcome-email', 'group_name' => 'Patients'],
+            ['name' => 'download-patient-report', 'group_name' => 'Patients'],
             
             // Appointments
             ['name' => 'view-appointments', 'group_name' => 'Appointments'],

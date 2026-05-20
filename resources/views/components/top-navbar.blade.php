@@ -30,13 +30,13 @@
                     <!-- Search -->
                     <div class="me-auto d-flex align-items-center header-search d-lg-flex d-none">
                         <!-- Search -->
-                        <div class="input-icon-start position-relative me-2">
+                        {{-- <div class="input-icon-start position-relative me-2">
                             <span class="input-icon-addon">
                                 <i class="ti ti-search"></i>
                             </span>
                            <input type="text" class="form-control shadow-sm" placeholder="Search">
                            <span class="input-icon-addon text-dark shadow fs-18 d-inline-flex p-0 header-search-icon"><i class="ti ti-command"></i></span>
-                        </div>
+                        </div> --}}
                         <!-- /Search -->
                     </div>
 					

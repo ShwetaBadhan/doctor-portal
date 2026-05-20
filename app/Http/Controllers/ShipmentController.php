@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Shipment;
@@ -18,53 +19,58 @@ class ShipmentController extends Controller
             'delivered' => Shipment::delivered()->count(),
             'total' => Shipment::count(),
         ];
-        
+
         $recent = Shipment::with(['patient', 'invoice'])
             ->latest()
             ->take(10)
             ->get();
-        
+
         return view('pages.shipments.dashboard', compact('counters', 'recent'));
     }
 
     public function index(Request $request)
     {
         $query = Shipment::with(['patient', 'invoice']);
-        
+
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('tracking_number', 'LIKE', "%{$search}%")
-                  ->orWhere('recipient_name', 'LIKE', "%{$search}%")
-                  ->orWhere('recipient_phone', 'LIKE', "%{$search}%");
+                    ->orWhere('recipient_name', 'LIKE', "%{$search}%")
+                    ->orWhere('recipient_phone', 'LIKE', "%{$search}%");
             });
         }
-        
-        $shipments = $query->latest()->paginate(15);
-        
-        return view('pages.shipments.index', compact('shipments'));
+        $statusCounts = [
+            'pending' => Shipment::pending()->count(),
+            'packed' => Shipment::packed()->count(),
+            'dispatched' => Shipment::dispatched()->count(),
+            'delivered' => Shipment::delivered()->count(),
+        ];
+        $shipments = $query->get();
+
+        return view('pages.shipments.index', compact('shipments', 'statusCounts'));
     }
 
-   public function create()
-{
-    $patients = Patient::select('id', 'first_name', 'last_name', 'phone', 'address_1', 'address_2', 'city', 'state', 'pincode')
-        ->orderBy('first_name')
-        ->get();
-    
-    // ✅ FIXED: Just get recent invoices, no filtering
-    $invoices = Invoice::select('id', 'invoice_number', 'patient_name', 'total_amount', 'invoice_date')
-        ->orderBy('invoice_date', 'desc')
-        ->take(50)
-        ->get();
-    
-    return view('pages.shipments.create', compact('patients', 'invoices'));
-}
+    public function create()
+    {
+        $patients = Patient::select('id', 'first_name', 'last_name', 'phone', 'address_1', 'address_2', 'city', 'state', 'pincode')
+            ->orderBy('first_name')
+            ->get();
+
+        // ✅ FIXED: Just get recent invoices, no filtering
+        $invoices = Invoice::select('id', 'invoice_number', 'patient_name', 'total_amount', 'invoice_date')
+            ->orderBy('invoice_date', 'desc')
+            ->take(50)
+            ->get();
+
+        return view('pages.shipments.create', compact('patients', 'invoices'));
+    }
 
     public function store(Request $request)
     {
@@ -82,6 +88,8 @@ class ShipmentController extends Controller
             'items' => 'required|array|min:1',
             'items.*.name' => 'required|string|max:255',
             'items.*.quantity' => 'required|numeric|min:1',
+            'remarks' => 'nullable|string|max:1000',
+            'recipient_country' => 'required|string|max:100', // Add this
         ]);
 
         $shipment = Shipment::create([
@@ -98,6 +106,8 @@ class ShipmentController extends Controller
             'items' => $validated['items'],
             'status' => 'pending',
             'created_by' => Auth::id() ?? 'system',
+            'remarks' => $validated['remarks'] ?? null, // Add this
+            'recipient_country' => $validated['recipient_country'],
         ]);
 
         return redirect()->route('shipments.show', $shipment)
@@ -115,7 +125,7 @@ class ShipmentController extends Controller
         $patients = Patient::select('id', 'first_name', 'last_name', 'phone', 'address_1', 'address_2', 'city', 'state', 'pincode')
             ->orderBy('first_name')
             ->get();
-        
+
         return view('pages.shipments.edit', compact('shipment', 'patients'));
     }
 
@@ -131,10 +141,12 @@ class ShipmentController extends Controller
             'courier_name' => 'nullable|string|max:100',
             'tracking_number' => 'nullable|string|max:100|unique:shipments,tracking_number,' . $shipment->id,
             'items' => 'required|array|min:1',
+            'remarks' => 'nullable|string|max:1000',
+            'recipient_country' => 'required|string|max:100',
         ]);
 
         $shipment->update($validated);
-        
+
         return redirect()->route('shipments.show', $shipment)
             ->with('success', 'Shipment updated successfully!');
     }
@@ -148,7 +160,7 @@ class ShipmentController extends Controller
         ]);
 
         $update = ['status' => $validated['status']];
-        
+
         // Auto-set timestamps based on status
         if ($validated['status'] === 'packed' && !$shipment->packed_at) {
             $update['packed_at'] = now();
@@ -159,9 +171,9 @@ class ShipmentController extends Controller
         if ($validated['status'] === 'delivered' && !$shipment->delivered_at) {
             $update['delivered_at'] = now();
         }
-        
+
         if (!empty($validated['status_notes'])) {
-            $update['status_notes'] = ($shipment->status_notes ? $shipment->status_notes . "\n" : '') 
+            $update['status_notes'] = ($shipment->status_notes ? $shipment->status_notes . "\n" : '')
                 . date('Y-m-d H:i') . ': ' . $validated['status_notes'];
         }
 

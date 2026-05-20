@@ -133,7 +133,7 @@ function updateStatus(shipmentId, newStatus) {
         if (result.isConfirmed) {
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/admin/shipments/${shipmentId}/status`;
+            form.action = `/shipments/${shipmentId}/status`;
             form.innerHTML = `@csrf @method('PATCH')<input type="hidden" name="status" value="${newStatus}">`;
             document.body.appendChild(form);
             form.submit();

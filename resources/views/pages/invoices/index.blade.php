@@ -34,39 +34,48 @@
             </script>
         @endif
 
-        <!-- Search & Filter -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <form method="GET" action="{{ route('invoices.index') }}" class="row g-3">
-                    <div class="col-md-3">
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Search invoice # or patient..." 
-                               value="{{ request('search') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" name="from_date" class="form-control" 
-                               value="{{ request('from_date') }}" placeholder="From Date">
-                    </div>
-                    <div class="col-md-2">
-                        <input type="date" name="to_date" class="form-control" 
-                               value="{{ request('to_date') }}" placeholder="To Date">
-                    </div>
-                    <div class="col-md-2">
-                        <select name="status" class="select">
-                            <option value="">All Status</option>
-                            <option value="paid" {{ request('status')=='paid'?'selected':'' }}>Paid</option>
-                            <option value="unpaid" {{ request('status')=='unpaid'?'selected':'' }}>Unpaid</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="ti ti-search me-1"></i> Filter
-                        </button>
-                    </div>
-                </form>
+       <!-- Search & Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ route('invoices.index') }}" class="row g-3">
+            <!-- Search: Invoice #, Patient Name, Patient ID -->
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search: Invoice #, Patient Name, or Patient ID..." 
+                       value="{{ request('search') }}">
+                <small class="text-muted">e.g., INV-2026-001 or PAT000005</small>
             </div>
-        </div>
-
+            
+            <!-- From Date -->
+            <div class="col-md-2">
+                <input type="date" name="from_date" class="form-control" 
+                       value="{{ request('from_date') }}">
+            </div>
+            
+            <!-- To Date -->
+            <div class="col-md-2">
+                <input type="date" name="to_date" class="form-control" 
+                       value="{{ request('to_date') }}">
+            </div>
+            
+            <!-- Status -->
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="paid" {{ request('status')=='paid'?'selected':'' }}>Paid</option>
+                    <option value="unpaid" {{ request('status')=='unpaid'?'selected':'' }}>Unpaid</option>
+                </select>
+            </div>
+            
+            <!-- Filter Button -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="ti ti-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
         <!-- Invoices Table -->
         <div class="card">
             <div class="card-body">

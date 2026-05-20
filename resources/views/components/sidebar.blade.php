@@ -39,7 +39,7 @@
                 <li>
                     <ul>
                         <!-- Dashboard -->
-                        <li class="submenu">
+                        <li>
                             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
                                 <i class="ti ti-layout-dashboard"></i><span>Dashboard</span>
                             </a>
@@ -63,7 +63,7 @@
                             <ul style="display: {{ $patientsActive ? 'block' : 'none' }};">
                                 <li>
                                     <a href="{{ route('patients.index') }}" class="{{ request()->routeIs('patients.index') ? 'active' : '' }}">
-                                        Patients
+                                       All Patients
                                     </a>
                                 </li>
                                 @can('create-patients')
@@ -90,7 +90,7 @@
                             <ul style="display: {{ $appointmentsActive ? 'block' : 'none' }};">
                                 <li>
                                     <a href="{{ route('appointments.index') }}" class="{{ request()->routeIs('appointments.index') ? 'active' : '' }}">
-                                        Appointments
+                                       All Appointments
                                     </a>
                                 </li>
                                 @can('create-appointments')
@@ -146,7 +146,7 @@
                             <ul style="display: {{ $invoicesActive ? 'block' : 'none' }};">
                                 <li>
                                     <a href="{{ route('invoices.index') }}" class="{{ request()->routeIs('invoices.index') ? 'active' : '' }}">
-                                        Invoices
+                                      All  Invoices
                                     </a>
                                 </li>
                                 @can('create-invoices')
@@ -174,13 +174,13 @@
                             <ul style="display: {{ $shipmentsActive ? 'block' : 'none' }};">
                                 <li>
                                     <a href="{{ route('shipments.index') }}" class="{{ request()->routeIs('shipments.index') ? 'active' : '' }}">
-                                        Shipments
+                                        Shipments List
                                     </a>
                                 </li>
                                 @can('create-shipments')
                                 <li>
                                     <a href="{{ route('shipments.create') }}" class="{{ request()->routeIs('shipments.create') ? 'active' : '' }}">
-                                        Create Shipment
+                                        Create
                                     </a>
                                 </li>
                                 @endcan

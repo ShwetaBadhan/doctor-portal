@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
 
         // 1. Super Admin
         $admin = User::firstOrCreate(
-            ['email' => 'admin@doctorportal.com'],
+            ['email' => 'admin@ebiocares.in'],
             [
                 'name'              => 'System Administrator',
                 'phone'             => '9876543210',
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
 
         // 2. Doctor
         $doctor = User::firstOrCreate(
-            ['email' => 'doctor@doctorportal.com'],
+            ['email' => 'doctor@ebiocares.in'],
             [
                 'name'              => 'Dr. Sarah Smith',
                 'phone'             => '9876543211',
@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
 
         // 3. Receptionist
         $receptionist = User::firstOrCreate(
-            ['email' => 'reception@doctorportal.com'],
+            ['email' => 'reception@ebiocares.in'],
             [
                 'name'              => 'Reception Desk',
                 'phone'             => '9876543212',

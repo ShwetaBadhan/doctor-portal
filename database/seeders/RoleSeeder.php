@@ -55,7 +55,8 @@ class RoleSeeder extends Seeder
                 'view-dashboard',
                 'view-patients', 'create-patients',
                 'view-appointments', 'create-appointments', 'edit-appointments',
-                'view-invoices', 'create-invoices',
+                'view-invoices', 'create-invoices','send-patient-welcome-email',
+                'download-patient-report',
             ])->get()
         );
 

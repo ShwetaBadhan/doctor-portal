@@ -28,6 +28,7 @@
             <div class="row">
                 <!-- Left: Invoice Details -->
                 <div class="col-lg-8">
+                <input type="hidden" name="patient_id" id="patientIdHidden" value="{{ old('patient_id') }}">
                     <!-- Company & Invoice Info -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -258,6 +259,12 @@ function fillPatientDetails() {
         document.getElementById('patientName').value = option.dataset.name || '';
         document.getElementById('patientMobile').value = option.dataset.phone || '';
         document.getElementById('patientAddress').value = option.dataset.address || '';
+        
+        // ✅ Set the hidden patient_id field
+        document.getElementById('patientIdHidden').value = option.value;
+    } else {
+        // Clear patient_id if no patient selected
+        document.getElementById('patientIdHidden').value = '';
     }
 }
 

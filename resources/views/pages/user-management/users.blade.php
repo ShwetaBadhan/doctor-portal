@@ -309,16 +309,17 @@
                             <input type="text" name="phone" class="form-control" placeholder="Phone number"
                                 maxlength="20" value="{{ old('phone') }}">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Role<span class="text-danger ms-1">*</span></label>
-                            <select name="role" class="select select" required>
-                                <option value="">Select Role</option>
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role->name }}"
-                                        {{ old('role') == $role->name ? 'selected' : '' }}>{{ $role->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                       <div class="mb-3">
+    <label class="form-label">Role<span class="text-danger ms-1">*</span></label>
+    <select name="role" id="edit_role_{{ $user->id }}" class="select" required>
+        @foreach ($roles as $roleOption)
+            <option value="{{ $roleOption->name }}" 
+                {{ $user->hasRole($roleOption->name) ? 'selected' : '' }}>
+                {{ $roleOption->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
                         <div class="mb-3">
                             <label class="form-label">Password<span class="text-danger ms-1">*</span></label>
                             <input type="password" name="password" class="form-control" placeholder="Min 8 characters"
@@ -353,4 +354,22 @@
         </div>
     </div>
     <!-- End Add User Modal -->
+    <!-- Add this script at the bottom of your view -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Re-initialize select plugin when edit modal opens
+    document.querySelectorAll('[id^="edit_user"]').forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            // If using Select2
+            if (typeof $.fn.select2 !== 'undefined') {
+                $(this).find('.select').select2({
+                    dropdownParent: $(this),
+                    width: '100%'
+                });
+            }
+            // If using TomSelect or other, adjust accordingly
+        });
+    });
+});
+</script>
 @endsection

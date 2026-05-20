@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Shipment extends Model
 {
-    protected $fillable = [
-        'invoice_id', 'patient_id', 'tracking_number', 'courier_name',
-        'recipient_name', 'recipient_phone', 'recipient_address',
-        'recipient_city', 'recipient_state', 'recipient_pincode',
-        'items', 'status', 'status_notes', 'created_by',
-        'packed_at', 'dispatched_at', 'delivered_at'
-    ];
+protected $fillable = [
+    'invoice_id', 'patient_id', 'tracking_number', 'courier_name',
+    'recipient_name', 'recipient_phone', 'recipient_address',
+    'recipient_city', 'recipient_state', 'recipient_pincode', 
+    'recipient_country', // ✅ Add this
+    'items', 'status', 'status_notes', 'remarks', 'created_by',
+    'packed_at', 'dispatched_at', 'delivered_at'
+];
 
     protected $casts = [
         'items' => 'array',

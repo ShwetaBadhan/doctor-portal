@@ -1,6 +1,5 @@
 @extends('layout.master')
 @section('content')
-
     <div class="page-wrapper">
         <div class="content">
 
@@ -17,54 +16,54 @@
                 </div>
             </div>
             <!-- End Page Header -->
-<!-- SweetAlert Session Messages -->
-@if (session('success'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: @json(session('success')),
-                timer: 4000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
-            });
-        });
-    </script>
-@endif
+            <!-- SweetAlert Session Messages -->
+            @if (session('success'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: @json(session('success')),
+                            timer: 4000,
+                            timerProgressBar: true,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'top-end'
+                        });
+                    });
+                </script>
+            @endif
 
-@if (session('error'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: @json(session('error')),
-                confirmButtonColor: '#dc3545'
-            });
-        });
-    </script>
-@endif
+            @if (session('error'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: @json(session('error')),
+                            confirmButtonColor: '#dc3545'
+                        });
+                    });
+                </script>
+            @endif
 
-@if ($errors->any())
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const errorList = @json($errors->all()).map(err => `<li>${err}</li>`).join('');
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                html: `<ul class="text-start mb-0">${errorList}</ul>`,
-                confirmButtonText: 'Got it',
-                confirmButtonColor: '#dc3545'
-            });
-        });
-    </script>
-@endif
+            @if ($errors->any())
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const errorList = @json($errors->all()).map(err => `<li>${err}</li>`).join('');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validation Error',
+                            html: `<ul class="text-start mb-0">${errorList}</ul>`,
+                            confirmButtonText: 'Got it',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    });
+                </script>
+            @endif
 
             <div class="table-responsive">
-                <table class="table table-nowrap">
+                <table class="table datatable table-nowrap">
                     <thead class="thead-light">
                         <tr>
                             <th>Permission</th>
@@ -137,9 +136,9 @@
                                             </button>
                                         </div>
                                         <form action="{{ route('permissions.update', $permission->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
+                                            @csrf @method('PUT')
                                             <div class="modal-body">
+
                                                 <!-- Permission Name -->
                                                 <div class="mb-3">
                                                     <label class="form-label">Permission Name<span
@@ -152,28 +151,54 @@
                                                     @enderror
                                                 </div>
 
-                                                <!-- Group Name -->
+                                                <!-- ✅ Assign to Roles Section -->
+                                                <div class="mb-3">
+                                                    <label class="form-label">Assign to Roles <small
+                                                            class="text-muted">(Optional)</small></label>
+                                                    <div class="border rounded p-2"
+                                                        style="max-height: 200px; overflow-y: auto;">
+                                                        @foreach ($allRoles as $roleItem)
+                                                            <div class="form-check">
+                                                                <input type="checkbox" name="roles[]"
+                                                                    value="{{ $roleItem->name }}"
+                                                                    id="role_{{ $permission->id }}_{{ $roleItem->id }}"
+                                                                    class="form-check-input"
+                                                                    {{ $permission->roles->contains('name', $roleItem->name) ? 'checked' : '' }}>
+                                                                <label
+                                                                    for="role_{{ $permission->id }}_{{ $roleItem->id }}"
+                                                                    class="form-check-label">
+                                                                    {{ $roleItem->name }}
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+
+                                                <!-- Group Name - ✅ Fixed: group_name instead of 'name' -->
                                                 <div class="mb-3">
                                                     <label class="form-label">Group <small
                                                             class="text-muted">(Optional)</small></label>
                                                     <input type="text" name="group_name"
-                                                        value="{{ old('name', $permission->group) }}" class="form-control">
+                                                        value="{{ old('group_name', $permission->group_name) }}"
+                                                        class="form-control">
                                                 </div>
 
-                                                <!-- Guard Name -->
+                                                <!-- Guard Name - ✅ Fixed: comparison with 'web'/'api' instead of '1' -->
                                                 <div class="mb-3">
                                                     <label class="form-label">Guard</label>
-                                                    <select name="guard_name" id="edit_guard_name"
-                                                        class="select select">
+                                                    <select name="guard_name" class="select">
                                                         <option value="web"
-                                                            {{ old('guard', $permission->guard) == '1' ? 'selected' : '' }}>
-                                                            Web</option>
+                                                            {{ old('guard_name', $permission->guard_name) == 'web' ? 'selected' : '' }}>
+                                                            Web
+                                                        </option>
                                                         <option value="api"
-                                                            {{ old('guard', $permission->guard) == '1' ? 'selected' : '' }}>
-                                                            API</option>
+                                                            {{ old('guard_name', $permission->guard_name) == 'api' ? 'selected' : '' }}>
+                                                            API
+                                                        </option>
                                                     </select>
                                                 </div>
 
+                                                <!-- Status -->
                                                 <div class="mb-0">
                                                     <label class="form-label">Status<span
                                                             class="text-danger ms-1">*</span></label>
@@ -196,7 +221,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- End Edit Permission Modal -->
                         @endforeach
                     </tbody>
                 </table>
@@ -207,8 +231,8 @@
     </div>
 
     <!-- ========================
-             Modals Section
-        ========================== -->
+                 Modals Section
+            ========================== -->
 
     <!-- Start Add Permission Modal -->
     <div id="add_permission" class="modal fade">
@@ -303,5 +327,4 @@
         </div>
     </div>
     <!-- End Delete Permission Modal -->
-
 @endsection

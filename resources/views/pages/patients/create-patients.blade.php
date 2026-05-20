@@ -436,13 +436,13 @@
                                 <div class="col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label fw-medium">Medicine/Therapy</label>
-                                        <textarea class="form-control" name="medicine" rows="3">{{ old('medicine') }}</textarea>
+                                        <textarea class="form-control" name="medicine" rows="3" >{{ old('medicine') }}</textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="mb-3">
                                         <label class="form-label fw-medium">Therapy History</label>
-                                        <textarea class="form-control" name="therapy_history" rows="2">{{ old('therapy_history') }}</textarea>
+                                        <textarea class="form-control" name="therapy_history" rows="2" placeholder="Please Enter the History of the Patient">{{ old('therapy_history') }}</textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-12">

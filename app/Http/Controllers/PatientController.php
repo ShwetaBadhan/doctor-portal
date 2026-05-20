@@ -8,6 +8,8 @@ use App\Models\PatientMedicine;
 use App\Http\Requests\PatientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class PatientController extends Controller
 {
@@ -73,9 +75,9 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
-   public function show(Patient $patient)
+public function show(Patient $patient)
 {
-    $patient->load('patientMedicines.medicine');
+    $patient->load(['patientMedicines.medicine', 'appointments']); // ✅ Load appointments
     
     // Load medicine groups for the modal
     $medicineGroups = MedicineGroup::where('is_active', true)
@@ -262,5 +264,119 @@ public function deleteReport(Patient $patient, $index)
 
     // Standard redirect (no AJAX)
     return redirect()->back()->with('success', "Assigned {$assignedCount} medicines from '{$group->name}' group.");
+}
+// Send Welcome Email
+/**
+ * Show welcome letter for printing
+ */
+public function showWelcomeLetter(Patient $patient)
+{
+    return view('pages.patients.welcome-letter', compact('patient'));
+}
+
+/**
+ * Download welcome letter as PDF
+ */
+public function downloadWelcomeLetter(Patient $patient)
+{
+    $pdf = Pdf::loadView('pages.patients.welcome-letter', compact('patient'));
+    return $pdf->download('welcome-letter-' . $patient->patient_id . '.pdf');
+}
+
+/**
+ * Send welcome letter via email
+ */
+public function sendWelcomeEmail(Request $request, Patient $patient)
+{
+    if (empty($patient->email)) {
+        return redirect()->back()->with('error', 'Patient does not have an email address.');
+    }
+
+    try {
+        // Generate PDF
+        $pdf = Pdf::loadView('pages.patients.welcome-letter', compact('patient'));
+        
+        // Send email with PDF attachment
+        Mail::send([], [], function ($message) use ($patient, $pdf) {
+            $message->to($patient->email)
+                    ->subject('Welcome to E-Bio-Cares')
+                    ->from('noreply@dsinnovativesolutions.com', 'E-Bio-Cares')
+                    ->html(view('pages.patients.welcome-email-body', compact('patient'))->render())
+                    ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
+        });
+
+        return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
+    }
+}
+
+// Download Patient Report (PDF)
+public function downloadReport(Patient $patient)
+{
+    // Generate PDF using DomPDF or Snappy
+    // For now, we'll return a simple view that can be printed
+    
+    $data = [
+        'patient' => $patient,
+        'generated_at' => now(),
+        'company' => [
+            'name' => 'E-Bio-Cares',
+            'address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
+            'contact' => '98720-01445, 180012301445',
+            'gstin' => '03BHTPS6858P1Z4',
+            'pan' => 'BHTPS6858P',
+        ]
+    ];
+
+    // Option 1: Return view for browser print
+    return view('pages.patients.report', $data);
+    
+    // Option 2: Generate actual PDF (if using DomPDF)
+    /*
+    $pdf = \PDF::loadView('pages.patients.report', $data);
+    return $pdf->download("patient-report-{$patient->patient_id}.pdf");
+    */
+}
+public function generateDiagnosisReport(Patient $patient)
+{
+    // 1. Get Patient Data
+    // Ensure symptoms are arrays
+   
+// ✅ NEW (Fixed for PHP 8+)
+$existingSymptoms = is_array($patient->existing_symptoms) 
+    ? $patient->existing_symptoms 
+    : (json_decode($patient->existing_symptoms, true) ?? []);
+    
+$nonExistingSymptoms = is_array($patient->non_existing_symptoms) 
+    ? $patient->non_existing_symptoms 
+    : (json_decode($patient->non_existing_symptoms, true) ?? []);
+    // 2. Get Assigned Medicines for this patient
+    // We use the relationship we created earlier
+    $patientMedicines = $patient->patientMedicines()
+        ->with(['medicine']) // Eager load medicine name
+        ->orderBy('sort_order')
+        ->get();
+
+    // Format medicines for the view
+    $medicinesList = [];
+    foreach ($patientMedicines as $pm) {
+        $medicinesList[] = [
+            'name' => $pm->medicine ? $pm->medicine->name : ($pm->medicine_id ?? 'Unknown Medicine'),
+            'dosage' => $pm->dosage,
+            'quantity' => $pm->quantity,
+            'instructions' => $pm->instructions, // e.g. "(DT)", "(AM ONLY)"
+        ];
+    }
+
+    $data = [
+        'patient' => $patient,
+        'existingSymptoms' => $existingSymptoms,
+        'nonExistingSymptoms' => $nonExistingSymptoms,
+        'medicines' => $medicinesList,
+        'reportDate' => now()->format('d-m-Y'), // Current date
+    ];
+
+    return view('pages.patients.diagnosis-report', $data);
 }
 }

@@ -120,6 +120,7 @@
                     <thead class="">
                         <tr>
                             <th>Patient</th>
+                            <th>Patient ID</th>
                             <th>Phone</th>
                             <th>Doctor</th>
                             <th>Address</th>
@@ -154,6 +155,8 @@
                                     </div>
                                 </td>
 
+                                <!-- ID -->
+                                <td>{{ $patient->patient_id }}</td>
                                 <!-- Phone -->
                                 <td>{{ $patient->phone }}</td>
 
@@ -194,59 +197,107 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="action-item">
-                                    <div class="d-flex align-items-center gap-1">
-                                        @can('view-patient-appointment')
-                                            <!-- Appointment Button (optional) -->
-                                            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
-                                                class="btn btn-primary">
-                                                <i class="ti ti-calendar-event me-1"></i>
-                                            </a>
-                                        @endcan
-                                        <a href="javascript:void(0);"
-                                            class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1"
-                                            data-bs-toggle="dropdown" title="More">
-                                            <i class="ti ti-dots-vertical"></i>
-                                        </a>
-                                        <ul class="dropdown-menu p-2">
-                                            <li>
-                                                @can('edit-patients')
-                                                    <a href="{{ route('patients.edit', $patient->id) }}"
-                                                        class="dropdown-item d-flex align-items-center">Edit</a>
-                                                @endcan
-
-                                            </li>
-                                            <li>
-                                                @can('view-patient-details')
-                                                    <a href="{{ route('patients.show', $patient->id) }}"
-                                                        class="dropdown-item d-flex align-items-center">View</a>
-                                                @endcan
-                                            </li>
-                                            <li>
-                                                <!-- Assign Medicines Button (opens patient-specific modal) -->
-                                            <li>
-                                                @can('assign-medicines-to-patients')
-                                                    <a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center" data-bs-toggle="modal"
-                                                        data-bs-target="#assignModal{{ $patient->id }}">
-                                                        <i class="ti ti-pills me-2 fs-14"></i> Assign Medicines
-                                                    </a>
-                                                @endcan
-                                            </li>
-                                            <li>
-                                                @can('delete-patients')
-                                                    <!-- Trigger modal with data attributes -->
-                                                    <a href="javascript:void(0);"
-                                                        class="dropdown-item d-flex align-items-center text-danger"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#delete_modal{{ $patient->id }}">
-                                                        <i class="ti ti-trash me-2 fs-14"></i> Delete
-                                                    </a>
-                                                @endcan
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
+                              <!-- Actions -->
+<td class="action-item">
+    <div class="d-flex align-items-center gap-1">
+        @can('view-patient-appointment')
+            <!-- Appointment Button -->
+            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                class="btn btn-primary">
+                <i class="ti ti-calendar-event me-1"></i>
+            </a>
+        @endcan
+        
+        <a href="javascript:void(0);"
+            class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1"
+            data-bs-toggle="dropdown" title="More">
+            <i class="ti ti-dots-vertical"></i>
+        </a>
+        
+        <ul class="dropdown-menu p-2">
+            <li>
+                @can('edit-patients')
+                    <a href="{{ route('patients.edit', $patient->id) }}"
+                        class="dropdown-item d-flex align-items-center">
+                        <i class="ti ti-edit me-2 fs-14"></i> Edit
+                    </a>
+                @endcan
+            </li>
+            <li>
+                @can('view-patient-details')
+                    <a href="{{ route('patients.show', $patient->id) }}"
+                        class="dropdown-item d-flex align-items-center">
+                        <i class="ti ti-eye me-2 fs-14"></i> View
+                    </a>
+                @endcan
+            </li>
+            
+          <!-- In the dropdown menu -->
+<li>
+    @can('view-patient-details')
+        <a href="{{ route('welcome-letter', $patient->id) }}" 
+           class="dropdown-item d-flex align-items-center" 
+           target="_blank">
+            <i class="ti ti-mail me-2 fs-14"></i> View Welcome Letter
+        </a>
+    @endcan
+</li>
+<li>
+    @can('download-patient-report')
+        <a href="{{ route('welcome-letter.download', $patient->id) }}" 
+           class="dropdown-item d-flex align-items-center">
+            <i class="ti ti-file-download me-2 fs-14"></i> Download Welcome Letter
+        </a>
+    @endcan
+</li>
+<li>
+    @can('send-patient-welcome-email')
+        <!-- Added unique ID & display:contents to prevent dropdown layout breaks -->
+        <form id="welcomeEmailForm_{{ $patient->id }}" 
+              action="{{ route('send-welcome-email', $patient->id) }}" 
+              method="POST" 
+              style="display: contents;">
+            @csrf
+            <!-- Changed type to button & removed onsubmit -->
+            <button type="button" 
+                    class="dropdown-item d-flex align-items-center w-100 border-0 bg-transparent"
+                    onclick="confirmSendEmail('{{ $patient->email }}', 'welcomeEmailForm_{{ $patient->id }}')"
+                    {{ empty($patient->email) ? 'disabled' : '' }}>
+                <i class="ti ti-send me-2 fs-14"></i> Email Welcome Letter
+            </button>
+        </form>
+    @endcan
+</li>
+<li>
+    <a href="{{ route('diagnosis-report', $patient->id) }}" 
+       target="_blank"
+       class="dropdown-item d-flex align-items-center">
+        <i class="ti ti-report-medical me-2 fs-14"></i> Diagnosis Report
+    </a>
+</li>
+            <li>
+                @can('assign-medicines-to-patients')
+                    <a href="javascript:void(0);"
+                        class="dropdown-item d-flex align-items-center" 
+                        data-bs-toggle="modal"
+                        data-bs-target="#assignModal{{ $patient->id }}">
+                        <i class="ti ti-pills me-2 fs-14"></i> Assign Medicines
+                    </a>
+                @endcan
+            </li>
+            <li>
+                @can('delete-patients')
+                    <a href="javascript:void(0);"
+                        class="dropdown-item d-flex align-items-center text-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#delete_modal{{ $patient->id }}">
+                        <i class="ti ti-trash me-2 fs-14"></i> Delete
+                    </a>
+                @endcan
+            </li>
+        </ul>
+    </div>
+</td>
 
                             </tr>
 
@@ -398,4 +449,32 @@
     @endforeach
     <!-- Success/Error Messages -->
     <div id="assignMessage"></div>
+    <script>
+   function confirmSendEmail(email, formId) {
+    if (!email) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Email',
+            text: 'This patient does not have an email address on file.',
+            confirmButtonColor: '#2E37A4'
+        });
+        return;
+    }
+    
+    Swal.fire({
+        title: 'Send Welcome Email?',
+        html: `Send welcome email to <strong>${email}</strong>?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, send',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#2E37A4'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Submit the form programmatically after confirmation
+            document.getElementById(formId).submit();
+        }
+    });
+}
+    </script>
 @endsection

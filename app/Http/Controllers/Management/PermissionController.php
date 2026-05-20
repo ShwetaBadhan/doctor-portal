@@ -5,22 +5,18 @@ namespace App\Http\Controllers\Management;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Permission;
+use Spatie\Permission\Models\Role as SpatieRole;
 use Illuminate\Validation\Rule;
 
 class PermissionController extends Controller
 {
-    /**
-     * Display listing of permissions
-     */
     public function index()
     {
-        $permissions = Permission::orderBy('group_name')->orderBy('name')->get();
-        return view('pages.user-management.permissions', compact('permissions'));
+        $permissions = Permission::with('roles')->orderBy('name')->get(); 
+        $allRoles = SpatieRole::all();
+        return view('pages.user-management.permissions', compact('permissions', 'allRoles'));
     }
 
-    /**
-     * Store newly created permission
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -40,18 +36,10 @@ class PermissionController extends Controller
         return redirect()->route('permissions.index')->with('success', 'Permission created successfully!');
     }
 
-    /**
-     * Update existing permission
-     */
     public function update(Request $request, Permission $permission)
     {
         $request->validate([
-            'name' => [
-                'required', 
-                'string', 
-                'max:255', 
-                Rule::unique('permissions')->ignore($permission->id)
-            ],
+            'name' => ['required', 'string', 'max:255', Rule::unique('permissions')->ignore($permission->id)],
             'group_name' => 'nullable|string|max:255',
             'status' => 'required|in:0,1',
             'guard_name' => 'nullable|in:web,api',
@@ -64,15 +52,20 @@ class PermissionController extends Controller
             'status' => (bool) $request->status,
         ]);
 
+        // ✅ Roles sync karna (by NAME)
+        if ($request->has('roles')) {
+            $permission->roles()->sync(
+                SpatieRole::whereIn('name', $request->roles)->pluck('id')
+            );
+        } else {
+            $permission->roles()->detach();
+        }
+
         return redirect()->route('permissions.index')->with('success', 'Permission updated successfully!');
     }
 
-    /**
-     * Remove permission
-     */
     public function destroy(Permission $permission)
     {
-        // Prevent deleting critical permissions
         $protected = ['view users', 'create users', 'edit users', 'delete users', 'manage roles'];
         if (in_array(strtolower($permission->name), array_map('strtolower', $protected))) {
             return back()->with('error', 'Cannot delete system permission.');
