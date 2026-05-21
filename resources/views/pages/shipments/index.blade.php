@@ -169,11 +169,7 @@
                     </table>
                 </div>
 
-                @if ($shipments->hasPages())
-                    <div class="mt-3">
-                        {{ $shipments->withQueryString()->links() }}
-                    </div>
-                @endif
+               
             </div>
         </div>
     </div>
