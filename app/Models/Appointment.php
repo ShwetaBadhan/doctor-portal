@@ -10,10 +10,28 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Appointment extends Model {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'appointment_id', 'patient_id', 'appointment_type', 'appointment_date',
-        'appointment_time', 'reason', 'status'
-    ];
+   protected $fillable = [
+    'appointment_id',
+    'patient_id',
+    'appointment_type',
+    'appointment_date',
+    'appointment_time',
+    'reason',
+    'status',
+    
+    // ✅ Vitals Fields
+    'vat',
+    'pit',
+    'kuff',
+    'bp',
+    'temp',
+    'pulse',
+    'weight',
+    'tongue',
+    'nails',
+    'cerebral_fluid',
+    'vital_notes',
+];
 
     protected $casts = [
         'appointment_date' => 'date',

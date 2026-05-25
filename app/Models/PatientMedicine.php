@@ -62,4 +62,20 @@ class PatientMedicine extends Model
     {
         return $this->medicine->name ?? 'Unknown Medicine';
     }
+     /**
+     * Scope: Only active assignments.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: Filter by expiry date range.
+     */
+    public function scopeExpiringBetween($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('end_date', [$startDate, $endDate])
+                    ->whereNotNull('end_date');
+    }
 }

@@ -1,5 +1,6 @@
 <!-- Shipments Card (Replaces Doctors) -->
-<div class="col-xl-3 col-md-6">
+@can('view-shipments-stats')
+  <div class="col-xl-3 col-md-6">
     <div class="position-relative border card rounded-2 shadow-sm">
         <img src="assets/img/bg/bg-01.svg" alt="img" class="position-absolute start-0 top-0">
         <div class="card-body">
@@ -26,9 +27,11 @@
             </div>
         </div>
     </div>
-</div>
-<!-- Patients Card -->
-<div class="col-xl-3 col-md-6">
+</div>  
+@endcan
+
+@can('view-patient-stats')
+    <div class="col-xl-3 col-md-6">
     <div class="position-relative border card rounded-2 shadow-sm">
         <img src="assets/img/bg/bg-02.svg" alt="img" class="position-absolute start-0 top-0">
         <div class="card-body">
@@ -57,7 +60,10 @@
     </div>
 </div>
 
-<!-- Appointments Card -->
+@endcan
+<!-- Patients Card -->
+@can('view-appointment-stats')
+    <!-- Appointments Card -->
 <div class="col-xl-3 col-md-6">
     <div class="position-relative border card rounded-2 shadow-sm">
         <img src="assets/img/bg/bg-03.svg" alt="img" class="position-absolute start-0 top-0">
@@ -86,8 +92,10 @@
         </div>
     </div>
 </div>
+@endcan
 
-<!-- Revenue Card -->
+@can('view-revenue-stats')
+    <!-- Revenue Card -->
 <div class="col-xl-3 col-md-6">
     <div class="position-relative border card rounded-2 shadow-sm">
         <img src="assets/img/bg/bg-04.svg" alt="img" class="position-absolute start-0 top-0">
@@ -116,3 +124,5 @@
         </div>
     </div>
 </div>
+@endcan
+

@@ -36,7 +36,11 @@
     
     <!-- Simplebar CSS -->
     <link rel="stylesheet" href="{{ url('assets/plugins/simplebar/simplebar.min.css') }}">
-    
+    <!-- Tom Select CSS -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<!-- ✅ Intl Tel Input CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css">
+
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ url('assets/css/style.css') }}" id="app-style">
 </head>
@@ -82,7 +86,10 @@
     
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <!-- Tom Select JS -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<!-- ✅ Intl Tel Input JS -->
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
     <!-- Main JS -->
     <script src="{{ url('assets/js/script.js') }}"></script>
     

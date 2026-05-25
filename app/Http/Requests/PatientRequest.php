@@ -33,17 +33,7 @@ class PatientRequest extends FormRequest
             'city' => 'required|string',
             'pincode' => 'required|string|max:20',
             
-            // Vital Signs
-            'vat' => 'nullable|string',
-            'pit' => 'nullable|string',
-            'kuff' => 'nullable|string',
-            'bp' => 'nullable|string',
-            'temp' => 'nullable|string',
-            'pulse' => 'nullable|string',
-            'weight' => 'nullable|string',
-            'tongue' => 'nullable|string',
-            'nails' => 'nullable|string',
-            'cerebral_fluid' => 'nullable|in:shrink,expand,normal',
+         
             
              
      // Symptoms Arrays

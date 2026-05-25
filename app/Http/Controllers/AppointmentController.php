@@ -38,9 +38,10 @@ public function create(Request $request)
      */
     public function store(AppointmentRequest $request)
     {
-        Appointment::create($request->validated());
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment created successfully!');
+         Appointment::create($request->validated());
+    
+    return redirect()->route('appointments.index')
+        ->with('success', 'Appointment created successfully!');
     }
 
     /**
@@ -67,9 +68,10 @@ public function create(Request $request)
      */
     public function update(AppointmentRequest $request, Appointment $appointment)
     {
-        $appointment->update($request->validated());
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment updated successfully!');
+       $appointment->update($request->validated());
+    
+    return redirect()->route('appointments.index')
+        ->with('success', 'Appointment updated successfully!');
     }
 
     /**

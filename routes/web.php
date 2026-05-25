@@ -188,6 +188,8 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
     Route::resource('medicines', MedicineController::class);
 
 
+Route::post('/medicines/bulk-store', [MedicineController::class, 'bulkStore'])
+    ->name('medicines.bulk-store');
 
      // Invoice CRUD
     Route::resource('invoices', InvoiceController::class);
@@ -206,3 +208,10 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
     // Dashboard counters
     // Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
     //     ->name('shipments.dashboard');
+    Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
+    ->name('diagnosis-report.download')
+    ->middleware('auth');
+
+    Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])
+    ->name('invoices.download')
+    ->middleware('auth');

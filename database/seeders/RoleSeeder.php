@@ -42,6 +42,7 @@ class RoleSeeder extends Seeder
                 'view-medicine-groups', 'view-medicine-names',
                 'assign-medicines-to-patients',
                 'view-invoices', 'print-invoices',
+                
             ])->get()
         );
 

@@ -14,19 +14,23 @@
             </h6>
         </div>
 
+        <!-- Validation Errors -->
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <!-- SweetAlert Messages -->
         @if(session('success'))
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: @json(session('success')),
-                        timer: 3000,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
+                    Swal.fire({ icon: 'success', title: 'Success!', text: @json(session('success')), timer: 3000, showConfirmButton: false, toast: true, position: 'top-end' });
                 });
             </script>
         @endif
@@ -38,6 +42,8 @@
             <div class="row">
                 <!-- Left: Invoice Details -->
                 <div class="col-lg-8">
+                    <input type="hidden" name="patient_id" id="patientIdHidden" value="{{ old('patient_id', $invoice->patient_id) }}">
+                    
                     <!-- Company & Invoice Info -->
                     <div class="card mb-4">
                         <div class="card-body">
@@ -75,19 +81,19 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label fw-medium">Select Patient</label>
-                                        <select id="patientSelect" class="select" onchange="fillPatientDetails()">
-                                            <option value="">-- Select or type manually --</option>
+                                        <select id="patientSelect" class="form-select select2-patient" onchange="fillPatientDetails()">
+                                            <option value="">-- Search or type patient name/phone --</option>
                                             @foreach($patients as $p)
                                                 <option value="{{ $p->id }}" 
-                                                    data-name="{{ $p->first_name }} {{ $p->last_name }}"
+                                                    data-name="{{ trim($p->first_name . ' ' . $p->last_name) }}"
                                                     data-phone="{{ $p->phone }}"
-                                                    data-address="{{ $p->address_1 }}{{ $p->address_2 ? ', '.$p->address_2 : '' }}, {{ $p->city }}, {{ $p->state }} {{ $p->pincode }}"
+                                                    data-address="{{ trim($p->address_1 . ($p->address_2 ? ', ' . $p->address_2 : '') . ', ' . $p->city . ', ' . $p->state . ' ' . $p->pincode) }}"
                                                     {{ old('patient_id', $invoice->patient_id) == $p->id ? 'selected' : '' }}>
                                                     {{ $p->first_name }} {{ $p->last_name }} ({{ $p->phone }})
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <small class="text-muted">Or enter details manually below</small>
+                                        <small class="text-muted">Search by name or phone number</small>
                                     </div>
                                 </div>
                             </div>
@@ -133,9 +139,8 @@
                                             <th>Item Name <span class="text-danger">*</span></th>
                                             <th width="10%">HSN</th>
                                             <th width="10%">Qty</th>
-                                            <th width="12%">Rate</th>
                                             <th width="15%">Tax</th>
-                                            <th width="12%">Amount</th>
+                                            <th width="15%">Amount <small class="text-muted fw-normal">(Line Total ₹)</small></th>
                                             <th width="5%"></th>
                                         </tr>
                                     </thead>
@@ -152,33 +157,28 @@
                                                        value="{{ old('items.'.$index.'.hsn', $item['hsn'] ?? '') }}">
                                             </td>
                                             <td>
+                                                <!-- ✅ Qty: Editable -->
                                                 <input type="number" name="items[{{ $index }}][quantity]" class="form-control form-control-sm item-qty" 
-                                                       step="0.01" min="0.01" value="{{ old('items.'.$index.'.quantity', $item['quantity']) }}" 
-                                                       required oninput="calculateRow(this)">
-                                            </td>
-                                            <td>
-                                                <input type="number" name="items[{{ $index }}][rate]" class="form-control form-control-sm item-rate" 
-                                                       step="0.01" min="0" value="{{ old('items.'.$index.'.rate', $item['rate']) }}" 
-                                                       required oninput="calculateRow(this)">
+                                                       step="1" min="1" value="{{ old('items.'.$index.'.quantity', $item['quantity']) }}" required oninput="calculateTotal()">
                                             </td>
                                             <td>
                                                 <select name="items[{{ $index }}][tax_type]" class="select form-select-sm item-tax-type" 
-                                                        onchange="toggleTaxPercent(this); calculateRow(this)">
+                                                        onchange="toggleTaxInput(this); calculateTotal()">
                                                     <option value="NONE" {{ old('items.'.$index.'.tax_type', $item['tax_type']) == 'NONE' ? 'selected' : '' }}>No Tax</option>
                                                     <option value="IGST" {{ old('items.'.$index.'.tax_type', $item['tax_type']) == 'IGST' ? 'selected' : '' }}>IGST</option>
                                                     <option value="CGST+SGST" {{ old('items.'.$index.'.tax_type', $item['tax_type']) == 'CGST+SGST' ? 'selected' : '' }}>CGST + SGST</option>
                                                 </select>
                                                 <input type="number" name="items[{{ $index }}][tax_percent]" class="form-control form-control-sm item-tax-percent mt-1" 
                                                        step="0.01" min="0" max="100" placeholder="Tax %" 
-                                                       value="{{ old('items.'.$index.'.tax_percent', $item['tax_percent'] ?? '') }}"
+                                                       value="{{ old('items.'.$index.'.tax_percent', $item['tax_percent'] ?? '18') }}"
                                                        style="{{ old('items.'.$index.'.tax_type', $item['tax_type']) == 'NONE' ? 'display:none;' : '' }}" 
-                                                       oninput="calculateRow(this)">
+                                                       oninput="calculateTotal()">
                                             </td>
                                             <td>
-                                                <input type="text" class="form-control form-control-sm item-amount" readonly 
-                                                       value="{{ number_format(($item['amount'] ?? 0) + ($item['tax_amount'] ?? 0), 2) }}">
-                                                <input type="hidden" name="items[{{ $index }}][amount]" class="item-amount-hidden" 
-                                                       value="{{ number_format(($item['amount'] ?? 0) + ($item['tax_amount'] ?? 0), 2) }}">
+                                                <!-- ✅ Amount: Direct Line Total Input -->
+                                                <input type="number" name="items[{{ $index }}][amount]" class="form-control form-control-sm item-amount" 
+                                                       step="0.01" min="0" placeholder="₹" required 
+                                                       value="{{ old('items.'.$index.'.amount', $item['amount']) }}" oninput="calculateTotal()">
                                             </td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-light text-danger" onclick="removeItemRow(this)" title="Remove">
@@ -232,22 +232,18 @@
                                 <span class="text-muted">Taxable Amount:</span>
                                 <span class="fw-medium" id="taxableAmount">₹{{ number_format($invoice->taxable_amount, 2) }}</span>
                             </div>
-                            @if($invoice->igst_amount > 0)
-                            <div class="d-flex justify-content-between mb-2" id="igstRow">
+                            <div class="d-flex justify-content-between mb-2" id="igstRow" style="{{ $invoice->igst_amount > 0 ? '' : 'display:none;' }}">
                                 <span class="text-muted">IGST:</span>
                                 <span class="fw-medium text-danger" id="igstAmount">₹{{ number_format($invoice->igst_amount, 2) }}</span>
                             </div>
-                            @endif
-                            @if($invoice->cgst_amount > 0)
-                            <div class="d-flex justify-content-between mb-2" id="cgstRow">
+                            <div class="d-flex justify-content-between mb-2" id="cgstRow" style="{{ $invoice->cgst_amount > 0 ? '' : 'display:none;' }}">
                                 <span class="text-muted">CGST:</span>
                                 <span class="fw-medium text-success" id="cgstAmount">₹{{ number_format($invoice->cgst_amount, 2) }}</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2" id="sgstRow">
+                            <div class="d-flex justify-content-between mb-2" id="sgstRow" style="{{ $invoice->sgst_amount > 0 ? '' : 'display:none;' }}">
                                 <span class="text-muted">SGST:</span>
                                 <span class="fw-medium text-success" id="sgstAmount">₹{{ number_format($invoice->sgst_amount, 2) }}</span>
                             </div>
-                            @endif
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold fs-5">Total:</span>
@@ -274,7 +270,7 @@
     </div>
 </div>
 
-<!-- Item Row Template (Hidden) -->
+<!-- Item Row Template (for new rows) -->
 <template id="itemRowTemplate">
     <tr class="item-row">
         <td class="row-num">1</td>
@@ -285,22 +281,18 @@
             <input type="text" name="items[][hsn]" class="form-control form-control-sm" placeholder="HSN">
         </td>
         <td>
-            <input type="number" name="items[][quantity]" class="form-control form-control-sm item-qty" step="0.01" min="0.01" placeholder="0" required oninput="calculateRow(this)">
+            <input type="number" name="items[][quantity]" class="form-control form-control-sm item-qty" step="1" min="1" value="1" required oninput="calculateTotal()">
         </td>
         <td>
-            <input type="number" name="items[][rate]" class="form-control form-control-sm item-rate" step="0.01" min="0" placeholder="0.00" required oninput="calculateRow(this)">
-        </td>
-        <td>
-            <select name="items[][tax_type]" class="select form-select-sm item-tax-type" onchange="toggleTaxPercent(this); calculateRow(this)">
+            <select name="items[][tax_type]" class="select form-select-sm item-tax-type" onchange="toggleTaxInput(this); calculateTotal()">
                 <option value="NONE">No Tax</option>
                 <option value="IGST">IGST</option>
                 <option value="CGST+SGST">CGST + SGST</option>
             </select>
-            <input type="number" name="items[][tax_percent]" class="form-control form-control-sm item-tax-percent mt-1" step="0.01" min="0" max="100" placeholder="Tax %" style="display:none;" oninput="calculateRow(this)">
+            <input type="number" name="items[][tax_percent]" class="form-control form-control-sm item-tax-percent mt-1" step="0.01" min="0" max="100" placeholder="Tax %" style="display:none;" oninput="calculateTotal()">
         </td>
         <td>
-            <input type="text" class="form-control form-control-sm item-amount" readonly value="0.00">
-            <input type="hidden" name="items[][amount]" class="item-amount-hidden">
+            <input type="number" name="items[][amount]" class="form-control form-control-sm item-amount" step="0.01" min="0" placeholder="₹" required oninput="calculateTotal()">
         </td>
         <td>
             <button type="button" class="btn btn-sm btn-light text-danger" onclick="removeItemRow(this)" title="Remove">
@@ -313,15 +305,20 @@
 <script>
 let rowIndex = {{ count($invoice->items) }};
 
-// Fill patient details when selected from dropdown
+// Patient auto-fill
 function fillPatientDetails() {
     const select = document.getElementById('patientSelect');
-    const option = select.options[select.selectedIndex];
     
-    if (option.value) {
-        document.getElementById('patientName').value = option.dataset.name || '';
-        document.getElementById('patientMobile').value = option.dataset.phone || '';
-        document.getElementById('patientAddress').value = option.dataset.address || '';
+    if (select && select.value) {
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            document.getElementById('patientName').value = selectedOption.dataset.name || '';
+            document.getElementById('patientMobile').value = selectedOption.dataset.phone || '';
+            document.getElementById('patientAddress').value = selectedOption.dataset.address || '';
+            document.getElementById('patientIdHidden').value = select.value;
+        }
+    } else {
+        document.getElementById('patientIdHidden').value = '';
     }
 }
 
@@ -331,17 +328,24 @@ function addNewItemRow() {
     const template = document.getElementById('itemRowTemplate');
     const clone = template.content.cloneNode(true);
     
-    // Update name attributes with correct index
     clone.querySelectorAll('[name]').forEach(input => {
         input.name = input.name.replace('[]', `[${rowIndex}]`);
     });
     
-    // Set row number
-    clone.querySelector('.row-num').textContent = rowIndex;
+    // Add event listeners for live calculation
+    clone.querySelector('.item-qty').addEventListener('input', calculateTotal);
+    clone.querySelector('.item-amount').addEventListener('input', calculateTotal);
+    clone.querySelector('.item-tax-type').addEventListener('change', function() {
+        toggleTaxInput(this);
+        calculateTotal();
+    });
+    clone.querySelector('.item-tax-percent').addEventListener('input', calculateTotal);
     
+    clone.querySelector('.row-num').textContent = rowIndex;
     document.getElementById('itemsBody').appendChild(clone);
     document.getElementById('emptyItems').style.display = 'none';
     updateRowNumbers();
+    calculateTotal();
 }
 
 // Remove item row
@@ -350,63 +354,39 @@ function removeItemRow(btn) {
     updateRowNumbers();
     if (document.querySelectorAll('.item-row').length === 0) {
         document.getElementById('emptyItems').style.display = 'block';
-        rowIndex = 0;
+        rowIndex = {{ count($invoice->items) }};
     }
     calculateTotal();
 }
 
-// Update row numbers after delete
+// Update serial numbers
 function updateRowNumbers() {
     document.querySelectorAll('.item-row').forEach((row, idx) => {
         row.querySelector('.row-num').textContent = idx + 1;
     });
 }
 
-// Toggle tax percent input
-function toggleTaxPercent(select) {
+// Toggle tax percent input visibility
+function toggleTaxInput(select) {
     const input = select.closest('td').querySelector('.item-tax-percent');
     if (select.value === 'NONE') {
         input.style.display = 'none';
         input.value = '';
     } else {
         input.style.display = 'block';
-        if (!input.value) input.value = '18'; // Default 18%
+        if (!input.value) input.value = '18';
     }
-    calculateRow(select);
 }
 
-// Calculate row amount and tax
-function calculateRow(el) {
-    const row = el.closest('.item-row');
-    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-    const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
-    const taxType = row.querySelector('.item-tax-type').value;
-    const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
-    
-    const amount = qty * rate;
-    let tax = 0;
-    
-    if (taxType !== 'NONE' && taxPercent > 0) {
-        tax = (amount * taxPercent) / 100;
-    }
-    
-    row.querySelector('.item-amount').value = (amount + tax).toFixed(2);
-    row.querySelector('.item-amount-hidden').value = (amount + tax).toFixed(2);
-    
-    calculateTotal();
-}
-
-// Calculate grand total
+// ✅ Live Calculation Function
 function calculateTotal() {
     let taxable = 0, igst = 0, cgstSgst = 0;
     
     document.querySelectorAll('.item-row').forEach(row => {
-        const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-        const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+        const amount = parseFloat(row.querySelector('.item-amount').value) || 0;
         const taxType = row.querySelector('.item-tax-type').value;
         const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
         
-        const amount = qty * rate;
         taxable += amount;
         
         if (taxType === 'IGST' && taxPercent > 0) {
@@ -420,14 +400,14 @@ function calculateTotal() {
     const sgst = cgstSgst / 2;
     const total = taxable + igst + cgst + sgst;
     
-    // Update display
+    // Update Summary Display
     document.getElementById('taxableAmount').textContent = '₹' + taxable.toFixed(2);
     document.getElementById('igstAmount').textContent = '₹' + igst.toFixed(2);
     document.getElementById('cgstAmount').textContent = '₹' + cgst.toFixed(2);
     document.getElementById('sgstAmount').textContent = '₹' + sgst.toFixed(2);
     document.getElementById('totalAmount').textContent = '₹' + total.toFixed(2);
     
-    // Update hidden inputs for form submission
+    // Update Hidden Inputs for Form Submission
     document.getElementById('inputTaxable').value = taxable.toFixed(2);
     document.getElementById('inputIgst').value = igst.toFixed(2);
     document.getElementById('inputCgst').value = cgst.toFixed(2);
@@ -440,10 +420,65 @@ function calculateTotal() {
     document.getElementById('sgstRow').style.display = sgst > 0 ? 'flex' : 'none';
 }
 
-// Initialize on page load
+// ✅ Initialize on Page Load
 document.addEventListener('DOMContentLoaded', function() {
-    // Calculate initial totals from pre-filled data
+    // Initial calculation from pre-filled values
     calculateTotal();
+    
+    // ✅ Initialize Tom Select for patient dropdown
+    if (typeof TomSelect !== 'undefined') {
+        const patientSelectEl = document.getElementById('patientSelect');
+        
+        // Prepare options data
+        const patientOptions = Array.from(patientSelectEl.options)
+            .filter(opt => opt.value)
+            .map(opt => ({
+                value: opt.value,
+                text: opt.text,
+                name: opt.dataset.name || '',
+                phone: opt.dataset.phone || '',
+                address: opt.dataset.address || ''
+            }));
+        
+        // Get pre-selected value
+        const preSelectedValue = patientSelectEl.value;
+        
+        // Initialize Tom Select
+        const tomSelect = new TomSelect('#patientSelect', {
+            placeholder: 'Search patient by name or phone...',
+            maxItems: 1,
+            valueField: 'value',
+            labelField: 'text',
+            searchField: ['text', 'name', 'phone'],
+            options: patientOptions,
+            items: preSelectedValue ? [preSelectedValue] : [],
+            render: {
+                option: function(data, escape) {
+                    return `<div class="py-2">
+                        <div class="fw-medium">${escape(data.text)}</div>
+                        <small class="text-muted">Phone: ${escape(data.phone)}</small>
+                    </div>`;
+                },
+                item: function(data, escape) {
+                    return `<div>${escape(data.text)}</div>`;
+                }
+            },
+            onChange: function(value) {
+                // Auto-fill patient details when selected
+                if (value) {
+                    const selectedOption = patientSelectEl.querySelector(`option[value="${value}"]`);
+                    if (selectedOption) {
+                        document.getElementById('patientName').value = selectedOption.dataset.name || '';
+                        document.getElementById('patientMobile').value = selectedOption.dataset.phone || '';
+                        document.getElementById('patientAddress').value = selectedOption.dataset.address || '';
+                        document.getElementById('patientIdHidden').value = value;
+                    }
+                } else {
+                    document.getElementById('patientIdHidden').value = '';
+                }
+            }
+        });
+    }
 });
 </script>
 @endsection

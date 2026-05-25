@@ -15,6 +15,10 @@ class PermissionSeeder extends Seeder
         $permissions = [
             // Dashboard
             ['name' => 'view-dashboard', 'group_name' => 'Dashboard'],
+            ['name' => 'view-shipments-stats', 'group_name' => 'Dashboard'],
+            ['name' => 'view-patient-stats', 'group_name' => 'Dashboard'],
+            ['name' => 'view-appointment-stats', 'group_name' => 'Dashboard'],
+            ['name' => 'view-revenue-stats', 'group_name' => 'Dashboard'],
             
             // Users
             ['name' => 'view-users', 'group_name' => 'Users'],

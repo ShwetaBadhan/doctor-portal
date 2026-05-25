@@ -14,8 +14,7 @@ class Patient extends Model
         'patient_id', 'first_name', 'last_name', 'phone', 'email', 'dob', 
         'gender', 'blood_group', 'age', 'primary_doctor', 'status',
         'address_1', 'address_2', 'country', 'state', 'city', 'pincode',
-        'vat', 'pit', 'kuff', 'bp', 'temp', 'pulse', 'weight', 'tongue', 'nails',
-        'cerebral_fluid', 
+       
         'existing_symptoms', 'non_existing_symptoms',
         // ✅ ADD THESE
         'cp', 'cp_movement', 'medical_notes',
@@ -34,15 +33,38 @@ class Patient extends Model
          'test_reports' => 'array',
     ];
 
-    // Generate unique patient ID
-    public static function generatePatientId()
-    {
-        $prefix = 'PID';
-        $lastPatient = self::latest('id')->first();
-        $nextId = $lastPatient ? intval(substr($lastPatient->patient_id, -4)) + 1 : 1;
-        return $prefix . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+   /**
+ * Generate unique patient ID: FirstLetter + LastLetter + CityLetter + RandomNumber
+ * Example: Shweta Badhan Jalandhar → SBJ482916
+ */
+public static function generatePatientId($firstName, $lastName, $city)
+{
+    // Get first letters (uppercase, remove non-alpha characters)
+    $first = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $firstName), 0, 1));
+    $last = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $lastName), 0, 1));
+    $cityLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $city), 0, 1));
+    
+    // Handle empty values with fallback 'X'
+    $first = $first ?: 'X';
+    $last = $last ?: 'X';
+    $cityLetter = $cityLetter ?: 'X';
+    
+    // Generate 6-digit random number
+    $random = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+    
+    // Combine parts
+    $patientId = $first . $last . $cityLetter . $random;
+    
+    // Ensure uniqueness (check database and append counter if needed)
+    $originalId = $patientId;
+    $counter = 1;
+    while (self::where('patient_id', $patientId)->exists()) {
+        $patientId = $originalId . str_pad($counter, 2, '0', STR_PAD_LEFT);
+        $counter++;
     }
-
+    
+    return $patientId;
+}
     // Calculate age from DOB
     public static function calculateAge($dob)
     {
@@ -69,5 +91,20 @@ class Patient extends Model
     public function appointments()
 {
     return $this->hasMany(Appointment::class);
+}
+/**
+ * Get all reminder logs for this patient.
+ */
+public function reminderLogs()
+{
+    return $this->hasMany(ReminderLog::class, 'patient_id');
+}
+
+/**
+ * Get only medicine expiry reminders.
+ */
+public function medicineExpiryReminders()
+{
+    return $this->reminderLogs()->ofType('medicine_expiry');
 }
 }

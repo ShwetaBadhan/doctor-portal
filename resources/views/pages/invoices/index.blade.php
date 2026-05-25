@@ -126,8 +126,8 @@
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
                                     @can('print-invoices')
-                                        <a href="{{ route('invoices.print', $invoice) }}" 
-                                           class="btn btn-light" target="_blank" title="Print">
+                                        <a href="{{ route('invoices.download', $invoice->id) }}" 
+                                           class="btn btn-light" title="Print">
                                             <i class="ti ti-printer"></i>
                                         </a>
                                     @endcan
