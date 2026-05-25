@@ -232,15 +232,7 @@
                                                 @endcan
                                             </li>
 
-                                            <!-- In the dropdown menu -->
-                                            <li>
-                                                @can('view-patient-details')
-                                                    <a href="{{ route('welcome-letter', $patient->id) }}"
-                                                        class="dropdown-item d-flex align-items-center" target="_blank">
-                                                        <i class="ti ti-mail me-2 fs-14"></i> View Welcome Letter
-                                                    </a>
-                                                @endcan
-                                            </li>
+                                          
                                             <li>
                                                 @can('download-patient-report')
                                                     <a href="{{ route('welcome-letter.download', $patient->id) }}"

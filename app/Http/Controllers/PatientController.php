@@ -402,43 +402,85 @@ class PatientController extends Controller
         return view('pages.patients.welcome-letter', compact('patient'));
     }
 
-    /**
-     * Download welcome letter as PDF
-     */
-    public function downloadWelcomeLetter(Patient $patient)
-    {
-        $pdf = Pdf::loadView('pages.patients.welcome-letter', compact('patient'));
-        return $pdf->download('welcome-letter-' . $patient->patient_id . '.pdf');
+ /**
+ * Download welcome letter as PDF with Letterhead Background
+ */
+public function downloadWelcomeLetter(Patient $patient)
+{
+    // Letterhead image ko base64 mein convert karo
+    $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
+    $letterheadBase64 = '';
+    $imageType = 'jpeg';
+    
+    if (file_exists($letterheadPath)) {
+        $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
+        $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
     }
 
-    /**
-     * Send welcome letter via email
-     */
-    public function sendWelcomeEmail(Request $request, Patient $patient)
-    {
-        if (empty($patient->email)) {
-            return redirect()->back()->with('error', 'Patient does not have an email address.');
-        }
+    $data = [
+        'patient' => $patient,
+        'letterheadBase64' => $letterheadBase64,
+        'imageType' => $imageType,
+        'generatedAt' => now(),
+    ];
 
-        try {
-            // Generate PDF
-            $pdf = Pdf::loadView('pages.patients.welcome-letter', compact('patient'));
+    $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
+    $pdf->setPaper('A4');
+    $pdf->setOption('isRemoteEnabled', true);
+    
+    return $pdf->download('welcome-letter-' . $patient->patient_id . '.pdf');
+}
 
-            // Send email with PDF attachment
-            Mail::send([], [], function ($message) use ($patient, $pdf) {
-                $message->to($patient->email)
-                    ->subject('Welcome to E-Bio-Cares')
-                    ->from('noreply@dsinnovativesolutions.com', 'E-Bio-Cares')
-                    ->html(view('pages.patients.welcome-email-body', compact('patient'))->render())
-                    ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
-            });
-
-            return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
-        }
+/**
+ * Send welcome letter via email with Letterhead Background
+ */
+public function sendWelcomeEmail(Request $request, Patient $patient)
+{
+    if (empty($patient->email)) {
+        return redirect()->back()->with('error', 'Patient does not have an email address.');
     }
 
+    try {
+        // Letterhead base64
+        $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
+        $letterheadBase64 = '';
+        $imageType = 'jpeg';
+        
+        if (file_exists($letterheadPath)) {
+            $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
+            $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
+        }
+
+        $data = [
+            'patient' => $patient,
+            'letterheadBase64' => $letterheadBase64,
+            'imageType' => $imageType,
+            'generatedAt' => now(),
+            'forEmail' => true, // Flag for email-specific styling
+        ];
+
+        // PDF generate karo
+        $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
+
+        // Email bhejo with PDF attachment
+        Mail::send([], [], function ($message) use ($patient, $pdf) {
+            $message->to($patient->email)
+                ->subject('Welcome to E-Bio-Cares')
+                ->from(config('mail.from.address', 'noreply@dsinnovativesolutions.com'), 'E-Bio-Cares')
+                ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
+                ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
+        });
+
+        return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
+        
+    } catch (\Exception $e) {
+        Log::error('Welcome Email Failed', [
+            'patient_id' => $patient->id,
+            'error' => $e->getMessage()
+        ]);
+        return redirect()->back()->with('error', 'Failed: ' . $e->getMessage());
+    }
+}
     // Download Patient Report (PDF)
     public function downloadReport(Patient $patient)
     {

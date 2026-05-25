@@ -8,6 +8,7 @@
         .header h1 { color: #2E37A4; margin: 0; }
         .content { margin-bottom: 20px; }
         .footer { text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 30px; }
+   
     </style>
 </head>
 <body>
