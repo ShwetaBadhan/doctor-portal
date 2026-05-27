@@ -36,5 +36,8 @@ class Medicine extends Model
         if ($this->instructions) $parts[] = "({$this->instructions})";
         return implode(' -> ', $parts);
     }
-
+public function patientMedicines()
+{
+    return $this->hasMany(PatientMedicine::class);
+}
 }

@@ -43,7 +43,7 @@
                 <input type="text" name="search" class="form-control" 
                        placeholder="Search: Invoice #, Patient Name, or Patient ID..." 
                        value="{{ request('search') }}">
-                <small class="text-muted">e.g., INV-2026-001 or PAT000005</small>
+                <small class="text-muted">e.g., INV-2026-001 or Patient ID</small>
             </div>
             
             <!-- From Date -->
@@ -96,8 +96,8 @@
                             @forelse($invoices as $invoice)
                             <tr>
                                 <td>
-                                    <a href="{{ route('invoices.print', $invoice) }}" 
-                                       class="fw-medium text-primary" target="_blank">
+                                    <a href="{{ route('invoices.download', $invoice) }}" 
+                                       class="fw-medium text-primary">
                                         {{ $invoice->invoice_number }}
                                     </a>
                                 </td>

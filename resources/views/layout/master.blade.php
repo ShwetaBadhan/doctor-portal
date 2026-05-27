@@ -10,7 +10,7 @@
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ url('assets/img/favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ url('assets/img/apple-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url('assets/img/favicon.png') }}">
 
     <!-- Theme Config Js -->
     <script src="{{ url('assets/js/theme-script.js') }}"></script>
@@ -93,6 +93,6 @@
     <!-- Main JS -->
     <script src="{{ url('assets/js/script.js') }}"></script>
     
-  
+  @stack('scripts')
 </body>
 </html>

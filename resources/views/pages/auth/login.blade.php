@@ -26,7 +26,7 @@
                     <!-- Left Side: Illustration -->
                     <div class="col-lg-6 p-0">
                         <div class="login-backgrounds d-lg-flex align-items-center justify-content-center d-none flex-wrap p-4 position-relative h-100 z-0">
-                            <img src="{{ asset('assets/img/icons/log-illustration-img-01.png') }}" alt="Login Illustration" class="img-fluid img1">
+                            <img src="{{ asset('assets/img/auth/login-image.png') }}" alt="Login Illustration" class="img-fluid img1">
                         </div>
                     </div>
 
@@ -103,7 +103,7 @@
                                                 </div>
 
                                                 <!-- Remember & Forgot -->
-                                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                                {{-- <div class="d-flex align-items-center justify-content-between mb-3">
                                                     <div class="d-flex align-items-center">
                                                         <div class="form-check form-check-md mb-0">
                                                             <input class="form-check-input" id="remember_me" name="remember" type="checkbox" {{ old('remember') ? 'checked' : '' }}>
@@ -113,7 +113,7 @@
                                                     <div class="text-end">
                                                         <a href="" class="text-danger">Forgot Password?</a>
                                                     </div>
-                                                </div>
+                                                </div> --}}
 
                                                 <!-- Submit -->
                                                 <div class="mb-2">
@@ -131,7 +131,7 @@
                                         </div>
 
                                         <!-- Copyright -->
-                                        <p class="text-dark text-center">Copyright &copy; {{ date('Y') }} - E-Bio Cares.</p>
+                                        <p class="text-dark text-center">Copyright &copy; {{ date('Y') }} - E-Bio Cares | Developed by DS Innovative Solutions</p>
                                     </div>
                                 </form>
                             </div>

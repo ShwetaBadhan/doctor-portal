@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Models\MedicineGroup;
+use App\Models\Medicine;
 use App\Models\PatientMedicine;
 use App\Http\Requests\PatientRequest;
 use Illuminate\Http\Request;
@@ -620,5 +621,197 @@ foreach ($patientMedicines as $pm) {
     $filename = "Diagnosis_Report_" . Str::slug($patient->first_name . '_' . $patient->last_name) . ".pdf";
     
     return $pdf->download($filename);
+}
+/**
+ * Get medicines by group via AJAX
+ */
+public function getMedicinesByGroup(MedicineGroup $group, Request $request)
+{
+    $patientId = $request->query('patient_id');
+    
+    $medicines = $group->medicines()
+        ->select('medicines.*')
+        ->with(['patientMedicines' => function($q) use ($patientId) {
+            $q->where('patient_id', $patientId)
+              ->where('is_active', true)
+              ->select('id', 'patient_id', 'medicine_id', 'dosage', 'quantity', 'instructions');
+        }])
+        ->orderBy('sort_order')
+        ->get()
+        ->map(function($medicine) use ($patientId) {
+            $existing = $medicine->patientMedicines->first();
+            return [
+                'id' => $medicine->id,
+                'name' => $medicine->name,
+                'code' => $medicine->code,
+                'dosage' => $existing ? $existing->dosage : $medicine->dosage,
+                'quantity' => $existing ? $existing->quantity : $medicine->quantity,
+                'instructions' => $existing ? $existing->instructions : $medicine->instructions,
+                'already_assigned' => (bool) $existing,
+                'patient_medicine_id' => $existing?->id,
+            ];
+        });
+
+    return response()->json([
+        'group' => $group->name,
+        'medicines' => $medicines
+    ]);
+}
+
+/**
+ * Assign medicines with individual customization
+ */
+// In PatientController.php
+
+public function assignMedicinesCustom(Request $request, Patient $patient)
+{
+    $validated = $request->validate([
+        'medicine_group_id' => 'required|exists:medicine_groups,id',
+        
+        // Group medicines
+        'medicines' => 'nullable|array',
+        'medicines.*.assign' => 'nullable|in:1',
+        'medicines.*.medicine_id' => 'required_with:medicines.*.assign|exists:medicines,id',
+        'medicines.*.dosage' => 'nullable|string|max:50',
+        'medicines.*.quantity' => 'nullable|string|max:50',
+        'medicines.*.patient_medicine_id' => 'nullable|exists:patient_medicines,id',
+        
+        // Extra medicines (outside group)
+        'extra_medicines' => 'nullable|array',
+        'extra_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+        'extra_medicines.*.dosage' => 'nullable|string|max:50',
+        'extra_medicines.*.quantity' => 'nullable|string|max:50',
+        
+        // Common fields
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'notes' => 'nullable|string|max:500',
+    ]);
+
+    $assignedCount = 0;
+    $updatedCount = 0;
+
+    // ===== GROUP MEDICINES =====
+    $group = MedicineGroup::with('medicines')->findOrFail($validated['medicine_group_id']);
+    
+    foreach ($group->medicines as $medicine) {
+        $itemKey = array_search($medicine->id, array_column($validated['medicines'] ?? [], 'medicine_id'));
+        if ($itemKey === false) continue;
+        
+        $item = $validated['medicines'][$itemKey] ?? [];
+        if (empty($item['assign'])) continue;
+
+        $data = [
+            'patient_id' => $patient->id,
+            'medicine_group_id' => $group->id,
+            'medicine_id' => $medicine->id,
+            'dosage' => $item['dosage'] ?? $medicine->dosage,
+            'quantity' => $item['quantity'] ?? $medicine->quantity,
+            'route' => $medicine->route,
+            'instructions' => $medicine->instructions,
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'is_active' => true,
+        ];
+
+        if (!empty($item['patient_medicine_id'])) {
+            PatientMedicine::where('id', $item['patient_medicine_id'])
+                ->where('patient_id', $patient->id)
+                ->update($data);
+            $updatedCount++;
+        } else {
+            $exists = PatientMedicine::where('patient_id', $patient->id)
+                ->where('medicine_id', $medicine->id)
+                ->where('is_active', true)
+                ->exists();
+
+            if (!$exists) {
+                PatientMedicine::create($data);
+                $assignedCount++;
+            }
+        }
+    }
+
+    // ===== EXTRA MEDICINES (Outside Group) =====
+    if (!empty($validated['extra_medicines'])) {
+        foreach ($validated['extra_medicines'] as $extraMed) {
+            if (empty($extraMed['medicine_id'])) continue;
+            
+            $medicine = Medicine::findOrFail($extraMed['medicine_id']);
+            
+            $data = [
+                'patient_id' => $patient->id,
+                'medicine_group_id' => null,  // No group - extra medicine
+                'medicine_id' => $extraMed['medicine_id'],
+                'dosage' => $extraMed['dosage'] ?? $medicine->dosage,
+                'quantity' => $extraMed['quantity'] ?? $medicine->quantity,
+                'route' => $medicine->route,
+                'instructions' => $medicine->instructions,
+                'start_date' => $validated['start_date'] ?? null,
+                'end_date' => $validated['end_date'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'is_active' => true,
+            ];
+
+            // Check if already assigned
+            $exists = PatientMedicine::where('patient_id', $patient->id)
+                ->where('medicine_id', $extraMed['medicine_id'])
+                ->where('is_active', true)
+                ->first();
+
+            if ($exists) {
+                $exists->update($data);
+                $updatedCount++;
+            } else {
+                PatientMedicine::create($data);
+                $assignedCount++;
+            }
+        }
+    }
+
+    $message = [];
+    if ($assignedCount > 0) $message[] = "Assigned {$assignedCount} medicine(s)";
+    if ($updatedCount > 0) $message[] = "Updated {$updatedCount} existing medicine(s)";
+
+    return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
+}
+/**
+ * Update single patient medicine (for inline edits)
+ */
+public function updatePatientMedicine(Request $request, PatientMedicine $patientMedicine)
+{
+    $this->authorize('update', $patientMedicine); // Optional: add policy
+
+    $validated = $request->validate([
+        'dosage' => 'nullable|string|max:50',
+        'quantity' => 'nullable|string|max:50',
+        'instructions' => 'nullable|string|max:255',
+        'start_date' => 'nullable|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'notes' => 'nullable|string|max:500',
+        'is_active' => 'nullable|boolean',
+    ]);
+
+    $patientMedicine->update($validated);
+
+    return redirect()->back()->with('success', 'Medicine updated successfully.');
+}
+/**
+ * Remove a single medicine from patient (AJAX)
+ */
+public function removePatientMedicine(Request $request, PatientMedicine $patientMedicine)
+{
+    // Optional: Authorization check
+    // $this->authorize('delete', $patientMedicine);
+    
+    // Soft delete ya hard delete
+    if ($request->boolean('force')) {
+        $patientMedicine->delete(); // Hard delete
+    } else {
+        $patientMedicine->update(['is_active' => false]); // Soft delete
+    }
+
+    return redirect()->back()->with('success', 'Medicine removed successfully.');
 }
 }

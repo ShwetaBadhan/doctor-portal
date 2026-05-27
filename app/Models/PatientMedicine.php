@@ -10,19 +10,19 @@ class PatientMedicine extends Model
     protected $table = 'patient_medicines';
     
     protected $fillable = [
-        'patient_id',
-        'medicine_group_id',
-        'medicine_id',  // This links to the 'medicines' table
-        'dosage',
-        'quantity',
-        'instructions',
-        'route',
-        'sort_order',
-        'start_date',
-        'end_date',
-        'notes',
-        'is_active',
-    ];
+    'patient_id',
+    'medicine_group_id', 
+    'medicine_id',
+    'dosage',
+    'quantity',
+    'instructions',
+    'route',
+    'sort_order',
+    'start_date',
+    'end_date',
+    'notes',
+    'is_active',
+];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -78,4 +78,5 @@ class PatientMedicine extends Model
         return $query->whereBetween('end_date', [$startDate, $endDate])
                     ->whereNotNull('end_date');
     }
+
 }

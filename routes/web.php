@@ -183,7 +183,19 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
    
     // Medicine Groups - Simple resource routes
     Route::resource('medicine-groups', MedicineGroupController::class);
-    
+
+    // Medicine Group AJAX endpoint
+Route::get('/medicine-groups/{group}/medicines', [PatientController::class, 'getMedicinesByGroup'])
+    ->name('medicine-groups.medicines');
+Route::delete('/patient-medicines/{patientMedicine}/remove', [PatientController::class, 'removePatientMedicine'])->name('patient-medicines.remove');
+
+// Bulk assign with individual customization
+Route::post('/patients/{patient}/medicines/assign-custom', [PatientController::class, 'assignMedicinesCustom'])
+    ->name('patients.medicines.assign-custom');
+
+// Update single patient medicine
+Route::put('/patient-medicines/{patientMedicine}', [PatientController::class, 'updatePatientMedicine'])
+    ->name('patient-medicines.update');
     // Medicines - Simple resource routes  
     Route::resource('medicines', MedicineController::class);
 
