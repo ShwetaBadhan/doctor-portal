@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Invoice #{{ $invoice->invoice_number }}</title>
@@ -44,7 +45,7 @@
         .content {
             position: relative;
             z-index: 1;
-            padding: 70mm 35mm 35mm 35mm; 
+            padding: 70mm 35mm 35mm 35mm;
         }
 
         /* INVOICE HEADER */
@@ -163,7 +164,7 @@
 <body>
     <div class="page">
         <!-- LETTERHEAD BACKGROUND -->
-        @if($letterheadBase64)
+        @if ($letterheadBase64)
             <div class="letterhead-bg">
                 <img src="data:image/{{ $imageType }};base64,{{ $letterheadBase64 }}" alt="">
             </div>
@@ -171,10 +172,10 @@
 
         <!-- CONTENT -->
         <div class="content">
-            
+
             <!-- HEADER -->
             <div class="invoice-header">
-              
+
                 <div class="invoice-title">
                     <h2>TAX INVOICE</h2>
                     <p><strong>No:</strong> {{ $invoice->invoice_number }}</p>
@@ -186,10 +187,10 @@
             <div class="bill-to">
                 <strong>Bill To:</strong><br>
                 {{ $invoice->patient_name }}<br>
-                @if($invoice->patient_mobile)
+                @if ($invoice->patient_mobile)
                     Mobile: {{ $invoice->patient_mobile }}<br>
                 @endif
-                @if($invoice->patient_address)
+                @if ($invoice->patient_address)
                     {!! nl2br(e($invoice->patient_address)) !!}
                 @endif
             </div>
@@ -199,34 +200,36 @@
                 <thead>
                     <tr>
                         <th style="width: 5%;">#</th>
-                        <th style="width: 40%;">Item</th>
+                        <th style="width: 35%;">Item</th>
                         <th style="width: 10%;">HSN</th>
                         <th style="width: 10%;" class="text-right">Qty</th>
-                        <th style="width: 15%;" class="text-right">Tax</th>
-                        <th style="width: 20%;" class="text-right">Amount</th>
+                        <th style="width: 15%;" class="text-right">Unit Price</th>
+                        <th style="width: 10%;" class="text-right">Tax</th>
+                        <th style="width: 15%;" class="text-right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($invoice->items as $index => $item)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $item['name'] }}</td>
-                        <td>{{ $item['hsn'] ?? '-' }}</td>
-                        <td class="text-right">{{ $item['quantity'] }}</td>
-                        <td class="text-right">
-                            @if(isset($item['tax_type']) && $item['tax_type'] !== 'NONE')
-                                {{ $item['tax_type'] }}
-                                @if(isset($item['tax_percent']) && $item['tax_percent'])
-                                    ({{ $item['tax_percent'] }}%)
+                    @foreach ($invoice->items as $index => $item)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $item['name'] }}</td>
+                            <td>{{ $item['hsn'] ?? '-' }}</td>
+                            <td class="text-right">{{ $item['quantity'] }}</td>
+                            <td class="text-right">Rs.{{ number_format($item['unit_price'] ?? 0, 2) }}</td>
+                            <td class="text-right">
+                                @if (isset($item['tax_type']) && $item['tax_type'] !== 'NONE')
+                                    {{ $item['tax_type'] }}
+                                    @if (isset($item['tax_percent']) && $item['tax_percent'])
+                                        ({{ $item['tax_percent'] }}%)
+                                    @endif
+                                @else
+                                    -
                                 @endif
-                            @else
-                                -
-                            @endif
-                        </td>
-                        <td class="text-right">
-                            Rs.{{ number_format(($item['amount'] ?? 0) + ($item['tax_amount'] ?? 0), 2) }}
-                        </td>
-                    </tr>
+                            </td>
+                            <td class="text-right">
+                                Rs.{{ number_format(($item['amount'] ?? 0) + ($item['tax_amount'] ?? 0), 2) }}
+                            </td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
@@ -237,21 +240,21 @@
                     <td>Taxable Amount:</td>
                     <td class="text-right">Rs.{{ number_format($invoice->taxable_amount ?? 0, 2) }}</td>
                 </tr>
-                @if(($invoice->igst_amount ?? 0) > 0)
-                <tr>
-                    <td>IGST:</td>
-                    <td class="text-right">Rs.{{ number_format($invoice->igst_amount, 2) }}</td>
-                </tr>
+                @if (($invoice->igst_amount ?? 0) > 0)
+                    <tr>
+                        <td>IGST:</td>
+                        <td class="text-right">Rs.{{ number_format($invoice->igst_amount, 2) }}</td>
+                    </tr>
                 @endif
-                @if(($invoice->cgst_amount ?? 0) > 0)
-                <tr>
-                    <td>CGST:</td>
-                    <td class="text-right">Rs.{{ number_format($invoice->cgst_amount, 2) }}</td>
-                </tr>
-                <tr>
-                    <td>SGST:</td>
-                    <td class="text-right">Rs.{{ number_format($invoice->sgst_amount, 2) }}</td>
-                </tr>
+                @if (($invoice->cgst_amount ?? 0) > 0)
+                    <tr>
+                        <td>CGST:</td>
+                        <td class="text-right">Rs.{{ number_format($invoice->cgst_amount, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td>SGST:</td>
+                        <td class="text-right">Rs.{{ number_format($invoice->sgst_amount, 2) }}</td>
+                    </tr>
                 @endif
                 <tr class="total-row">
                     <td><strong>Grand Total:</strong></td>
@@ -260,15 +263,15 @@
             </table>
 
             <!-- FOOTER NOTES -->
-            @if($invoice->terms || $invoice->notes)
-            <div class="invoice-footer">
-                @if($invoice->terms)
-                    <p><strong>Terms:</strong> {{ $invoice->terms }}</p>
-                @endif
-                @if($invoice->notes)
-                    <p><strong>Notes:</strong> {{ $invoice->notes }}</p>
-                @endif
-            </div>
+            @if ($invoice->terms || $invoice->notes)
+                <div class="invoice-footer">
+                    @if ($invoice->terms)
+                        <p><strong>Terms:</strong> {{ $invoice->terms }}</p>
+                    @endif
+                    @if ($invoice->notes)
+                        <p><strong>Notes:</strong> {{ $invoice->notes }}</p>
+                    @endif
+                </div>
             @endif
 
             <!-- SIGNATURE -->
@@ -286,4 +289,5 @@
         </div>
     </div>
 </body>
+
 </html>
