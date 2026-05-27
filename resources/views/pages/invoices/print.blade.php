@@ -276,7 +276,7 @@
 
             <!-- SIGNATURE -->
             <div class="signature">
-                <div class="signature-line"></div>
+                {{-- <div class="signature-line"></div> --}}
                 Authorized Signatory<br>
                 {{ $invoice->company_name }}
             </div>
