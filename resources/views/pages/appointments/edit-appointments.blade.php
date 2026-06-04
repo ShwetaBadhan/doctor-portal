@@ -117,14 +117,25 @@
                                 </div>
 
                                 <!-- ✅ VITAL SIGNS SECTION -->
-                                <div class="card mt-4 border-primary">
-                                    <div class="card-header bg-primary text-white py-2">
-                                        <h6 class="fw-bold mb-0">
-                                            <i class="ti ti-heartbeat me-2"></i>Vital Signs (This Visit)
-                                        </h6>
-                                    </div>
+                                <div class="card mt-4">
+                                  <div class="card-header bg-light">
+                                            <h6 class="fw-bold mb-0">
+                                                <i class="ti ti-heartbeat me-2 text-primary"></i>Vital Signs
+                                            </h6>
+                                            <small class="text-muted">Record patient vitals for this visit</small>
+                                        </div>
                                     <div class="card-body">
                                         <div class="row">
+                                          <!-- ✅ Delusion Field -->
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Delusion</label>
+                                                        <input type="text" name="delusion"
+                                                            class="form-control form-control-sm @error('delusion') is-invalid @enderror"
+                                                            value="{{ old('delusion', $appointment->delusion) }}" placeholder="e.g., None, Present, or describe type">
+                                                   
+                                                    </div>
+                                                </div>
                                             <!-- VAT, PIT, KUFF -->
                                             <div class="col-md-4">
                                                 <div class="mb-3">

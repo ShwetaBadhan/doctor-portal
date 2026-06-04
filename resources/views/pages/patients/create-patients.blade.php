@@ -147,23 +147,56 @@
                                             @enderror
                                         </div>
                                     </div>
+                                    <!-- Care Of Fields -->
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label mb-1 fw-medium">Phone Number<span
-                                                    class="text-danger ms-1">*</span></label>
-                                            <input type="tel" class="form-control @error('phone') is-invalid @enderror"
-                                                name="phone" id="phoneInput" value="{{ old('phone') }}" required>
-                                            <input type="hidden" name="country_code" id="countryCode">
-                                            @error('phone')
+                                            <label class="form-label mb-1 fw-medium">Care Of (Relation)</label>
+                                            <input type="text"
+                                                class="form-control @error('care_of_relation') is-invalid @enderror"
+                                                name="care_of_relation" value="{{ old('care_of_relation') }}"
+                                                placeholder="e.g., Father, Guardian">
+                                            @error('care_of_relation')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
+                                            <label class="form-label mb-1 fw-medium">Care Of (Name)</label>
+                                            <input type="text"
+                                                class="form-control @error('care_of_name') is-invalid @enderror"
+                                                name="care_of_name" value="{{ old('care_of_name') }}"
+                                                placeholder="Full Name">
+                                            @error('care_of_name')
+                                                <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label mb-1 fw-medium">Phone Number<span
+                                                    class="text-danger ms-1">*</span></label>
+                                            <input type="tel" class="form-control @error('phone') is-invalid @enderror"
+                                                name="phone" id="phoneInput" value="{{ old('phone') }}"
+                                                placeholder="Enter phone number" required>
+                                            <input type="hidden" name="country_code" id="countryCode" value="+91">
+                                            <input type="hidden" name="phone_country_iso" id="phoneCountryIso"
+                                                value="IN">
+                                            <small class="text-muted">
+                                                <i class="ti ti-info-circle me-1"></i>
+                                                Default: India 🇮 | Click flag to change country
+                                            </small>
+                                            @error('phone')
+                                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
                                             <label class="form-label mb-1 fw-medium">Email Address</label>
-                                            <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                                name="email" value="{{ old('email') }}">
+                                            <input type="email"
+                                                class="form-control @error('email') is-invalid @enderror" name="email"
+                                                value="{{ old('email') }}">
                                             @error('email')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -187,7 +220,8 @@
                                             <select class="select @error('gender') is-invalid @enderror" name="gender"
                                                 required>
                                                 <option value="">Select Gender</option>
-                                                <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male
+                                                <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>
+                                                    Male
                                                 </option>
                                                 <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>
                                                     Female</option>
@@ -727,8 +761,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // ✅ Variables
             let currentStep = 1;
-            const totalSteps = 5; // ✅ Now matches sequential steps
+            const totalSteps = 5;
             const steps = document.querySelectorAll('.step-content');
             const stepItems = document.querySelectorAll('.step-item');
             const progressLines = document.querySelectorAll('.progress-line');
@@ -739,33 +774,108 @@
             const form = document.getElementById('patientForm');
             const fileInput = document.getElementById('testReportsInput');
             const filePreview = document.getElementById('file-preview');
-
-            // ✅ FIXED: intl-tel-input initialization (properly scoped)
-            let iti = null;
             const phoneInput = document.getElementById('phoneInput');
+
+            // ✅ Phone Input - Initialize intl-tel-input
+            let iti = null;
             if (phoneInput) {
                 iti = window.intlTelInput(phoneInput, {
                     initialCountry: "in",
-                    separateDialCode: true,
+                    nationalMode: true,
+                    autoHideDialCode: true,
+                    separateDialCode: false,
                     utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
-                    preferredCountries: ['in', 'us', 'gb', 'ae'],
-                    // ✅ Optional: Auto-detect country (requires HTTPS)
-                    // initialCountry: "auto",
-                    // geoIpLookup: function(callback) {
-                    //     fetch('https://ipapi.co/json')
-                    //         .then(res => res.json())
-                    //         .then(data => callback(data.country_code))
-                    //         .catch(() => callback('in'));
-                    // },
+                    preferredCountries: ['in', 'us', 'gb', 'ae', 'ca', 'au'],
+                    customPlaceholder: function(selectedCountryPlaceholder, selectedCountryData) {
+                        return "e.g., " + selectedCountryPlaceholder;
+                    }
                 });
 
-                // Update hidden field on change
-                phoneInput.addEventListener('change', function() {
-                    const countryCode = iti.getSelectedCountryData().dialCode;
-                    document.getElementById('countryCode').value = '+' + countryCode;
+                // Update hidden fields when country changes
+                function updateHiddenFields() {
+                    if (iti) {
+                        const countryData = iti.getSelectedCountryData();
+                        document.getElementById('countryCode').value = '+' + countryData.dialCode;
+                        document.getElementById('phoneCountryIso').value = countryData.iso2.toUpperCase();
+
+                        console.log('Selected Country:', countryData.iso2.toUpperCase(),
+                            '| Dial Code:', countryData.dialCode);
+                    }
+                }
+
+                // When user manually changes flag
+                phoneInput.addEventListener('countrychange', function() {
+                    updateHiddenFields();
+
+                    const countryData = iti.getSelectedCountryData();
+                    const flagIcon = countryData.iso2.toUpperCase();
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `Country: ${countryData.name} (${flagIcon})`,
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: false
+                    });
+                });
+
+                // Validate on blur
+                phoneInput.addEventListener('blur', function() {
+                    const number = phoneInput.value.replace(/\D/g, '');
+
+                    if (number.length < 7) {
+                        phoneInput.classList.add('is-invalid');
+                        phoneInput.classList.remove('is-valid');
+                    } else {
+                        phoneInput.classList.remove('is-invalid');
+                        phoneInput.classList.add('is-valid');
+                    }
+
+                    updateHiddenFields();
+                });
+
+                // Remove invalid class on input
+                phoneInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '');
+                    phoneInput.classList.remove('is-invalid');
+                });
+
+                // Set initial values
+                setTimeout(() => {
+                    updateHiddenFields();
+                }, 100);
+            }
+
+            // ✅ Form Submit Handler
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (iti && phoneInput) {
+                        const number = phoneInput.value.replace(/\D/g, '');
+                        const countryCode = document.getElementById('countryCode').value;
+
+                        // Combine country code + number for storage
+                        const fullNumber = countryCode + number;
+                        phoneInput.value = fullNumber; // Save as +919876543210
+
+                        // Validation
+                        if (number.length < 10) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Number',
+                                text: 'Please enter a valid phone number (minimum 10 digits)',
+                                confirmButtonColor: '#dc3545'
+                            });
+                            phoneInput.focus();
+                            return false;
+                        }
+                    }
                 });
             }
 
+            // ✅ Step Navigation Functions
             function showStep(step) {
                 steps.forEach(s => s.classList.remove('active'));
                 document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
@@ -805,7 +915,8 @@
 
                 // ✅ Validate phone with intl-tel-input
                 if (step === 1 && iti && phoneInput) {
-                    if (!iti.isValidNumber() || !phoneInput.value.trim()) {
+                    const number = phoneInput.value.replace(/\D/g, '');
+                    if (number.length < 10) {
                         phoneInput.classList.add('is-invalid');
                         valid = false;
                     } else {
@@ -819,10 +930,15 @@
                 const existCount = document.querySelectorAll('input[name="existing_symptoms[]"]:checked').length;
                 const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked')
                     .length;
-                document.getElementById('existing-count').textContent = existCount;
-                document.getElementById('non-existing-count').textContent = nonExistCount;
+
+                const existCountEl = document.getElementById('existing-count');
+                const nonExistCountEl = document.getElementById('non-existing-count');
+
+                if (existCountEl) existCountEl.textContent = existCount;
+                if (nonExistCountEl) nonExistCountEl.textContent = nonExistCount;
             }
 
+            // ✅ File Preview Functions
             function getFileIcon(ext) {
                 const icons = {
                     'pdf': 'ti ti-file-text text-danger',
@@ -844,6 +960,7 @@
             }
 
             function updateFilePreview(files) {
+                if (!filePreview) return;
                 filePreview.innerHTML = '';
                 Array.from(files).forEach((file, index) => {
                     const ext = file.name.split('.').pop();
@@ -862,20 +979,22 @@
                 });
             }
 
-            // ✅ FIXED: Use event delegation instead of inline onclick
-            filePreview.addEventListener('click', function(e) {
-                const removeBtn = e.target.closest('.file-remove');
-                if (removeBtn) {
-                    const index = parseInt(removeBtn.dataset.index);
-                    const dt = new DataTransfer();
-                    const files = fileInput.files;
-                    for (let i = 0; i < files.length; i++) {
-                        if (i !== index) dt.items.add(files[i]);
+            // ✅ File Remove Handler
+            if (filePreview) {
+                filePreview.addEventListener('click', function(e) {
+                    const removeBtn = e.target.closest('.file-remove');
+                    if (removeBtn) {
+                        const index = parseInt(removeBtn.dataset.index);
+                        const dt = new DataTransfer();
+                        const files = fileInput.files;
+                        for (let i = 0; i < files.length; i++) {
+                            if (i !== index) dt.items.add(files[i]);
+                        }
+                        fileInput.files = dt.files;
+                        updateFilePreview(fileInput.files);
                     }
-                    fileInput.files = dt.files;
-                    updateFilePreview(fileInput.files);
-                }
-            });
+                });
+            }
 
             if (fileInput) {
                 fileInput.addEventListener('change', function(e) {
@@ -883,13 +1002,7 @@
                 });
             }
 
-            // ✅ FIXED: Update phone value to full international format on submit
-            form.addEventListener('submit', function(e) {
-                if (iti && phoneInput) {
-                    phoneInput.value = iti.getNumber(); // e.g., +919876543210
-                }
-            });
-
+            // ✅ Navigation Buttons
             nextBtn.addEventListener('click', () => {
                 if (validateStep(currentStep)) {
                     if (currentStep < totalSteps) {
@@ -926,21 +1039,25 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.reset();
-                        if (iti) iti.destroy(); // Clean up intl-tel-input
+                        if (iti) iti.destroy();
                         currentStep = 1;
                         showStep(1);
-                        filePreview.innerHTML = '';
+                        if (filePreview) filePreview.innerHTML = '';
                         document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove(
                             'is-invalid'));
+
                         // Re-initialize intl-tel-input after reset
                         if (phoneInput) {
                             iti = window.intlTelInput(phoneInput, {
                                 initialCountry: "in",
-                                separateDialCode: true,
+                                nationalMode: true,
+                                autoHideDialCode: true,
+                                separateDialCode: false,
                                 utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
-                                preferredCountries: ['in', 'us', 'gb', 'ae'],
+                                preferredCountries: ['in', 'us', 'gb', 'ae', 'ca', 'au'],
                             });
                         }
+
                         Swal.fire({
                             icon: 'success',
                             title: 'Reset!',
@@ -954,10 +1071,12 @@
                 });
             });
 
+            // ✅ Symptom Checkboxes
             document.querySelectorAll('.symptom-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateSymptomCounts);
             });
 
+            // ✅ Initialize first step
             showStep(1);
         });
     </script>

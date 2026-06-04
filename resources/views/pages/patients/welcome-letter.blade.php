@@ -165,7 +165,7 @@
                 <div class="section-title">Need Help?</div>
                 <p>
                     <strong>Need Help?</strong><br>
-                    <strong>Phone:</strong> 98720-01445, 180012301445<br>
+                    <strong>Phone:</strong> 98720-01445, 9888501445<br>
                     <strong>Email:</strong> info@ebiocares.in<br>
                     <strong>Website:</strong> www.ebiocares.in
                 </p>

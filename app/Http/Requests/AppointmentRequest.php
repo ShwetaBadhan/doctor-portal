@@ -30,6 +30,7 @@ class AppointmentRequest extends FormRequest {
         'tongue' => 'nullable|string|max:100',
         'nails' => 'nullable|string|max:100',
         'cerebral_fluid' => 'nullable|in:normal,shrink,expand',
+         'delusion'       => 'nullable|string|max:255', // ✅ Add this
         'vital_notes' => 'nullable|string|max:500',
     ];
     }

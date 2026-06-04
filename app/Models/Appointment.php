@@ -30,6 +30,7 @@ class Appointment extends Model {
     'tongue',
     'nails',
     'cerebral_fluid',
+    'delusion', 
     'vital_notes',
 ];
 

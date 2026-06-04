@@ -17,6 +17,9 @@ class PatientRequest extends FormRequest
         return [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
+             // ✅ Care Of Fields - ADDED
+            'care_of_relation' => 'nullable|string|max:255',
+            'care_of_name' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
             'dob' => 'required|date',
@@ -24,6 +27,7 @@ class PatientRequest extends FormRequest
             'blood_group' => 'nullable|string|max:10',
             'primary_doctor' => 'nullable|string|max:255',
             'status' => 'required|in:available,unavailable',
+            
             
             // Address
             'address_1' => 'required|string',

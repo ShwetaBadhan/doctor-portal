@@ -36,7 +36,7 @@
         
         <div class="footer">
             <p>E-Bio-Cares | VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR<br>
-            Contact: 98720-01445, 180012301445 | www.ebiocares.in</p>
+            Contact: 98720-01445, 9888501445 | www.ebiocares.in</p>
         </div>
     </div>
 </body>

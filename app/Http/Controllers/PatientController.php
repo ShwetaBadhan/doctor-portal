@@ -46,58 +46,68 @@ class PatientController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(PatientRequest $request)
-    {
-        $data = $request->validated();
+{
+    $data = $request->validated();
 
-        // ✅ Generate Patient ID
-        $data['patient_id'] = Patient::generatePatientId(
-            $data['first_name'],
-            $data['last_name'],
-            $data['city'] ?? ''
-        );
+    // ✅ Get the 2-letter country code from the hidden input
+    $countryIso = $request->input('phone_country_iso', 'IN');
 
-        // Calculate Age
-        $data['age'] = Patient::calculateAge($data['dob']);
+    // ✅ Generate Patient ID with all initials + country code + serial number
+    // Example: Shweta Badhan, Care of: Ramesh, Jalandhar, Punjab, India → SBRJPIN4501
+    $data['patient_id'] = Patient::generatePatientId(
+        $data['first_name'],
+        $data['last_name'],
+        $data['care_of_name'] ?? '',      // Care of name
+        $data['city'] ?? '',              // City
+        $data['state'] ?? '',             // State
+        $countryIso                       // Country code (IN, US, AU, etc.)
+    );
+    
+    // Save the ISO code to the database
+    $data['phone_country_iso'] = $countryIso;
 
-        // ✅ Handle NEW symptom arrays (store as JSON)
-        $symptomFields = [
-            'existing_autism',
-            'existing_adhd',
-            'existing_cp',
-            'non_existing_autism',
-            'non_existing_adhd',
-            'non_existing_cp',
-            'additional_symptoms'
-        ];
+    // Calculate Age
+    $data['age'] = Patient::calculateAge($data['dob']);
 
-        foreach ($symptomFields as $field) {
-            if (isset($data[$field]) && is_array($data[$field])) {
-                $data[$field] = json_encode(array_values($data[$field]));
-            } else {
-                $data[$field] = json_encode([]);
-            }
+    // ✅ Handle NEW symptom arrays (store as JSON)
+    $symptomFields = [
+        'existing_autism',
+        'existing_adhd',
+        'existing_cp',
+        'non_existing_autism',
+        'non_existing_adhd',
+        'non_existing_cp',
+        'additional_symptoms'
+    ];
+
+    foreach ($symptomFields as $field) {
+        if (isset($data[$field]) && is_array($data[$field])) {
+            $data[$field] = json_encode(array_values($data[$field]));
+        } else {
+            $data[$field] = json_encode([]);
         }
-
-        // Handle Profile Image
-        if ($request->hasFile('profile_image')) {
-            $data['profile_image'] = $request->file('profile_image')->store('patients/profiles', 'public');
-        }
-
-        // Handle Test Reports
-        if ($request->hasFile('test_reports')) {
-            $reportPaths = [];
-            foreach ($request->file('test_reports') as $file) {
-                $path = $file->store('patients/reports', 'public');
-                $reportPaths[] = $path;
-            }
-            $data['test_reports'] = $reportPaths;
-        }
-
-        Patient::create($data);
-
-        return redirect()->route('patients.index')
-            ->with('success', 'Patient registered successfully!');
     }
+
+    // Handle Profile Image
+    if ($request->hasFile('profile_image')) {
+        $data['profile_image'] = $request->file('profile_image')->store('patients/profiles', 'public');
+    }
+
+    // Handle Test Reports
+    if ($request->hasFile('test_reports')) {
+        $reportPaths = [];
+        foreach ($request->file('test_reports') as $file) {
+            $path = $file->store('patients/reports', 'public');
+            $reportPaths[] = $path;
+        }
+        $data['test_reports'] = $reportPaths;
+    }
+
+    Patient::create($data);
+
+    return redirect()->route('patients.index')
+        ->with('success', 'Patient registered successfully!');
+}
     /**
      * Display the specified resource.
      */
@@ -156,19 +166,40 @@ class PatientController extends Controller
      */
     public function update(PatientRequest $request, Patient $patient)
     {
-        $data = $request->validated();
+          $data = $request->validated();
 
-        // ✅ Regenerate Patient ID only if name/city changed
-        $firstName = $data['first_name'] ?? $patient->first_name;
-        $lastName = $data['last_name'] ?? $patient->last_name;
-        $city = $data['city'] ?? $patient->city ?? '';
+    // ✅ Get the 2-letter country code
+    $countryIso = $request->input('phone_country_iso', $patient->phone_country_iso ?? 'IN');
+    $data['phone_country_iso'] = $countryIso;
 
-        if ($firstName !== $patient->first_name || $lastName !== $patient->last_name || $city !== $patient->city) {
-            $newPatientId = Patient::generatePatientId($firstName, $lastName, $city);
-            if ($newPatientId !== $patient->patient_id) {
-                $data['patient_id'] = $newPatientId;
-            }
+    // ✅ Get all values for Patient ID generation
+    $firstName = $data['first_name'] ?? $patient->first_name;
+    $lastName = $data['last_name'] ?? $patient->last_name;
+    $careOfName = $data['care_of_name'] ?? $patient->care_of_name ?? '';
+    $city = $data['city'] ?? $patient->city ?? '';
+    $state = $data['state'] ?? $patient->state ?? '';
+
+    // ✅ Regenerate Patient ID if any of these fields changed
+    if ($firstName !== $patient->first_name || 
+        $lastName !== $patient->last_name || 
+        $careOfName !== $patient->care_of_name ||
+        $city !== $patient->city || 
+        $state !== $patient->state || 
+        $countryIso !== $patient->phone_country_iso) {
+        
+        $newPatientId = Patient::generatePatientId(
+            $firstName,
+            $lastName,
+            $careOfName,
+            $city,
+            $state,
+            $countryIso
+        );
+        
+        if ($newPatientId !== $patient->patient_id) {
+            $data['patient_id'] = $newPatientId;
         }
+    }
 
         // Recalculate Age
         $data['age'] = Patient::calculateAge($data['dob']);

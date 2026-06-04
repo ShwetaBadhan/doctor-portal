@@ -4,7 +4,7 @@
     <div class="page-wrapper">
         <div class="content">
             <div class="row justify-content-center">
-                <div class="col-lg-10">
+                <div class="col-lg-12">
 
                     <!-- Page Header -->
                     <div class="mb-4">
@@ -77,7 +77,6 @@
                                         $steps = [
                                             1 => ['icon' => 'ti ti-user', 'label' => 'Basic Info'],
                                             2 => ['icon' => 'ti ti-map-pin', 'label' => 'Address'],
-
                                             3 => ['icon' => 'ti ti-notes', 'label' => 'Symptoms'],
                                             4 => ['icon' => 'ti ti-pills', 'label' => 'Treatment'],
                                             5 => ['icon' => 'ti ti-file', 'label' => 'Documents'],
@@ -159,18 +158,61 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <!-- Phone -->
+
+                                    <!-- ✅ Care Of Fields - ADDED -->
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label mb-1 fw-medium">Phone Number<span
-                                                    class="text-danger ms-1">*</span></label>
-                                            <input type="tel" class="form-control @error('phone') is-invalid @enderror"
-                                                name="phone" value="{{ old('phone', $patient->phone) }}" required>
-                                            @error('phone')
+                                            <label class="form-label mb-1 fw-medium">Care Of (Relation)</label>
+                                            <input type="text"
+                                                class="form-control @error('care_of_relation') is-invalid @enderror"
+                                                name="care_of_relation"
+                                                value="{{ old('care_of_relation', $patient->care_of_relation) }}"
+                                                placeholder="e.g., Father, Guardian">
+                                            @error('care_of_relation')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label mb-1 fw-medium">Care Of (Name)</label>
+                                            <input type="text"
+                                                class="form-control @error('care_of_name') is-invalid @enderror"
+                                                name="care_of_name"
+                                                value="{{ old('care_of_name', $patient->care_of_name) }}"
+                                                placeholder="Full Name">
+                                            @error('care_of_name')
+                                                <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- ✅ Phone with intl-tel-input - UPDATED -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label mb-1 fw-medium">Phone Number<span
+                                                    class="text-danger ms-1">*</span></label>
+                                            <input type="tel"
+                                                class="form-control @error('phone') is-invalid @enderror"
+                                                name="phone"
+                                                id="phoneInput"
+                                                value="{{ old('phone', $patient->phone) }}"
+                                                placeholder="Enter phone number"
+                                                required>
+                                            <input type="hidden" name="country_code" id="countryCode"
+                                                value="{{ old('country_code', '+' . ltrim($patient->phone_country_iso ?? 'IN', '+')) }}">
+                                            <input type="hidden" name="phone_country_iso" id="phoneCountryIso"
+                                                value="{{ old('phone_country_iso', $patient->phone_country_iso ?? 'IN') }}">
+                                            <small class="text-muted">
+                                                <i class="ti ti-info-circle me-1"></i>
+                                                Click flag to change country
+                                            </small>
+                                            @error('phone')
+                                                <span class="invalid-feedback d-block">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     <!-- Email -->
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -358,9 +400,7 @@
                             </div>
                         </div>
 
-
-
-                        <!-- Step 4: Symptoms Assessment (Checkboxes) -->
+                        <!-- Step 3: Symptoms Assessment (Checkboxes) -->
                         <div class="card step-content" data-step="3">
                             <div class="card-body">
                                 <h6 class="fw-bold mb-3">Symptoms Assessment</h6>
@@ -387,7 +427,6 @@
                                             'Stool Trained',
                                             'Concentration',
                                         ],
-
                                         'ADHD' => [
                                             'ADHD',
                                             'Super Hyper',
@@ -409,29 +448,23 @@
                                             'Self Cry',
                                         ],
                                     ];
-
                                 @endphp
 
                                 <div class="row">
-
                                     <!-- Existing Symptoms -->
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label fw-medium text-primary">
                                                 <i class="ti ti-circle-check me-1"></i>Existing Symptoms
                                             </label>
-
                                             <p class="text-muted small">Symptoms PRESENT in patient</p>
-
                                             <div class="checkbox-grid border rounded p-3 bg-light"
                                                 style="max-height: 400px; overflow-y: auto;">
-
                                                 @foreach ($symptomsByCategory as $category => $symptoms)
                                                     <div class="mb-3">
                                                         <h6 class="fw-bold text-dark border-bottom pb-1">
                                                             {{ $category }}
                                                         </h6>
-
                                                         @foreach ($symptoms as $symptom)
                                                             <div class="form-check mb-1">
                                                                 <input class="form-check-input symptom-checkbox"
@@ -439,7 +472,6 @@
                                                                     value="{{ $symptom }}"
                                                                     id="exist_{{ str_replace(' ', '_', $symptom) }}"
                                                                     {{ in_array($symptom, old('existing_symptoms', $existingSyms)) ? 'checked' : '' }}>
-
                                                                 <label class="form-check-label small"
                                                                     for="exist_{{ str_replace(' ', '_', $symptom) }}">
                                                                     {{ $symptom }}
@@ -448,9 +480,7 @@
                                                         @endforeach
                                                     </div>
                                                 @endforeach
-
                                             </div>
-
                                             @error('existing_symptoms')
                                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                                             @enderror
@@ -463,18 +493,14 @@
                                             <label class="form-label fw-medium text-danger">
                                                 <i class="ti ti-circle-x me-1"></i>Non-Existing Symptoms
                                             </label>
-
                                             <p class="text-muted small">Symptoms ABSENT in patient</p>
-
                                             <div class="checkbox-grid border rounded p-3 bg-light"
                                                 style="max-height: 400px; overflow-y: auto;">
-
                                                 @foreach ($symptomsByCategory as $category => $symptoms)
                                                     <div class="mb-3">
                                                         <h6 class="fw-bold text-dark border-bottom pb-1">
                                                             {{ $category }}
                                                         </h6>
-
                                                         @foreach ($symptoms as $symptom)
                                                             <div class="form-check mb-1">
                                                                 <input class="form-check-input symptom-checkbox"
@@ -482,7 +508,6 @@
                                                                     value="{{ $symptom }}"
                                                                     id="nonexist_{{ str_replace(' ', '_', $symptom) }}"
                                                                     {{ in_array($symptom, old('non_existing_symptoms', $nonExistingSyms)) ? 'checked' : '' }}>
-
                                                                 <label class="form-check-label small"
                                                                     for="nonexist_{{ str_replace(' ', '_', $symptom) }}">
                                                                     {{ $symptom }}
@@ -491,103 +516,73 @@
                                                         @endforeach
                                                     </div>
                                                 @endforeach
-
                                             </div>
-
                                             @error('non_existing_symptoms')
                                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
-
                                 </div>
-
-
 
                                 <!-- C.P & Medical Notes -->
                                 <div class="row mt-4">
                                     <div class="col-md-4">
                                         <div class="card border">
                                             <div class="card-body">
-
                                                 <h6 class="fw-bold mb-2">C.P (Cerebral Palsy)</h6>
-
                                                 <div class="form-check form-check-inline">
                                                     <input class="form-check-input" type="radio" name="cp"
                                                         value="yes"
                                                         {{ old('cp', $patient->cp) == 'yes' ? 'checked' : '' }}
                                                         id="cp_yes">
-
-                                                    <label class="form-check-label" for="cp_yes">
-                                                        YES
-                                                    </label>
+                                                    <label class="form-check-label" for="cp_yes">YES</label>
                                                 </div>
-
                                                 <div class="form-check form-check-inline">
                                                     <input class="form-check-input" type="radio" name="cp"
                                                         value="no"
                                                         {{ old('cp', $patient->cp) == 'no' ? 'checked' : '' }}
                                                         id="cp_no">
-
-                                                    <label class="form-check-label" for="cp_no">
-                                                        NO
-                                                    </label>
+                                                    <label class="form-check-label" for="cp_no">NO</label>
                                                 </div>
-
                                                 <div class="mt-3">
-                                                    <small class="text-muted fw-medium">
-                                                        Movement Affected:
-                                                    </small>
-
+                                                    <small class="text-muted fw-medium">Movement Affected:</small>
                                                     @php
                                                         $cpMovements = is_array($patient->cp_movement)
                                                             ? $patient->cp_movement
                                                             : json_decode($patient->cp_movement, true) ?? [];
                                                     @endphp
-
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox"
                                                             name="cp_movement[]" value="upper_limb"
                                                             {{ in_array('upper_limb', old('cp_movement', $cpMovements)) ? 'checked' : '' }}
                                                             id="cp_upper">
-
-                                                        <label class="form-check-label" for="cp_upper">
-                                                            Upper Limb
-                                                        </label>
+                                                        <label class="form-check-label" for="cp_upper">Upper Limb</label>
                                                     </div>
-
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="checkbox"
                                                             name="cp_movement[]" value="lower_limb"
                                                             {{ in_array('lower_limb', old('cp_movement', $cpMovements)) ? 'checked' : '' }}
                                                             id="cp_lower">
-
-                                                        <label class="form-check-label" for="cp_lower">
-                                                            Lower Limb
-                                                        </label>
+                                                        <label class="form-check-label" for="cp_lower">Lower Limb</label>
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="col-md-8">
                                         <div class="card border">
                                             <div class="card-body">
-
                                                 <h6 class="fw-bold mb-2">Medical Notes</h6>
-
-                                                <textarea class="form-control" name="medical_notes" rows="5" placeholder="Enter medical notes...">{{ old('medical_notes', $patient->medical_notes) }}</textarea>
-
+                                                <textarea class="form-control" name="medical_notes" rows="5"
+                                                    placeholder="Enter medical notes...">{{ old('medical_notes', $patient->medical_notes) }}</textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
-                        <!-- Step 5: Treatment -->
+
+                        <!-- Step 4: Treatment -->
                         <div class="card step-content" data-step="4">
                             <div class="card-body pb-0">
                                 <h6 class="fw-bold mb-3">Treatment</h6>
@@ -614,7 +609,7 @@
                             </div>
                         </div>
 
-                        <!-- Step 6: Documents (Test Reports) -->
+                        <!-- Step 5: Documents (Test Reports) -->
                         <div class="card step-content" data-step="5">
                             <div class="card-body pb-0">
                                 <h6 class="fw-bold mb-3">Test Reports & Documents</h6>
@@ -641,15 +636,11 @@
                                                                 $icon = $icons[$ext] ?? 'ti ti-file text-muted';
                                                                 $fileName = basename($reportPath);
                                                             @endphp
-
-                                                            <div
-                                                                class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
+                                                            <div class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
                                                                 <i class="{{ $icon }} fs-24"></i>
                                                             </div>
-
-                                                            <p class="small text-truncate mb-2"
-                                                                title="{{ $fileName }}">{{ $fileName }}</p>
-
+                                                            <p class="small text-truncate mb-2" title="{{ $fileName }}">
+                                                                {{ $fileName }}</p>
                                                             <div class="btn-group btn-group-sm">
                                                                 <a href="{{ Storage::url($reportPath) }}"
                                                                     class="btn btn-light" target="_blank" title="View">
@@ -852,11 +843,11 @@
     <!-- SweetAlert2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Minimal JS for Step Navigation + File Preview -->
+    <!-- ✅ Complete JS with intl-tel-input -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let currentStep = 1;
-            const totalSteps = 5; // ✅ Updated to 6 steps
+            const totalSteps = 5;
             const steps = document.querySelectorAll('.step-content');
             const stepItems = document.querySelectorAll('.step-item');
             const progressLines = document.querySelectorAll('.progress-line');
@@ -868,7 +859,102 @@
             const fileInput = document.getElementById('testReportsInput');
             const filePreview = document.getElementById('file-preview');
             const removeReportsInput = document.getElementById('removeReportsInput');
+            const phoneInput = document.getElementById('phoneInput');
 
+            // ✅ Phone Input - Initialize intl-tel-input
+            let iti = null;
+            if (phoneInput) {
+                // Get initial country from hidden field
+                const initialCountry = document.getElementById('phoneCountryIso').value.toLowerCase() || 'in';
+
+                iti = window.intlTelInput(phoneInput, {
+                    initialCountry: initialCountry,
+                    nationalMode: true,
+                    autoHideDialCode: true,
+                    separateDialCode: false,
+                    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+                    preferredCountries: ['in', 'us', 'gb', 'ae', 'ca', 'au'],
+                    customPlaceholder: function(selectedCountryPlaceholder, selectedCountryData) {
+                        return "e.g., " + selectedCountryPlaceholder;
+                    }
+                });
+
+                // Update hidden fields when country changes
+                function updateHiddenFields() {
+                    if (iti) {
+                        const countryData = iti.getSelectedCountryData();
+                        document.getElementById('countryCode').value = '+' + countryData.dialCode;
+                        document.getElementById('phoneCountryIso').value = countryData.iso2.toUpperCase();
+                        console.log('Selected Country:', countryData.iso2.toUpperCase(),
+                            '| Dial Code:', countryData.dialCode);
+                    }
+                }
+
+                // When user manually changes flag
+                phoneInput.addEventListener('countrychange', function() {
+                    updateHiddenFields();
+                    const countryData = iti.getSelectedCountryData();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `Country: ${countryData.name} (${countryData.iso2.toUpperCase()})`,
+                        showConfirmButton: false,
+                        timer: 1500,
+                        timerProgressBar: false
+                    });
+                });
+
+                // Validate on blur
+                phoneInput.addEventListener('blur', function() {
+                    const number = phoneInput.value.replace(/\D/g, '');
+                    if (number.length < 7) {
+                        phoneInput.classList.add('is-invalid');
+                        phoneInput.classList.remove('is-valid');
+                    } else {
+                        phoneInput.classList.remove('is-invalid');
+                        phoneInput.classList.add('is-valid');
+                    }
+                    updateHiddenFields();
+                });
+
+                // Remove invalid class on input
+                phoneInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '');
+                    phoneInput.classList.remove('is-invalid');
+                });
+
+                // Set initial values
+                setTimeout(() => {
+                    updateHiddenFields();
+                }, 100);
+            }
+
+            // ✅ Form Submit Handler
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (iti && phoneInput) {
+                        const number = phoneInput.value.replace(/\D/g, '');
+                        const countryCode = document.getElementById('countryCode').value;
+                        const fullNumber = countryCode + number;
+                        phoneInput.value = fullNumber;
+
+                        if (number.length < 10) {
+                            e.preventDefault();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Number',
+                                text: 'Please enter a valid phone number (minimum 10 digits)',
+                                confirmButtonColor: '#dc3545'
+                            });
+                            phoneInput.focus();
+                            return false;
+                        }
+                    }
+                });
+            }
+
+            // ✅ Step Navigation Functions
             function showStep(step) {
                 steps.forEach(s => s.classList.remove('active'));
                 document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
@@ -888,7 +974,6 @@
                     nextBtn.classList.remove('d-none');
                     submitBtn.classList.add('d-none');
                 }
-                updateSymptomCounts();
             }
 
             function validateStep(step) {
@@ -897,6 +982,7 @@
                 let valid = true;
 
                 required.forEach(field => {
+                    if (field.id === 'phoneInput') return;
                     if (!field.value.trim()) {
                         valid = false;
                         field.classList.add('is-invalid');
@@ -904,15 +990,18 @@
                         field.classList.remove('is-invalid');
                     }
                 });
-                return valid;
-            }
 
-            function updateSymptomCounts() {
-                const existCount = document.querySelectorAll('input[name="existing_symptoms[]"]:checked').length;
-                const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked')
-                    .length;
-                document.getElementById('existing-count').textContent = existCount;
-                document.getElementById('non-existing-count').textContent = nonExistCount;
+                // Validate phone
+                if (step === 1 && iti && phoneInput) {
+                    const number = phoneInput.value.replace(/\D/g, '');
+                    if (number.length < 10) {
+                        phoneInput.classList.add('is-invalid');
+                        valid = false;
+                    } else {
+                        phoneInput.classList.remove('is-invalid');
+                    }
+                }
+                return valid;
             }
 
             // File Preview Functions
@@ -937,28 +1026,28 @@
             }
 
             function updateFilePreview(files) {
+                if (!filePreview) return;
                 filePreview.innerHTML = '';
                 Array.from(files).forEach((file, index) => {
                     const ext = file.name.split('.').pop();
                     const iconClass = getFileIcon(ext);
-
                     const item = document.createElement('div');
                     item.className = 'file-preview-item';
                     item.innerHTML = `
-                <div class="file-icon"><i class="${iconClass} fs-14"></i></div>
-                <div class="file-info">
-                    <div class="file-name" title="${file.name}">${file.name}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
-                </div>
-                <div class="file-remove" onclick="removeNewFile(${index})">
-                    <i class="ti ti-x fs-14"></i>
-                </div>
-            `;
+                        <div class="file-icon"><i class="${iconClass} fs-14"></i></div>
+                        <div class="file-info">
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <div class="file-remove" onclick="removeNewFile(${index})">
+                            <i class="ti ti-x fs-14"></i>
+                        </div>
+                    `;
                     filePreview.appendChild(item);
                 });
             }
 
-            // Remove newly selected file (before upload)
+            // Remove newly selected file
             window.removeNewFile = function(index) {
                 const dt = new DataTransfer();
                 const files = fileInput.files;
@@ -969,7 +1058,7 @@
                 updateFilePreview(fileInput.files);
             };
 
-            // Remove existing report (mark for deletion)
+            // Remove existing report
             window.removeExistingReport = function(index, fileName) {
                 Swal.fire({
                     title: 'Remove Report?',
@@ -981,15 +1070,10 @@
                     confirmButtonColor: '#dc3545'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Add to hidden input for server to delete
-                        let removed = removeReportsInput.value ? JSON.parse(removeReportsInput.value) :
-                            [];
+                        let removed = removeReportsInput.value ? JSON.parse(removeReportsInput.value) : [];
                         removed.push(index);
                         removeReportsInput.value = JSON.stringify(removed);
-
-                        // Hide the report card visually
                         event.target.closest('.col-md-4').style.display = 'none';
-
                         Swal.fire({
                             icon: 'success',
                             title: 'Removed!',
@@ -1048,11 +1132,6 @@
                         location.reload();
                     }
                 });
-            });
-
-            // Symptom checkbox counters
-            document.querySelectorAll('.symptom-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateSymptomCounts);
             });
 
             // Initialize

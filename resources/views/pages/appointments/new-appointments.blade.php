@@ -138,6 +138,18 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
+                                              <!-- ✅ Delusion Field -->
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Delusion</label>
+                                                        <input type="text" name="delusion"
+                                                            class="form-control form-control-sm @error('delusion') is-invalid @enderror"
+                                                            value="{{ old('delusion') }}" placeholder="e.g., None, Present, or describe type">
+                                                        @error('delusion')
+                                                            <span class="invalid-feedback">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                                 <!-- VAT, PIT, KUFF -->
                                                 <div class="col-md-4">
                                                     <div class="mb-3">
