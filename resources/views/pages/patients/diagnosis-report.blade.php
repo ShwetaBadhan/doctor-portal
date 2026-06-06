@@ -362,119 +362,103 @@
 
         </div>
 
-        {{-- SYMPTOMS --}}
-        <div class="section">
-            <div class="section-title">
-                Symptoms Assessment
-            </div>
+       {{-- SYMPTOMS --}}
+<div class="section">
+    <div class="section-title">
+        Symptoms Assessment
+    </div>
 
-            <table class="symptoms-grid">
-                <tr>
-                    {{-- EXISTING SYMPTOMS --}}
-                    <td>
-                        <strong>Existing Symptoms</strong>
+    <table class="symptoms-grid">
+        <tr>
+            {{-- EXISTING SYMPTOMS --}}
+            <td>
+                <strong>Existing Symptoms</strong>
 
-                        @php
-                            $existingSyms = $existingSymptoms ?? ($patient->existing_symptoms ?? []);
-                            $existingCount = count($existingSyms);
-                            $useTwoColExisting = $existingCount > 6;
-                            $existingMid = ceil($existingCount / 2);
-                            $existingLeft = array_slice($existingSyms, 0, $existingMid);
-                            $existingRight = array_slice($existingSyms, $existingMid);
-                        @endphp
+                @php
+                    $existingSyms = $existingSymptoms ?? ($patient->existing_symptoms ?? []);
+                    $existingChunks = array_chunk($existingSyms, 6);
+                    $existingColCount = count($existingChunks);
+                @endphp
 
-                        @if ($useTwoColExisting)
-                            <table style="width:100%; border:none; margin-top:4px;">
-                                <tr>
-                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
-                                        <ul style="padding-left:15px; margin:0;">
-                                            @foreach ($existingLeft as $sym)
-                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </td>
-                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
-                                        <ul style="padding-left:15px; margin:0;">
-                                            @foreach ($existingRight as $sym)
-                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </td>
-                                </tr>
-                            </table>
-                        @else
-                            <ul style="padding-left:15px; margin-top:4px;">
-                                @foreach ($existingSyms as $sym)
-                                    <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </td>
+                @if ($existingColCount > 1)
+                    <table style="width:100%; border:none; margin-top:4px;">
+                        <tr>
+                            @foreach ($existingChunks as $chunk)
+                                <td style="width:{{ floor(100 / $existingColCount) }}%; border:none; padding:0; vertical-align:top;">
+                                    <ul style="padding-left:15px; margin:0;">
+                                        @foreach ($chunk as $sym)
+                                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                        @endforeach
+                                    </ul>
+                                </td>
+                            @endforeach
+                        </tr>
+                    </table>
+                @else
+                    <ul style="padding-left:15px; margin-top:4px;">
+                        @foreach ($existingSyms as $sym)
+                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </td>
 
-                    {{-- NON EXISTING SYMPTOMS --}}
-                    <td>
-                        <strong>Non Existing Symptoms</strong>
+            {{-- NON EXISTING SYMPTOMS --}}
+            <td>
+                <strong>Non Existing Symptoms</strong>
 
-                        @php
-                            $nonExistingSyms = $nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []);
-                            $nonExistingCount = count($nonExistingSyms);
-                            $useTwoColNon = $nonExistingCount > 6;
-                            $nonExistingMid = ceil($nonExistingCount / 2);
-                            $nonExistingLeft = array_slice($nonExistingSyms, 0, $nonExistingMid);
-                            $nonExistingRight = array_slice($nonExistingSyms, $nonExistingMid);
-                        @endphp
+                @php
+                    $nonExistingSyms = $nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []);
+                    $nonExistingChunks = array_chunk($nonExistingSyms, 6);
+                    $nonExistingColCount = count($nonExistingChunks);
+                @endphp
 
-                        @if ($useTwoColNon)
-                            <table style="width:100%; border:none; margin-top:4px;">
-                                <tr>
-                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
-                                        <ul style="padding-left:15px; margin:0;">
-                                            @foreach ($nonExistingLeft as $sym)
-                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </td>
-                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
-                                        <ul style="padding-left:15px; margin:0;">
-                                            @foreach ($nonExistingRight as $sym)
-                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </td>
-                                </tr>
-                            </table>
-                        @else
-                            <ul style="padding-left:15px; margin-top:4px;">
-                                @foreach ($nonExistingSyms as $sym)
-                                    <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                @endforeach
-                            </ul>
-                        @endif
-                    </td>
+                @if ($nonExistingColCount > 1)
+                    <table style="width:100%; border:none; margin-top:4px;">
+                        <tr>
+                            @foreach ($nonExistingChunks as $chunk)
+                                <td style="width:{{ floor(100 / $nonExistingColCount) }}%; border:none; padding:0; vertical-align:top;">
+                                    <ul style="padding-left:15px; margin:0;">
+                                        @foreach ($chunk as $sym)
+                                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                        @endforeach
+                                    </ul>
+                                </td>
+                            @endforeach
+                        </tr>
+                    </table>
+                @else
+                    <ul style="padding-left:15px; margin-top:4px;">
+                        @foreach ($nonExistingSyms as $sym)
+                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </td>
 
-                    {{-- C.P DETAILS --}}
-                    <td>
-                        <strong>C.P Details</strong>
+            {{-- C.P DETAILS --}}
+            <td>
+                <strong>C.P Details</strong>
 
-                        <p style="margin-top:4px;">
-                            <strong>C.P:</strong>
-                            {{ strtoupper($patient->cp ?? 'NO') }}
-                        </p>
+                <p style="margin-top:4px;">
+                    <strong>C.P:</strong>
+                    {{ strtoupper($patient->cp ?? 'NO') }}
+                </p>
 
-                        @php
-                            $cpMovements = is_array($patient->cp_movement)
-                                ? $patient->cp_movement
-                                : json_decode($patient->cp_movement, true) ?? [];
-                        @endphp
+                @php
+                    $cpMovements = is_array($patient->cp_movement)
+                        ? $patient->cp_movement
+                        : json_decode($patient->cp_movement, true) ?? [];
+                @endphp
 
-                        <p style="margin-top:4px;">
-                            <strong>Movement:</strong><br>
-                            {{ implode(', ', $cpMovements) ?: 'N/A' }}
-                        </p>
-                    </td>
-                </tr>
-            </table>
-        </div>
+                <p style="margin-top:4px;">
+                    <strong>Movement:</strong><br>
+                    {{ implode(', ', $cpMovements) ?: 'N/A' }}
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
 
         {{-- MEDICINES --}}
         <div class="section">
