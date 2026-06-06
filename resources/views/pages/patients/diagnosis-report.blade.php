@@ -253,37 +253,35 @@
 <body>
 
     {{-- PREVIEW TOOLBAR --}}
-    @if(isset($isPreview) && $isPreview)
-    <div class="preview-toolbar">
+    @if (isset($isPreview) && $isPreview)
+        <div class="preview-toolbar">
 
-        <div class="title">
-            Diagnosis Report Preview - {{ $patient->patient_id }}
+            <div class="title">
+                Diagnosis Report Preview - {{ $patient->patient_id }}
+            </div>
+
+            <div class="buttons">
+
+                <button onclick="window.history.back()" class="back">
+                    Back
+                </button>
+
+
+
+                <a href="{{ route('diagnosis-report.download', $patient->id) }}" class="download">
+                    Download PDF
+                </a>
+
+            </div>
+
         </div>
-
-        <div class="buttons">
-
-            <button onclick="window.history.back()" class="back">
-                Back
-            </button>
-
-           
-
-            <a href="{{ route('diagnosis-report.download', $patient->id) }}"
-               class="download">
-                Download PDF
-            </a>
-
-        </div>
-
-    </div>
     @endif
 
     {{-- LETTERHEAD --}}
-    @if($letterheadBase64)
-    <div class="letterhead-bg">
-        <img src="data:image/jpeg;base64,{{ $letterheadBase64 }}"
-             alt="Letterhead">
-    </div>
+    @if ($letterheadBase64)
+        <div class="letterhead-bg">
+            <img src="data:image/jpeg;base64,{{ $letterheadBase64 }}" alt="Letterhead">
+        </div>
     @endif
 
     {{-- CONTENT --}}
@@ -366,61 +364,116 @@
 
         {{-- SYMPTOMS --}}
         <div class="section">
-
             <div class="section-title">
                 Symptoms Assessment
             </div>
 
             <table class="symptoms-grid">
-
                 <tr>
-
+                    {{-- EXISTING SYMPTOMS --}}
                     <td>
                         <strong>Existing Symptoms</strong>
 
-                        <ul>
-                            @foreach ($existingSymptoms ?? ($patient->existing_symptoms ?? []) as $sym)
-                            <li>{{ $sym }}</li>
-                            @endforeach
-                        </ul>
+                        @php
+                            $existingSyms = $existingSymptoms ?? ($patient->existing_symptoms ?? []);
+                            $existingCount = count($existingSyms);
+                            $useTwoColExisting = $existingCount > 10;
+                            $existingMid = ceil($existingCount / 2);
+                            $existingLeft = array_slice($existingSyms, 0, $existingMid);
+                            $existingRight = array_slice($existingSyms, $existingMid);
+                        @endphp
+
+                        @if ($useTwoColExisting)
+                            <table style="width:100%; border:none; margin-top:4px;">
+                                <tr>
+                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
+                                        <ul style="padding-left:15px; margin:0;">
+                                            @foreach ($existingLeft as $sym)
+                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
+                                        <ul style="padding-left:15px; margin:0;">
+                                            @foreach ($existingRight as $sym)
+                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
+                        @else
+                            <ul style="padding-left:15px; margin-top:4px;">
+                                @foreach ($existingSyms as $sym)
+                                    <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </td>
 
+                    {{-- NON EXISTING SYMPTOMS --}}
                     <td>
                         <strong>Non Existing Symptoms</strong>
 
-                        <ul>
-                            @foreach ($nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []) as $sym)
-                            <li>{{ $sym }}</li>
-                            @endforeach
-                        </ul>
+                        @php
+                            $nonExistingSyms = $nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []);
+                            $nonExistingCount = count($nonExistingSyms);
+                            $useTwoColNon = $nonExistingCount > 10;
+                            $nonExistingMid = ceil($nonExistingCount / 2);
+                            $nonExistingLeft = array_slice($nonExistingSyms, 0, $nonExistingMid);
+                            $nonExistingRight = array_slice($nonExistingSyms, $nonExistingMid);
+                        @endphp
+
+                        @if ($useTwoColNon)
+                            <table style="width:100%; border:none; margin-top:4px;">
+                                <tr>
+                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
+                                        <ul style="padding-left:15px; margin:0;">
+                                            @foreach ($nonExistingLeft as $sym)
+                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                    <td style="width:50%; border:none; padding:0; vertical-align:top;">
+                                        <ul style="padding-left:15px; margin:0;">
+                                            @foreach ($nonExistingRight as $sym)
+                                                <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
+                        @else
+                            <ul style="padding-left:15px; margin-top:4px;">
+                                @foreach ($nonExistingSyms as $sym)
+                                    <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </td>
 
+                    {{-- C.P DETAILS --}}
                     <td>
-
                         <strong>C.P Details</strong>
 
-                        <p>
+                        <p style="margin-top:4px;">
                             <strong>C.P:</strong>
                             {{ strtoupper($patient->cp ?? 'NO') }}
                         </p>
 
                         @php
                             $cpMovements = is_array($patient->cp_movement)
-                            ? $patient->cp_movement
-                            : json_decode($patient->cp_movement, true) ?? [];
+                                ? $patient->cp_movement
+                                : json_decode($patient->cp_movement, true) ?? [];
                         @endphp
 
-                        <p>
+                        <p style="margin-top:4px;">
                             <strong>Movement:</strong><br>
                             {{ implode(', ', $cpMovements) ?: 'N/A' }}
                         </p>
-
                     </td>
-
                 </tr>
-
             </table>
-
         </div>
 
         {{-- MEDICINES --}}
@@ -430,112 +483,101 @@
                 Medicine Prescription
             </div>
 
-            @if(count($medicines) > 0)
+            @if (count($medicines) > 0)
 
-            @php
-                $useTwoColumns = count($medicines) > 14;
+                @php
+                    $useTwoColumns = count($medicines) > 14;
 
-                $totalMeds = count($medicines);
+                    $totalMeds = count($medicines);
 
-                $midPoint = ceil($totalMeds / 2);
+                    $midPoint = ceil($totalMeds / 2);
 
-                $leftMeds = array_slice($medicines, 0, $midPoint);
+                    $leftMeds = array_slice($medicines, 0, $midPoint);
 
-                $rightMeds = array_slice($medicines, $midPoint);
+                    $rightMeds = array_slice($medicines, $midPoint);
 
-                $startNumber = count($leftMeds) + 1;
-            @endphp
+                    $startNumber = count($leftMeds) + 1;
+                @endphp
 
-            @if($useTwoColumns)
+                @if ($useTwoColumns)
 
-            <div class="two-column-medicines">
+                    <div class="two-column-medicines">
 
-                <table>
-                    <tr>
+                        <table>
+                            <tr>
 
-                        <td>
+                                <td>
 
-                            <ol class="medicine-list">
+                                    <ol class="medicine-list">
 
-                                @foreach($leftMeds as $med)
+                                        @foreach ($leftMeds as $med)
+                                            <li>
+                                                <strong>
+                                                    {{ $med['name'] ?? ($med->name ?? '-') }}
+                                                </strong>
 
-                                <li>
-                                    <strong>
-                                        {{ $med['name'] ?? $med->name ?? '-' }}
-                                    </strong>
+                                                —
+                                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
 
-                                    —
-                                    {{ $med['dosage'] ?? $med->dosage ?? '-' }}
+                                                |
+                                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+                                            </li>
+                                        @endforeach
 
-                                    |
-                                    {{ $med['quantity'] ?? $med->quantity ?? '-' }}
-                                </li>
+                                    </ol>
 
-                                @endforeach
+                                </td>
 
-                            </ol>
+                                <td>
 
-                        </td>
+                                    <ol class="medicine-list" start="{{ $startNumber }}">
 
-                        <td>
+                                        @foreach ($rightMeds as $med)
+                                            <li>
+                                                <strong>
+                                                    {{ $med['name'] ?? ($med->name ?? '-') }}
+                                                </strong>
 
-                            <ol class="medicine-list"
-                                start="{{ $startNumber }}">
+                                                —
+                                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
 
-                                @foreach($rightMeds as $med)
+                                                |
+                                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+                                            </li>
+                                        @endforeach
 
-                                <li>
-                                    <strong>
-                                        {{ $med['name'] ?? $med->name ?? '-' }}
-                                    </strong>
+                                    </ol>
 
-                                    —
-                                    {{ $med['dosage'] ?? $med->dosage ?? '-' }}
+                                </td>
 
-                                    |
-                                    {{ $med['quantity'] ?? $med->quantity ?? '-' }}
-                                </li>
+                            </tr>
+                        </table>
 
-                                @endforeach
+                    </div>
+                @else
+                    <ol class="medicine-list">
 
-                            </ol>
+                        @foreach ($medicines as $med)
+                            <li>
+                                <strong>
+                                    {{ $med['name'] ?? ($med->name ?? '-') }}
+                                </strong>
 
-                        </td>
+                                —
+                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
 
-                    </tr>
-                </table>
+                                |
+                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+                            </li>
+                        @endforeach
 
-            </div>
+                    </ol>
 
+                @endif
             @else
-
-            <ol class="medicine-list">
-
-                @foreach($medicines as $med)
-
-                <li>
-                    <strong>
-                        {{ $med['name'] ?? $med->name ?? '-' }}
-                    </strong>
-
-                    —
-                    {{ $med['dosage'] ?? $med->dosage ?? '-' }}
-
-                    |
-                    {{ $med['quantity'] ?? $med->quantity ?? '-' }}
-                </li>
-
-                @endforeach
-
-            </ol>
-
-            @endif
-
-            @else
-
-            <p style="text-align:center;color:#999;">
-                No medicines prescribed
-            </p>
+                <p style="text-align:center;color:#999;">
+                    No medicines prescribed
+                </p>
 
             @endif
 
