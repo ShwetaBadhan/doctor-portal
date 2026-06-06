@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
@@ -39,7 +38,6 @@ class UserController extends Controller
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:800'
         ]);
 
-        // ✅ Step 1: Prepare base data
         $data = [
             'name' => $request->name,
             'email' => $request->email,
@@ -48,30 +46,13 @@ class UserController extends Controller
             'status' => $request->status ?? 1
         ];
 
-        // ✅ Step 2: Handle profile photo BEFORE creating user
+        // ✅ Handle profile photo
         if ($request->hasFile('profile_photo')) {
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $data['profile_photo'] = $path; // Add to data array
+            $data['profile_photo'] = $request->file('profile_photo')->store('profile-photos', 'public');
         }
 
-        // ✅ Step 3: NOW create the user
         $user = User::create($data);
-
-        // ✅ Step 4: Assign role
         $user->assignRole($request->role);
-
-        // ✅ Step 5: SYNC to user_profiles table (AFTER user exists)
-        if ($request->hasFile('profile_photo')) {
-            $profile = $user->profile()->firstOrNew(['user_id' => $user->id]);
-            
-            // Delete old if exists (unlikely for new user, but safe)
-            if ($profile->profile_image && Storage::disk('public')->exists($profile->profile_image)) {
-                Storage::disk('public')->delete($profile->profile_image);
-            }
-            
-            $profile->profile_image = $data['profile_photo']; // Use same path
-            $profile->save();
-        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully!');
     }
@@ -103,27 +84,15 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // ✅ Handle profile photo with consistent path + sync
+        // ✅ Handle profile photo
         if ($request->hasFile('profile_photo')) {
-            // Delete old from users table
+            // Delete old photo
             if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
                 Storage::disk('public')->delete($user->profile_photo);
             }
             
-            // ✅ Use SAME folder as store(): 'profile-photos'
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
-            $data['profile_photo'] = $path;
-
-            // 🔥 SYNC: Update user_profiles.profile_image
-            $profile = $user->profile()->firstOrNew(['user_id' => $user->id]);
-            
-            // Delete old from profiles table if different
-            if ($profile->profile_image && $profile->profile_image !== $path && Storage::disk('public')->exists($profile->profile_image)) {
-                Storage::disk('public')->delete($profile->profile_image);
-            }
-            
-            $profile->profile_image = $path;
-            $profile->save();
+            // Store new photo
+            $data['profile_photo'] = $request->file('profile_photo')->store('profile-photos', 'public');
         }
 
         $user->update($data);
@@ -140,15 +109,6 @@ class UserController extends Controller
         // Delete profile photo from storage
         if ($user->profile_photo && Storage::disk('public')->exists($user->profile_photo)) {
             Storage::disk('public')->delete($user->profile_photo);
-        }
-        
-        // Also delete from user_profiles if exists
-        if ($user->profile) {
-            if ($user->profile->profile_image && Storage::disk('public')->exists($user->profile->profile_image)) {
-                Storage::disk('public')->delete($user->profile->profile_image);
-            }
-            // Optional: Delete profile record too
-            // $user->profile->delete();
         }
         
         $user->delete();

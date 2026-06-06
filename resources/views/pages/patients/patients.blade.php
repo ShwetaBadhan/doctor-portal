@@ -1,8 +1,8 @@
 @extends('layout.master')
 @section('content')
     <!-- ========================
-                               Start Page Content
-                              ========================= -->
+                                   Start Page Content
+                                  ========================= -->
 
     <div class="page-wrapper">
 
@@ -259,12 +259,11 @@
                                                 @endcan
                                             </li>
                                             <li>
-    <a href="{{ route('diagnosis-report.preview', $patient->id) }}"
-        class="dropdown-item d-flex align-items-center"
-        target="_blank">
-        <i class="ti ti-report-medical me-2 fs-14"></i> Diagnosis Report
-    </a>
-</li>
+                                                <a href="{{ route('diagnosis-report.preview', $patient->id) }}"
+                                                    class="dropdown-item d-flex align-items-center" target="_blank">
+                                                    <i class="ti ti-report-medical me-2 fs-14"></i> Diagnosis Report
+                                                </a>
+                                            </li>
                                             <li>
                                                 @can('assign-medicines-to-patients')
                                                     <a href="javascript:void(0);"
@@ -346,8 +345,8 @@
     </div>
 
     <!-- ========================
-                               End Page Content
-                              ========================= -->
+                                   End Page Content
+                                  ========================= -->
 
     <!-- Start Delete Modal  -->
     <div class="modal fade" id="delete_modal">
@@ -374,136 +373,139 @@
         </div>
     </div>
     <!-- End Delete Modal  -->
-   <!-- Assign Medicine Modals (One per patient) -->
-@foreach ($patients as $patient)
-<div class="modal fade" id="assignModal{{ $patient->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <form id="assignMedicineForm_{{ $patient->id }}"
-                  action="{{ route('patients.medicines.assign-custom', $patient->id) }}" 
-                  method="POST">
-                @csrf
-                <div class="modal-header sticky-top bg-white z-3">
-                    <h5 class="modal-title">
-                        <i class="ti ti-pills me-2"></i>Assign Medicines
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
-                    
-                    <p class="text-muted mb-3">
-                        Select medicines from group for <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
-                    </p>
+    <!-- Assign Medicine Modals (One per patient) -->
+    @foreach ($patients as $patient)
+        <div class="modal fade" id="assignModal{{ $patient->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form id="assignMedicineForm_{{ $patient->id }}"
+                        action="{{ route('patients.medicines.assign-custom', $patient->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-header sticky-top bg-white z-3">
+                            <h5 class="modal-title">
+                                <i class="ti ti-pills me-2"></i>Assign Medicines
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
 
-                    <!-- Medicine Group Selector -->
-                    <div class="mb-3">
-                        <label class="form-label fw-medium">Medicine Group <span class="text-danger">*</span></label>
-                        <select name="medicine_group_id" class="form-select medicine-group-select" 
-                                data-patient-id="{{ $patient->id }}" required>
-                            <option value="">Select group...</option>
-                            @foreach ($medicineGroups as $group)
-                                <option value="{{ $group->id }}" 
-                                        data-medicines-count="{{ $group->medicines_count }}">
-                                    {{ $group->name }}
-                                    @if ($group->code)
-                                        <span class="text-muted">({{ $group->code }})</span>
-                                    @endif
-                                    - {{ $group->medicines_count }} medicines
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                            <p class="text-muted mb-3">
+                                Select medicines from group for <strong>{{ $patient->first_name }}
+                                    {{ $patient->last_name }}</strong>
+                            </p>
 
-                    <!-- Loading Spinner -->
-                    <div id="medicinesLoading_{{ $patient->id }}" class="text-center py-4 d-none">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted">Fetching medicines...</p>
-                    </div>
-
-                    <!-- Dynamic Medicines List (Hidden by default) -->
-                    <div id="medicinesList_{{ $patient->id }}" class="d-none">
-                        
-                        <!-- Check All + Actions -->
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                            <div class="form-check">
-                                <input class="form-check-input check-all-medicines" type="checkbox" 
-                                       id="checkAll_{{ $patient->id }}"
-                                       data-container="medicinesContainer_{{ $patient->id }}">
-                                <label class="form-check-label fw-medium" for="checkAll_{{ $patient->id }}">
-                                    Select All Medicines
-                                </label>
+                            <!-- Medicine Group Selector -->
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Medicine Group <span
+                                        class="text-danger">*</span></label>
+                                <select name="medicine_group_id" class="form-select medicine-group-select"
+                                    data-patient-id="{{ $patient->id }}" required>
+                                    <option value="">Select group...</option>
+                                    @foreach ($medicineGroups as $group)
+                                        <option value="{{ $group->id }}"
+                                            data-medicines-count="{{ $group->medicines_count }}">
+                                            {{ $group->name }}
+                                            @if ($group->code)
+                                                <span class="text-muted">({{ $group->code }})</span>
+                                            @endif
+                                            - {{ $group->medicines_count }} medicines
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <span class="badge bg-light text-dark" id="selectedCount_{{ $patient->id }}">
-                                0 selected
-                            </span>
-                        </div>
 
-                        <!-- Group Medicines Container -->
-                        <div id="medicinesContainer_{{ $patient->id }}" 
-                             style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                            <!-- Dynamic content will be injected here -->
-                        </div>
-
-                        <!-- ===== EXTRA MEDICINES SECTION ===== -->
-                        <div class="mt-4 pt-3 border-top">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="fw-bold mb-0">
-                                    <i class="ti ti-plus me-1 text-primary"></i>Extra Medicines
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-outline-primary" 
-                                        onclick="addExtraMedicine('{{ $patient->id }}')">
-                                    <i class="ti ti-plus me-1"></i> Add Extra Medicine
-                                </button>
+                            <!-- Loading Spinner -->
+                            <div id="medicinesLoading_{{ $patient->id }}" class="text-center py-4 d-none">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2 text-muted">Fetching medicines...</p>
                             </div>
-                            
-                            <!-- Extra Medicines Container -->
-                            <div id="extraMedicinesContainer_{{ $patient->id }}">
-                                <!-- Extra medicines will be added here -->
+
+                            <!-- Dynamic Medicines List (Hidden by default) -->
+                            <div id="medicinesList_{{ $patient->id }}" class="d-none">
+
+                                <!-- Check All + Actions -->
+                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                    <div class="form-check">
+                                        <input class="form-check-input check-all-medicines" type="checkbox"
+                                            id="checkAll_{{ $patient->id }}"
+                                            data-container="medicinesContainer_{{ $patient->id }}">
+                                        <label class="form-check-label fw-medium" for="checkAll_{{ $patient->id }}">
+                                            Select All Medicines
+                                        </label>
+                                    </div>
+                                    <span class="badge bg-light text-dark" id="selectedCount_{{ $patient->id }}">
+                                        0 selected
+                                    </span>
+                                </div>
+
+                                <!-- Group Medicines Container -->
+                                <div id="medicinesContainer_{{ $patient->id }}"
+                                    style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                                    <!-- Dynamic content will be injected here -->
+                                </div>
+
+                                <!-- ===== EXTRA MEDICINES SECTION ===== -->
+                                <div class="mt-4 pt-3 border-top">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold mb-0">
+                                            <i class="ti ti-plus me-1 text-primary"></i>Extra Medicines
+                                        </h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="addExtraMedicine('{{ $patient->id }}')">
+                                            <i class="ti ti-plus me-1"></i> Add Extra Medicine
+                                        </button>
+                                    </div>
+
+                                    <!-- Extra Medicines Container -->
+                                    <div id="extraMedicinesContainer_{{ $patient->id }}">
+                                        <!-- Extra medicines will be added here -->
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="ti ti-info-circle me-1"></i>
+                                        Add medicines that are not part of this group
+                                    </small>
+                                </div>
+                                <!-- ===== END EXTRA MEDICINES SECTION ===== -->
+
                             </div>
-                            <small class="text-muted">
-                                <i class="ti ti-info-circle me-1"></i>
-                                Add medicines that are not part of this group
-                            </small>
+
+                            <!-- No Medicines Message -->
+                            <div id="noMedicines_{{ $patient->id }}" class="alert alert-warning d-none">
+                                <i class="ti ti-alert-circle me-2"></i>
+                                This group has no medicines.
+                            </div>
+
+                            <!-- Date & Notes Section -->
+                            <div class="row mt-4 pt-3 border-top">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" name="start_date" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" name="end_date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">General Notes</label>
+                                <textarea name="notes" class="form-control" rows="2"
+                                    placeholder="Optional instructions for all medicines..."></textarea>
+                            </div>
+
                         </div>
-                        <!-- ===== END EXTRA MEDICINES SECTION ===== -->
-
-                    </div>
-
-                    <!-- No Medicines Message -->
-                    <div id="noMedicines_{{ $patient->id }}" class="alert alert-warning d-none">
-                        <i class="ti ti-alert-circle me-2"></i>
-                        This group has no medicines.
-                    </div>
-
-                    <!-- Date & Notes Section -->
-                    <div class="row mt-4 pt-3 border-top">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" name="start_date" class="form-control">
+                        <div class="modal-footer sticky-bottom bg-white border-top">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="submitAssign_{{ $patient->id }}"
+                                disabled>
+                                <i class="ti ti-check me-1"></i> Assign Selected (<span
+                                    id="submitCount_{{ $patient->id }}">0</span>)
+                            </button>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">End Date</label>
-                            <input type="date" name="end_date" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">General Notes</label>
-                        <textarea name="notes" class="form-control" rows="2" 
-                                  placeholder="Optional instructions for all medicines..."></textarea>
-                    </div>
-
+                    </form>
                 </div>
-                <div class="modal-footer sticky-bottom bg-white border-top">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="submitAssign_{{ $patient->id }}" disabled>
-                        <i class="ti ti-check me-1"></i> Assign Selected (<span id="submitCount_{{ $patient->id }}">0</span>)
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
-@endforeach
+    @endforeach
     <style>
         /* Modal Scrolling Fixes */
         .modal-dialog-scrollable .modal-content {
@@ -571,24 +573,61 @@
     </style>
     <!-- Success/Error Messages -->
     <div id="assignMessage"></div>
-   
 @endsection
 @push('scripts')
-<script>
-// Global counter for extra medicines
-let extraMedicineCounter = {};
-
-// Add extra medicine row
-function addExtraMedicine(patientId) {
-    if (!extraMedicineCounter[patientId]) {
-        extraMedicineCounter[patientId] = 0;
+    <script>
+        // Global counter for extra medicines
+        let extraMedicineCounter = {};
+// Email confirmation function
+function confirmSendEmail(email, formId) {
+    if (!email || email === '') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Email',
+            text: 'This patient does not have an email address.',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
     }
-    extraMedicineCounter[patientId]++;
-    
-    const container = document.getElementById(`extraMedicinesContainer_${patientId}`);
-    const extraIndex = extraMedicineCounter[patientId];
-    
-    const extraMedHtml = `
+
+    Swal.fire({
+        title: 'Send Welcome Email?',
+        html: `Are you sure you want to send the welcome letter to:<br><strong>${email}</strong>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, Send Email',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Sending...',
+                html: 'Please wait while we send the email',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Submit the form
+            document.getElementById(formId).submit();
+        }
+    });
+}
+        // Add extra medicine row
+        function addExtraMedicine(patientId) {
+            if (!extraMedicineCounter[patientId]) {
+                extraMedicineCounter[patientId] = 0;
+            }
+            extraMedicineCounter[patientId]++;
+
+            const container = document.getElementById(`extraMedicinesContainer_${patientId}`);
+            const extraIndex = extraMedicineCounter[patientId];
+
+            const extraMedHtml = `
         <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${patientId}_${extraIndex}">
             <div class="card-body py-2 px-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -608,13 +647,13 @@ function addExtraMedicine(patientId) {
                                 class="form-select form-select-sm extra-medicine-select" 
                                 required onchange="autoFillExtraMedicine(this, '${patientId}', ${extraIndex})">
                             <option value="">-- Select medicine --</option>
-                            @foreach(\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
+                            @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
                                 <option value="{{ $med->id }}" 
                                         data-dosage="{{ $med->dosage }}"
                                         data-quantity="{{ $med->quantity }}"
                                         data-route="{{ $med->route }}"
                                         data-instructions="{{ $med->instructions }}">
-                                    {{ $med->name }} @if($med->code)({{ $med->code }})@endif
+                                    {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
                                 </option>
                             @endforeach
                         </select>
@@ -635,75 +674,75 @@ function addExtraMedicine(patientId) {
             </div>
         </div>
     `;
-    
-    container.insertAdjacentHTML('beforeend', extraMedHtml);
-    updateSubmitButton(patientId);
-}
 
-// Remove extra medicine
-function removeExtraMedicine(patientId, index) {
-    const element = document.getElementById(`extraMed_${patientId}_${index}`);
-    if (element) {
-        element.remove();
-        updateSubmitButton(patientId);
-    }
-}
+            container.insertAdjacentHTML('beforeend', extraMedHtml);
+            updateSubmitButton(patientId);
+        }
 
-// Auto-fill medicine details when selected
-function autoFillExtraMedicine(select, patientId, index) {
-    const selectedOption = select.options[select.selectedIndex];
-    
-    // ✅ FIXED: Update button whether medicine is selected or not
-    updateSubmitButton(patientId);
-    
-    if (!selectedOption.value) return;
-    
-    const row = select.closest('.extra-medicine-item');
-    
-    // Auto-fill from data attributes
-    const dosageField = row.querySelector('.extra-dosage');
-    const qtyField = row.querySelector('.extra-quantity');
-    
-    if (dosageField && selectedOption.dataset.dosage) {
-        dosageField.value = selectedOption.dataset.dosage;
-    }
-    if (qtyField && selectedOption.dataset.quantity) {
-        qtyField.value = selectedOption.dataset.quantity;
-    }
-}
+        // Remove extra medicine
+        function removeExtraMedicine(patientId, index) {
+            const element = document.getElementById(`extraMed_${patientId}_${index}`);
+            if (element) {
+                element.remove();
+                updateSubmitButton(patientId);
+            }
+        }
 
-// Existing group medicine AJAX code
-document.querySelectorAll('.medicine-group-select').forEach(select => {
-    select.addEventListener('change', function() {
-        const patientId = this.dataset.patientId;
-        const groupId = this.value;
-        const loading = document.getElementById(`medicinesLoading_${patientId}`);
-        const list = document.getElementById(`medicinesList_${patientId}`);
-        const container = document.getElementById(`medicinesContainer_${patientId}`);
-        const noMedicines = document.getElementById(`noMedicines_${patientId}`);
-        const submitBtn = document.getElementById(`submitAssign_${patientId}`);
+        // Auto-fill medicine details when selected
+        function autoFillExtraMedicine(select, patientId, index) {
+            const selectedOption = select.options[select.selectedIndex];
 
-        list.classList.add('d-none');
-        noMedicines.classList.add('d-none');
-        container.innerHTML = '';
-        submitBtn.disabled = true;
-        document.getElementById(`submitCount_${patientId}`).textContent = '0';
-        document.getElementById(`selectedCount_${patientId}`).textContent = '0 selected';
+            // ✅ FIXED: Update button whether medicine is selected or not
+            updateSubmitButton(patientId);
 
-        if (!groupId) return;
-        loading.classList.remove('d-none');
+            if (!selectedOption.value) return;
 
-        fetch(`/medicine-groups/${groupId}/medicines?patient_id=${patientId}`)
-            .then(response => response.json())
-            .then(data => {
-                loading.classList.add('d-none');
-                if (data.medicines.length === 0) {
-                    noMedicines.classList.remove('d-none');
-                    return;
-                }
+            const row = select.closest('.extra-medicine-item');
 
-                data.medicines.forEach((medicine, index) => {
-                    const itemHtml = `
+            // Auto-fill from data attributes
+            const dosageField = row.querySelector('.extra-dosage');
+            const qtyField = row.querySelector('.extra-quantity');
+
+            if (dosageField && selectedOption.dataset.dosage) {
+                dosageField.value = selectedOption.dataset.dosage;
+            }
+            if (qtyField && selectedOption.dataset.quantity) {
+                qtyField.value = selectedOption.dataset.quantity;
+            }
+        }
+
+        // Existing group medicine AJAX code
+        document.querySelectorAll('.medicine-group-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const patientId = this.dataset.patientId;
+                const groupId = this.value;
+                const loading = document.getElementById(`medicinesLoading_${patientId}`);
+                const list = document.getElementById(`medicinesList_${patientId}`);
+                const container = document.getElementById(`medicinesContainer_${patientId}`);
+                const noMedicines = document.getElementById(`noMedicines_${patientId}`);
+                const submitBtn = document.getElementById(`submitAssign_${patientId}`);
+
+                list.classList.add('d-none');
+                noMedicines.classList.add('d-none');
+                container.innerHTML = '';
+                submitBtn.disabled = true;
+                document.getElementById(`submitCount_${patientId}`).textContent = '0';
+                document.getElementById(`selectedCount_${patientId}`).textContent = '0 selected';
+
+                if (!groupId) return;
+                loading.classList.remove('d-none');
+
+                fetch(`/medicine-groups/${groupId}/medicines?patient_id=${patientId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.classList.add('d-none');
+                        if (data.medicines.length === 0) {
+                            noMedicines.classList.remove('d-none');
+                            return;
+                        }
+
+                        data.medicines.forEach((medicine, index) => {
+                            const itemHtml = `
                         <div class="medicine-item card border-0 shadow-sm mb-2" data-medicine-id="${medicine.id}">
                             <div class="card-body py-2 px-3">
                                 <div class="d-flex align-items-start gap-2">
@@ -744,111 +783,115 @@ document.querySelectorAll('.medicine-group-select').forEach(select => {
                                 </div>
                             </div>
                         </div>`;
-                    container.insertAdjacentHTML('beforeend', itemHtml);
-                });
-
-                container.querySelectorAll('.medicine-checkbox').forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        const fields = this.closest('.medicine-item').querySelector('.medicine-fields');
-                        fields.querySelectorAll('input').forEach(input => {
-                            if (input.name.includes('[dosage]') || input.name.includes('[quantity]')) {
-                                input.disabled = !this.checked;
-                            }
+                            container.insertAdjacentHTML('beforeend', itemHtml);
                         });
+
+                        container.querySelectorAll('.medicine-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                const fields = this.closest('.medicine-item')
+                                    .querySelector('.medicine-fields');
+                                fields.querySelectorAll('input').forEach(input => {
+                                    if (input.name.includes('[dosage]') || input
+                                        .name.includes('[quantity]')) {
+                                        input.disabled = !this.checked;
+                                    }
+                                });
+                                updateSubmitButton(patientId);
+                            });
+                        });
+
+                        list.classList.remove('d-none');
                         updateSubmitButton(patientId);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loading.classList.add('d-none');
+                        Swal.fire('Error', 'Failed to load medicines', 'error');
+                    });
+            });
+        });
+
+        // Check All functionality
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('check-all-medicines')) {
+                const containerId = e.target.dataset.container;
+                const container = document.getElementById(containerId);
+                const isChecked = e.target.checked;
+
+                container.querySelectorAll('.medicine-checkbox').forEach(cb => {
+                    cb.checked = isChecked;
+                    const fields = cb.closest('.medicine-item').querySelector('.medicine-fields');
+                    fields.querySelectorAll('input').forEach(input => {
+                        if (input.name.includes('[dosage]') || input.name.includes('[quantity]')) {
+                            input.disabled = !isChecked;
+                        }
                     });
                 });
-
-                list.classList.remove('d-none');
-                updateSubmitButton(patientId);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                loading.classList.add('d-none');
-                Swal.fire('Error', 'Failed to load medicines', 'error');
-            });
-    });
-});
-
-// Check All functionality
-document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('check-all-medicines')) {
-        const containerId = e.target.dataset.container;
-        const container = document.getElementById(containerId);
-        const isChecked = e.target.checked;
-        
-        container.querySelectorAll('.medicine-checkbox').forEach(cb => {
-            cb.checked = isChecked;
-            const fields = cb.closest('.medicine-item').querySelector('.medicine-fields');
-            fields.querySelectorAll('input').forEach(input => {
-                if (input.name.includes('[dosage]') || input.name.includes('[quantity]')) {
-                    input.disabled = !isChecked;
-                }
-            });
-        });
-        const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset.patientId;
-        updateSubmitButton(patientId);
-    }
-});
-
-// ✅ FIXED: Update submit button - count both group and extra medicines
-function updateSubmitButton(patientId) {
-    // Count group medicines
-    const container = document.getElementById(`medicinesContainer_${patientId}`);
-    const groupChecked = container ? container.querySelectorAll('.medicine-checkbox:checked').length : 0;
-    
-    // Count extra medicines that have a medicine selected
-    const extraContainer = document.getElementById(`extraMedicinesContainer_${patientId}`);
-    let extraFilled = 0;
-    
-    if (extraContainer) {
-        const extraSelects = extraContainer.querySelectorAll('.extra-medicine-select');
-        extraSelects.forEach(select => {
-            if (select.value && select.value !== '') {
-                extraFilled++;
-            }
-        });
-    }
-    
-    const totalSelected = groupChecked + extraFilled;
-    
-    const selectedCountEl = document.getElementById(`selectedCount_${patientId}`);
-    const submitCountEl = document.getElementById(`submitCount_${patientId}`);
-    const submitBtn = document.getElementById(`submitAssign_${patientId}`);
-    
-    if (selectedCountEl) selectedCountEl.textContent = `${totalSelected} selected`;
-    if (submitCountEl) submitCountEl.textContent = totalSelected;
-    if (submitBtn) submitBtn.disabled = totalSelected === 0;
-}
-
-// Enable fields when checkbox is checked
-document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('medicine-checkbox')) {
-        const fields = e.target.closest('.medicine-item').querySelector('.medicine-fields');
-        fields.querySelectorAll('input').forEach(input => {
-            if (input.name.includes('[dosage]') || input.name.includes('[quantity]')) {
-                input.disabled = !e.target.checked;
-            }
-        });
-        const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset.patientId;
-        updateSubmitButton(patientId);
-    }
-});
-
-// ✅ NEW: Listen for changes in extra medicine dropdowns
-document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('extra-medicine-select')) {
-        // Extract patientId from the element ID or parent
-        const extraMedItem = e.target.closest('.extra-medicine-item');
-        if (extraMedItem) {
-            const extraMedId = extraMedItem.id; // e.g., "extraMed_1_1"
-            const parts = extraMedId.split('_');
-            if (parts.length >= 2) {
-                const patientId = parts[1];
+                const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset
+                .patientId;
                 updateSubmitButton(patientId);
             }
+        });
+
+        // ✅ FIXED: Update submit button - count both group and extra medicines
+        function updateSubmitButton(patientId) {
+            // Count group medicines
+            const container = document.getElementById(`medicinesContainer_${patientId}`);
+            const groupChecked = container ? container.querySelectorAll('.medicine-checkbox:checked').length : 0;
+
+            // Count extra medicines that have a medicine selected
+            const extraContainer = document.getElementById(`extraMedicinesContainer_${patientId}`);
+            let extraFilled = 0;
+
+            if (extraContainer) {
+                const extraSelects = extraContainer.querySelectorAll('.extra-medicine-select');
+                extraSelects.forEach(select => {
+                    if (select.value && select.value !== '') {
+                        extraFilled++;
+                    }
+                });
+            }
+
+            const totalSelected = groupChecked + extraFilled;
+
+            const selectedCountEl = document.getElementById(`selectedCount_${patientId}`);
+            const submitCountEl = document.getElementById(`submitCount_${patientId}`);
+            const submitBtn = document.getElementById(`submitAssign_${patientId}`);
+
+            if (selectedCountEl) selectedCountEl.textContent = `${totalSelected} selected`;
+            if (submitCountEl) submitCountEl.textContent = totalSelected;
+            if (submitBtn) submitBtn.disabled = totalSelected === 0;
         }
-    }
-});
-</script>
+
+        // Enable fields when checkbox is checked
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('medicine-checkbox')) {
+                const fields = e.target.closest('.medicine-item').querySelector('.medicine-fields');
+                fields.querySelectorAll('input').forEach(input => {
+                    if (input.name.includes('[dosage]') || input.name.includes('[quantity]')) {
+                        input.disabled = !e.target.checked;
+                    }
+                });
+                const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset
+                .patientId;
+                updateSubmitButton(patientId);
+            }
+        });
+
+        // ✅ NEW: Listen for changes in extra medicine dropdowns
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('extra-medicine-select')) {
+                // Extract patientId from the element ID or parent
+                const extraMedItem = e.target.closest('.extra-medicine-item');
+                if (extraMedItem) {
+                    const extraMedId = extraMedItem.id; // e.g., "extraMed_1_1"
+                    const parts = extraMedId.split('_');
+                    if (parts.length >= 2) {
+                        const patientId = parts[1];
+                        updateSubmitButton(patientId);
+                    }
+                }
+            }
+        });
+    </script>
 @endpush

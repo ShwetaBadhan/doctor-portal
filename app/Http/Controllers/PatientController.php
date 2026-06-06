@@ -473,7 +473,6 @@ public function sendWelcomeEmail(Request $request, Patient $patient)
     }
 
     try {
-        // Letterhead base64
         $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
         $letterheadBase64 = '';
         $imageType = 'jpeg';
@@ -488,19 +487,25 @@ public function sendWelcomeEmail(Request $request, Patient $patient)
             'letterheadBase64' => $letterheadBase64,
             'imageType' => $imageType,
             'generatedAt' => now(),
-            'forEmail' => true, // Flag for email-specific styling
+            'forEmail' => true,
         ];
 
-        // PDF generate karo
         $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
 
-        // Email bhejo with PDF attachment
-        Mail::send([], [], function ($message) use ($patient, $pdf) {
+        // ✅ CC email from .env
+        $ccEmail = env('MAIL_CC_ADDRESS');
+
+        Mail::send([], [], function ($message) use ($patient, $pdf, $ccEmail) {
             $message->to($patient->email)
                 ->subject('Welcome to E-Bio-Cares')
-                ->from(config('mail.from.address', 'noreply@dsinnovativesolutions.com'), 'E-Bio-Cares')
+                ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
                 ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
                 ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
+
+            // ✅ Add CC if exists in .env
+            if (!empty($ccEmail)) {
+                $message->cc($ccEmail);
+            }
         });
 
         return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
