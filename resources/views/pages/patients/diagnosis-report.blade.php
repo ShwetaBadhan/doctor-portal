@@ -377,7 +377,7 @@
                         @php
                             $existingSyms = $existingSymptoms ?? ($patient->existing_symptoms ?? []);
                             $existingCount = count($existingSyms);
-                            $useTwoColExisting = $existingCount > 10;
+                            $useTwoColExisting = $existingCount > 6;
                             $existingMid = ceil($existingCount / 2);
                             $existingLeft = array_slice($existingSyms, 0, $existingMid);
                             $existingRight = array_slice($existingSyms, $existingMid);
