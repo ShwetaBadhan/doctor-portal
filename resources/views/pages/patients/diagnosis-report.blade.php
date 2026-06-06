@@ -418,7 +418,7 @@
                         @php
                             $nonExistingSyms = $nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []);
                             $nonExistingCount = count($nonExistingSyms);
-                            $useTwoColNon = $nonExistingCount > 10;
+                            $useTwoColNon = $nonExistingCount > 6;
                             $nonExistingMid = ceil($nonExistingCount / 2);
                             $nonExistingLeft = array_slice($nonExistingSyms, 0, $nonExistingMid);
                             $nonExistingRight = array_slice($nonExistingSyms, $nonExistingMid);
