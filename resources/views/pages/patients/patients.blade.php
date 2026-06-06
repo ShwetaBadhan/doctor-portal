@@ -259,11 +259,12 @@
                                                 @endcan
                                             </li>
                                             <li>
-                                                <a href="{{ route('diagnosis-report.download', $patient->id) }}"
-                                                    class="dropdown-item d-flex align-items-center">
-                                                    <i class="ti ti-report-medical me-2 fs-14"></i> Diagnosis Report
-                                                </a>
-                                            </li>
+    <a href="{{ route('diagnosis-report.preview', $patient->id) }}"
+        class="dropdown-item d-flex align-items-center"
+        target="_blank">
+        <i class="ti ti-report-medical me-2 fs-14"></i> Diagnosis Report
+    </a>
+</li>
                                             <li>
                                                 @can('assign-medicines-to-patients')
                                                     <a href="javascript:void(0);"

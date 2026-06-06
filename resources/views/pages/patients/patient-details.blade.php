@@ -238,152 +238,158 @@
                                 </small>
                             @endif
                         </div>
-                        <div class="card-body pb-0">
-                            @if (
-                                $latestAppointment &&
-                                    ($latestAppointment->bp || $latestAppointment->temp || $latestAppointment->pulse || $latestAppointment->weight))
-                                <div class="row">
-                                    @php
-                                        $vitals = [
-                                            [
-                                                'key' => 'bp',
-                                                'label' => 'Blood Pressure',
-                                                'icon' => 'ti ti-droplet',
-                                                'unit' => '',
-                                            ],
-                                            [
-                                                'key' => 'pulse',
-                                                'label' => 'Heart Rate',
-                                                'icon' => 'ti ti-heart',
-                                                'unit' => 'bpm',
-                                            ],
-                                            [
-                                                'key' => 'temp',
-                                                'label' => 'Temperature',
-                                                'icon' => 'ti ti-temperature',
-                                                'unit' => '°F',
-                                            ],
-                                            [
-                                                'key' => 'weight',
-                                                'label' => 'Weight',
-                                                'icon' => 'ti ti-weight',
-                                                'unit' => 'kg',
-                                            ],
-                                            [
-                                                'key' => 'vat',
-                                                'label' => 'VAT',
-                                                'icon' => 'ti ti-hexagons',
-                                                'unit' => '',
-                                            ],
-                                            [
-                                                'key' => 'pit',
-                                                'label' => 'PIT',
-                                                'icon' => 'ti ti-activity',
-                                                'unit' => '',
-                                            ],
-                                            [
-                                                'key' => 'kuff',
-                                                'label' => 'Kuff',
-                                                'icon' => 'ti ti-windmill',
-                                                'unit' => '',
-                                            ],
-                                        ];
-                                    @endphp
-                                    @foreach ($vitals as $vital)
-                                        @if ($latestAppointment->{$vital['key']})
-                                            <div class="col-sm-4">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <span
-                                                        class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                                                        <i class="{{ $vital['icon'] }} fs-16 text-body"></i>
-                                                    </span>
-                                                    <div>
-                                                        <h6 class="fs-13 fw-bold mb-1 text-truncate">{{ $vital['label'] }}
-                                                        </h6>
-                                                        <p class="mb-0 d-inline-flex align-items-center text-truncate">
-                                                            <i class="ti ti-point-filled me-1 text-success fs-18"></i>
-                                                            {{ $latestAppointment->{$vital['key']} }} {{ $vital['unit'] }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-
-                                    <!-- Tongue, Nails, Cerebral Fluid -->
-                                    @if ($latestAppointment->tongue || $latestAppointment->nails)
-                                        <div class="col-sm-4">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <span
-                                                    class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                                                    <i class="ti ti-eye fs-16 text-body"></i>
-                                                </span>
-                                                <div>
-                                                    <h6 class="fs-13 fw-bold mb-1">Observations</h6>
-                                                    <p class="mb-0 text-truncate">
-                                                        @if ($latestAppointment->tongue)
-                                                            Tongue: {{ $latestAppointment->tongue }}
-                                                        @endif
-                                                        @if ($latestAppointment->tongue && $latestAppointment->nails)
-                                                            |
-                                                        @endif
-                                                        @if ($latestAppointment->nails)
-                                                            Nails: {{ $latestAppointment->nails }}
-                                                        @endif
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    @if ($latestAppointment->cerebral_fluid)
-                                        <div class="col-sm-4">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <span
-                                                    class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                                                    <i class="ti ti-brain fs-16 text-body"></i>
-                                                </span>
-                                                <div>
-                                                    <h6 class="fs-13 fw-bold mb-1">Cerebral Fluid</h6>
-                                                    <p class="mb-0 d-inline-flex align-items-center">
-                                                        <i
-                                                            class="ti ti-point-filled me-1 text-{{ $latestAppointment->cerebral_fluid == 'normal' ? 'success' : 'warning' }} fs-18"></i>
-                                                        {{ ucfirst($latestAppointment->cerebral_fluid) }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <!-- Vital Notes -->
-                                    @if ($latestAppointment->vital_notes)
-                                        <div class="col-12 mt-2">
-                                            <small class="text-muted d-block">Notes</small>
-                                            <p class="mb-0 text-muted small">{{ $latestAppointment->vital_notes }}</p>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- View All Appointments Link -->
-                                <div class="mt-3 text-end">
-                                    <a href="#appointments" data-bs-toggle="tab" class="btn btn-sm btn-outline-primary">
-                                        <i class="ti ti-list me-1"></i> View All Visits
-                                    </a>
-                                </div>
-                            @else
-                                <!-- Empty State -->
-                                <div class="text-center py-4">
-                                    <i class="ti ti-heart-rate-monitor fs-1 text-muted opacity-50"></i>
-                                    <p class="text-muted mt-2 mb-0">No vital signs recorded yet.</p>
-                                    <small class="text-muted d-block">Vitals are recorded during each appointment
-                                        visit.</small>
-                                    <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
-                                        class="btn btn-sm btn-primary mt-3">
-                                        <i class="ti ti-plus me-1"></i> Schedule Appointment
-                                    </a>
-                                </div>
-                            @endif
+                      <div class="card-body pb-0">
+    @if (
+        $latestAppointment &&
+            ($latestAppointment->bp || $latestAppointment->temp || $latestAppointment->pulse || $latestAppointment->weight || $latestAppointment->vat || $latestAppointment->pit || $latestAppointment->kuff || $latestAppointment->delusion))
+        <div class="row">
+            @php
+                $vitals = [
+                    [
+                        'key' => 'bp',
+                        'label' => 'Blood Pressure',
+                        'icon' => 'ti ti-droplet',
+                        'unit' => '',
+                    ],
+                    [
+                        'key' => 'pulse',
+                        'label' => 'Heart Rate',
+                        'icon' => 'ti ti-heart',
+                        'unit' => 'bpm',
+                    ],
+                    [
+                        'key' => 'temp',
+                        'label' => 'Temperature',
+                        'icon' => 'ti ti-temperature',
+                        'unit' => '°F',
+                    ],
+                    [
+                        'key' => 'weight',
+                        'label' => 'Weight',
+                        'icon' => 'ti ti-weight',
+                        'unit' => 'kg',
+                    ],
+                    [
+                        'key' => 'vat',
+                        'label' => 'VAT',
+                        'icon' => 'ti ti-hexagons',
+                        'unit' => '',
+                    ],
+                    [
+                        'key' => 'pit',
+                        'label' => 'PIT',
+                        'icon' => 'ti ti-activity',
+                        'unit' => '',
+                    ],
+                    [
+                        'key' => 'kuff',
+                        'label' => 'Kuff',
+                        'icon' => 'ti ti-windmill',
+                        'unit' => '',
+                    ],
+                    [
+                        'key' => 'delusion',
+                        'label' => 'Delusion',
+                        'icon' => 'ti ti-brain',
+                        'unit' => '',
+                    ],
+                ];
+            @endphp
+            @foreach ($vitals as $vital)
+                @if ($latestAppointment->{$vital['key']})
+                    <div class="col-sm-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <span
+                                class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                                <i class="{{ $vital['icon'] }} fs-16 text-body"></i>
+                            </span>
+                            <div>
+                                <h6 class="fs-13 fw-bold mb-1 text-truncate">{{ $vital['label'] }}
+                                </h6>
+                                <p class="mb-0 d-inline-flex align-items-center text-truncate">
+                                    <i class="ti ti-point-filled me-1 text-success fs-18"></i>
+                                    {{ $latestAppointment->{$vital['key']} }} {{ $vital['unit'] }}
+                                </p>
+                            </div>
                         </div>
+                    </div>
+                @endif
+            @endforeach
+
+            <!-- Tongue, Nails, Cerebral Fluid -->
+            @if ($latestAppointment->tongue || $latestAppointment->nails)
+                <div class="col-sm-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span
+                            class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                            <i class="ti ti-eye fs-16 text-body"></i>
+                        </span>
+                        <div>
+                            <h6 class="fs-13 fw-bold mb-1">Observations</h6>
+                            <p class="mb-0 text-truncate">
+                                @if ($latestAppointment->tongue)
+                                    Tongue: {{ $latestAppointment->tongue }}
+                                @endif
+                                @if ($latestAppointment->tongue && $latestAppointment->nails)
+                                    |
+                                @endif
+                                @if ($latestAppointment->nails)
+                                    Nails: {{ $latestAppointment->nails }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if ($latestAppointment->cerebral_fluid)
+                <div class="col-sm-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <span
+                            class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                            <i class="ti ti-brain fs-16 text-body"></i>
+                        </span>
+                        <div>
+                            <h6 class="fs-13 fw-bold mb-1">Cerebral Fluid</h6>
+                            <p class="mb-0 d-inline-flex align-items-center">
+                                <i
+                                    class="ti ti-point-filled me-1 text-{{ $latestAppointment->cerebral_fluid == 'normal' ? 'success' : 'warning' }} fs-18"></i>
+                                {{ ucfirst($latestAppointment->cerebral_fluid) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Vital Notes -->
+            @if ($latestAppointment->vital_notes)
+                <div class="col-12 mt-2">
+                    <small class="text-muted d-block">Notes</small>
+                    <p class="mb-0 text-muted small">{{ $latestAppointment->vital_notes }}</p>
+                </div>
+            @endif
+        </div>
+
+        <!-- View All Appointments Link -->
+        <div class="mt-3 text-end">
+            <a href="#appointments" data-bs-toggle="tab" class="btn btn-sm btn-outline-primary">
+                <i class="ti ti-list me-1"></i> View All Visits
+            </a>
+        </div>
+    @else
+        <!-- Empty State -->
+        <div class="text-center py-4">
+            <i class="ti ti-heart-rate-monitor fs-1 text-muted opacity-50"></i>
+            <p class="text-muted mt-2 mb-0">No vital signs recorded yet.</p>
+            <small class="text-muted d-block">Vitals are recorded during each appointment
+                visit.</small>
+            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                class="btn btn-sm btn-primary mt-3">
+                <i class="ti ti-plus me-1"></i> Schedule Appointment
+            </a>
+        </div>
+    @endif
+</div>
                     </div>
                 </div>
             </div>
@@ -1055,7 +1061,7 @@
                                                 <th>Temp</th>
                                                 <th>Pulse</th>
                                                 <th>Weight</th>
-                                                <th>VAT/PIT/Kuff</th>
+                                                <th>VAT/PIT/Kuff/Delusion</th>
                                                 <th>Observations</th>
                                                 <th>Notes</th>
 
@@ -1101,7 +1107,10 @@
                                                             @if ($apt->kuff)
                                                                 | Kuff:{{ $apt->kuff }}
                                                             @endif
-                                                            @if (!$apt->vat && !$apt->pit && !$apt->kuff)
+                                                            @if ($apt->kuff)
+                                                                | Delusion:{{ $apt->delusion }}
+                                                            @endif
+                                                            @if (!$apt->vat && !$apt->pit && !$apt->kuff && !$apt->delusion)
                                                                 -
                                                             @endif
                                                         </small>
@@ -1109,13 +1118,13 @@
                                                     <td>
                                                         <small class="text-muted">
                                                             @if ($apt->tongue)
-                                                                👅 {{ $apt->tongue }}
+                                                                Toungue:{{ $apt->tongue }} 
                                                             @endif
                                                             @if ($apt->nails)
-                                                                💅 {{ $apt->nails }}
+                                                              |   Nails:{{ $apt->nails }}
                                                             @endif
                                                             @if ($apt->cerebral_fluid)
-                                                                🧠 {{ ucfirst($apt->cerebral_fluid) }}
+                                                                | Cerebral:{{ ucfirst($apt->cerebral_fluid) }}
                                                             @endif
                                                             @if (!$apt->tongue && !$apt->nails && !$apt->cerebral_fluid)
                                                                 -

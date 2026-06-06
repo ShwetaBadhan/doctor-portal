@@ -845,4 +845,70 @@ public function removePatientMedicine(Request $request, PatientMedicine $patient
 
     return redirect()->back()->with('success', 'Medicine removed successfully.');
 }
+/**
+ * Preview Diagnosis Report (Browser mein dikhane ke liye)
+ */
+public function previewDiagnosisReport(Patient $patient)
+{
+    // ✅ Get medicines
+    $patientMedicines = $patient->patientMedicines()
+        ->with(['medicine'])
+        ->where('is_active', true)
+        ->orderBy('sort_order')
+        ->get();
+
+    $medicinesList = [];
+    foreach ($patientMedicines as $pm) {
+        $medicinesList[] = [
+            'name' => $pm->medicine?->name ?? 'Unknown',
+            'dosage' => $pm->dosage,
+            'quantity' => $pm->quantity,
+            'instructions' => $pm->instructions,
+        ];
+    }
+
+    // ✅ Latest appointment with vitals
+    $appointment = $patient->appointments()
+        ->where(function ($q) {
+            $q->whereNotNull('vat')
+              ->orWhereNotNull('pit')
+              ->orWhereNotNull('kuff')
+              ->orWhereNotNull('bp');
+        })
+        ->latest()
+        ->first();
+
+    // ✅ Letterhead image base64
+    $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
+    $letterheadBase64 = '';
+    $imageType = 'jpeg';
+    
+    if (file_exists($letterheadPath)) {
+        $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
+        $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
+    }
+
+    // ✅ Symptoms decode
+    $existingSymptoms = is_array($patient->existing_symptoms) 
+        ? $patient->existing_symptoms 
+        : json_decode($patient->existing_symptoms, true) ?? [];
+    
+    $nonExistingSymptoms = is_array($patient->non_existing_symptoms) 
+        ? $patient->non_existing_symptoms 
+        : json_decode($patient->non_existing_symptoms, true) ?? [];
+
+    $data = [
+        'patient' => $patient,
+        'appointment' => $appointment,
+        'medicines' => $medicinesList,
+        'existingSymptoms' => $existingSymptoms,
+        'nonExistingSymptoms' => $nonExistingSymptoms,
+        'reportDate' => $appointment?->appointment_date ?? now(),
+        'letterheadBase64' => $letterheadBase64,
+        'imageType' => $imageType,
+        'isPreview' => true, // Flag for preview mode
+    ];
+
+    return view('pages.patients.diagnosis-report', $data);
+}
 }

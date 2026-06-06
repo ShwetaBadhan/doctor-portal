@@ -28,57 +28,64 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     // ✅ GET /login → Show login form (named 'login' for forms)
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    
+
     // ✅ POST /login → Process login (can be named or unnamed)
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
 });
 // ============ AUTH ROUTES ============
 Route::middleware('auth')->group(function () {
-    
+
     // ✅ Single Dashboard
-    
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->name('dashboard')
-    ->middleware(['auth']);
-    
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard')
+        ->middleware(['auth']);
+
     // ✅ Logout Route
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
-  // ✅ Patient Resource Routes (ALL CRUD)
+    // ✅ Patient Resource Routes (ALL CRUD)
     Route::resource('patients', PatientController::class);
-    
+
     // Patient Medicine Assignment Routes (No admin prefix)
-Route::get('patients/{patient}/medicines', [PatientController::class, 'medicinesTab'])
-    ->name('patients.medicines');
+    Route::get('patients/{patient}/medicines', [PatientController::class, 'medicinesTab'])
+        ->name('patients.medicines');
 
-Route::post('patients/{patient}/medicines/assign-group', [PatientController::class, 'assignMedicineGroup'])
-    ->name('patients.medicines.assign-group');
+    Route::post('patients/{patient}/medicines/assign-group', [PatientController::class, 'assignMedicineGroup'])
+        ->name('patients.medicines.assign-group');
 
-Route::post('patients/{patient}/medicines/assign-individual', [PatientController::class, 'assignIndividualMedicine'])
-    ->name('patients.medicines.assign-individual');
+    Route::post('patients/{patient}/medicines/assign-individual', [PatientController::class, 'assignIndividualMedicine'])
+        ->name('patients.medicines.assign-individual');
 
-Route::put('patients/medicines/{patientMedicine}', [PatientController::class, 'updatePatientMedicine'])
-    ->name('patients.medicines.update');
+    Route::put('patients/medicines/{patientMedicine}', [PatientController::class, 'updatePatientMedicine'])
+        ->name('patients.medicines.update');
 
-Route::delete('patients/medicines/{patientMedicine}', [PatientController::class, 'removePatientMedicine'])
-    ->name('patients.medicines.destroy');
-     // Report routes
+    Route::delete('patients/medicines/{patientMedicine}', [PatientController::class, 'removePatientMedicine'])
+        ->name('patients.medicines.destroy');
+    // Report routes
     Route::post('{patient}/reports/upload', [PatientController::class, 'uploadReport'])
         ->name('reports.upload');
     Route::delete('{patient}/reports/{index}', [PatientController::class, 'deleteReport'])
         ->name('reports.delete');
-        Route::get('{patient}/welcome-letter', [PatientController::class, 'showWelcomeLetter'])
-            ->name('welcome-letter');
-        Route::get('{patient}/welcome-letter/download', [PatientController::class, 'downloadWelcomeLetter'])
-            ->name('welcome-letter.download');
-        Route::post('{patient}/send-welcome-email', [PatientController::class, 'sendWelcomeEmail'])
-            ->name('send-welcome-email');
-            
+    Route::get('{patient}/welcome-letter', [PatientController::class, 'showWelcomeLetter'])
+        ->name('welcome-letter');
+    Route::get('{patient}/welcome-letter/download', [PatientController::class, 'downloadWelcomeLetter'])
+        ->name('welcome-letter.download');
+    Route::post('{patient}/send-welcome-email', [PatientController::class, 'sendWelcomeEmail'])
+        ->name('send-welcome-email');
+
     Route::get('{patient}/diagnosis-report', [PatientController::class, 'generateDiagnosisReport'])
         ->name('diagnosis-report');
-    Route::get('{patient}/download-report', [PatientController::class, 'downloadReport'])
-        ->name('download-report');
-     });
+    // Route::get('{patient}/download-report', [PatientController::class, 'downloadReport'])
+    //     ->name('download-report');
+
+Route::get('/patients/{patient}/diagnosis-report/preview', [PatientController::class, 'previewDiagnosisReport'])
+    ->name('diagnosis-report.preview');
+
+
+Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
+    ->name('diagnosis-report.download');
+});
 // doctors
 
 Route::get('/doctors', function () {
@@ -165,7 +172,7 @@ Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.
 Route::get('/roles/{role}/permissions', [RoleController::class, 'getPermissionsModal'])->name('roles.permissions.modal');
 Route::put('/roles/{role}/permissions', [RoleController::class, 'updatePermissions'])->name('roles.updatePermissions');
 
-    // Permissions CRUD
+// Permissions CRUD
 Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
 Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
 Route::put('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
@@ -179,12 +186,12 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.
 
 
 
- // Medicine Groups (Simple resource)
-   
-    // Medicine Groups - Simple resource routes
-    Route::resource('medicine-groups', MedicineGroupController::class);
+// Medicine Groups (Simple resource)
 
-    // Medicine Group AJAX endpoint
+// Medicine Groups - Simple resource routes
+Route::resource('medicine-groups', MedicineGroupController::class);
+
+// Medicine Group AJAX endpoint
 Route::get('/medicine-groups/{group}/medicines', [PatientController::class, 'getMedicinesByGroup'])
     ->name('medicine-groups.medicines');
 Route::delete('/patient-medicines/{patientMedicine}/remove', [PatientController::class, 'removePatientMedicine'])->name('patient-medicines.remove');
@@ -196,34 +203,34 @@ Route::post('/patients/{patient}/medicines/assign-custom', [PatientController::c
 // Update single patient medicine
 Route::put('/patient-medicines/{patientMedicine}', [PatientController::class, 'updatePatientMedicine'])
     ->name('patient-medicines.update');
-    // Medicines - Simple resource routes  
-    Route::resource('medicines', MedicineController::class);
+// Medicines - Simple resource routes  
+Route::resource('medicines', MedicineController::class);
 
 
 Route::post('/medicines/bulk-store', [MedicineController::class, 'bulkStore'])
     ->name('medicines.bulk-store');
 
-     // Invoice CRUD
-    Route::resource('invoices', InvoiceController::class);
-    
-    // Quick actions
-    Route::get('invoices/print/{invoice}', [InvoiceController::class, 'print'])
-        ->name('invoices.print');
+// Invoice CRUD
+Route::resource('invoices', InvoiceController::class);
 
-         // Shipment CRUD
-    Route::resource('shipments', ShipmentController::class);
-    
-    // Quick status update
-    Route::patch('shipments/{shipment}/status', [ShipmentController::class, 'updateStatus'])
-        ->name('shipments.update-status');
-    
-    // Dashboard counters
-    // Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
-    //     ->name('shipments.dashboard');
-    Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
+// Quick actions
+Route::get('invoices/print/{invoice}', [InvoiceController::class, 'print'])
+    ->name('invoices.print');
+
+// Shipment CRUD
+Route::resource('shipments', ShipmentController::class);
+
+// Quick status update
+Route::patch('shipments/{shipment}/status', [ShipmentController::class, 'updateStatus'])
+    ->name('shipments.update-status');
+
+// Dashboard counters
+// Route::get('shipments/dashboard', [ShipmentController::class, 'dashboard'])
+//     ->name('shipments.dashboard');
+Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
     ->name('diagnosis-report.download')
     ->middleware('auth');
 
-    Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])
+Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])
     ->name('invoices.download')
     ->middleware('auth');
