@@ -17,35 +17,36 @@
             margin: 0;
         }
 
-        html,
-        body {
-            width: 210mm;
-            height: 297mm;
-            margin: 0;
-            padding: 0;
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            color: #000;
-            overflow: hidden;
-            background: transparent;
-        }
+html,
+body {
+    width: 210mm;
+    min-height: 297mm; /* fixed height hata do */
+    margin: 0;
+    padding: 0;
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 12px;
+    color: #000;
+    overflow-x: hidden;
+    overflow-y: auto; /* scroll enable */
+    background: transparent;
+}
 
-        body {
-            position: relative;
-        }
+body {
+    position: relative;
+}
 
         /* =========================
            LETTERHEAD BACKGROUND
         ========================== */
 
-        .letterhead-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 210mm;
-            height: 297mm;
-            z-index: -1;
-        }
+      .letterhead-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210mm;
+    height: 297mm;
+    z-index: -1;
+}
 
         .letterhead-bg img {
             width: 100%;
@@ -82,7 +83,7 @@
         .symptoms-grid td {
             border: 1px solid #000;
             padding: 6px;
-            font-size: 9px;
+            font-size: 11px;
         }
 
         .patient-info-table .label {
@@ -135,7 +136,7 @@
 
         .symptoms-grid li {
             margin-bottom: 4px;
-            font-size: 9px;
+            font-size: 11px;
         }
 
         /* =========================
@@ -144,7 +145,7 @@
 
         .medicine-list {
             padding-left: 18px;
-            font-size: 9px;
+            font-size: 11px;
             line-height: 1.5;
         }
 
@@ -247,6 +248,70 @@
                 display: none !important;
             }
         }
+        /* =========================
+   DIAGNOSIS TABLE STYLE
+========================= */
+
+.diagnosis-layout {
+    padding: 0;
+    background: transparent;
+}
+
+.diagnosis-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background: rgba(255,255,255,0.96);
+}
+
+.diagnosis-table td {
+    border: 1px solid #000;
+    vertical-align: top;
+    padding: 8px;
+}
+
+.symptom-col {
+    width: 28%;
+}
+
+.medicine-col {
+    width: 44%;
+}
+
+.table-heading {
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #000;
+    text-transform: uppercase;
+}
+
+.symptom-list {
+    margin: 0;
+    padding-left: 14px;
+}
+
+.symptom-list li {
+    font-size: 11px;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.medicine-list-new {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.medicine-list-new li {
+    font-size: 11px;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.medicine-list-new strong {
+    font-weight: bold;
+}
     </style>
 </head>
 
@@ -362,210 +427,69 @@
 
         </div>
 
-       {{-- SYMPTOMS --}}
-<div class="section">
-    <div class="section-title">
-        Symptoms Assessment
-    </div>
+      {{-- SYMPTOMS + MEDICINE LAYOUT --}}
+<div class="section diagnosis-layout">
 
-    <table class="symptoms-grid">
+    <table class="diagnosis-table">
+
         <tr>
             {{-- EXISTING SYMPTOMS --}}
-            <td>
-                <strong>Existing Symptoms</strong>
+            <td class="symptom-col">
 
-                @php
-                    $existingSyms = $existingSymptoms ?? ($patient->existing_symptoms ?? []);
-                    $existingChunks = array_chunk($existingSyms, 6);
-                    $existingColCount = count($existingChunks);
-                @endphp
+                <div class="table-heading">
+                    Existing Symptoms
+                </div>
 
-                @if ($existingColCount > 1)
-                    <table style="width:100%; border:none; margin-top:4px;">
-                        <tr>
-                            @foreach ($existingChunks as $chunk)
-                                <td style="width:{{ floor(100 / $existingColCount) }}%; border:none; padding:0; vertical-align:top;">
-                                    <ul style="padding-left:15px; margin:0;">
-                                        @foreach ($chunk as $sym)
-                                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                        @endforeach
-                                    </ul>
-                                </td>
-                            @endforeach
-                        </tr>
-                    </table>
-                @else
-                    <ul style="padding-left:15px; margin-top:4px;">
-                        @foreach ($existingSyms as $sym)
-                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                        @endforeach
-                    </ul>
-                @endif
+                <ul class="symptom-list">
+                    @foreach ($existingSymptoms ?? [] as $sym)
+                        <li>{{ $sym }}</li>
+                    @endforeach
+                </ul>
+
             </td>
 
-            {{-- NON EXISTING SYMPTOMS --}}
-            <td>
-                <strong>Non Existing Symptoms</strong>
+          
 
-                @php
-                    $nonExistingSyms = $nonExistingSymptoms ?? ($patient->non_existing_symptoms ?? []);
-                    $nonExistingChunks = array_chunk($nonExistingSyms, 6);
-                    $nonExistingColCount = count($nonExistingChunks);
-                @endphp
+            {{-- MEDICINES --}}
+            <td class="medicine-col">
 
-                @if ($nonExistingColCount > 1)
-                    <table style="width:100%; border:none; margin-top:4px;">
-                        <tr>
-                            @foreach ($nonExistingChunks as $chunk)
-                                <td style="width:{{ floor(100 / $nonExistingColCount) }}%; border:none; padding:0; vertical-align:top;">
-                                    <ul style="padding-left:15px; margin:0;">
-                                        @foreach ($chunk as $sym)
-                                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                                        @endforeach
-                                    </ul>
-                                </td>
-                            @endforeach
-                        </tr>
-                    </table>
-                @else
-                    <ul style="padding-left:15px; margin-top:4px;">
-                        @foreach ($nonExistingSyms as $sym)
-                            <li style="font-size:9px; margin-bottom:3px;">{{ $sym }}</li>
-                        @endforeach
-                    </ul>
-                @endif
-            </td>
+                <div class="table-heading">
+                    Medicine
+                </div>
 
-            {{-- C.P DETAILS --}}
-            <td>
-                <strong>C.P Details</strong>
+                <ol class="medicine-list-new">
 
-                <p style="margin-top:4px;">
-                    <strong>C.P:</strong>
-                    {{ strtoupper($patient->cp ?? 'NO') }}
-                </p>
+                    @foreach ($medicines as $index => $med)
 
-                @php
-                    $cpMovements = is_array($patient->cp_movement)
-                        ? $patient->cp_movement
-                        : json_decode($patient->cp_movement, true) ?? [];
-                @endphp
+                        <li>
 
-                <p style="margin-top:4px;">
-                    <strong>Movement:</strong><br>
-                    {{ implode(', ', $cpMovements) ?: 'N/A' }}
-                </p>
-            </td>
-        </tr>
-    </table>
-</div>
+                            <strong>
+                                {{ $med['name'] ?? ($med->name ?? '-') }}
+                            </strong>
 
-        {{-- MEDICINES --}}
-        <div class="section">
-
-            <div class="section-title">
-                Medicine Prescription
-            </div>
-
-            @if (count($medicines) > 0)
-
-                @php
-                    $useTwoColumns = count($medicines) > 14;
-
-                    $totalMeds = count($medicines);
-
-                    $midPoint = ceil($totalMeds / 2);
-
-                    $leftMeds = array_slice($medicines, 0, $midPoint);
-
-                    $rightMeds = array_slice($medicines, $midPoint);
-
-                    $startNumber = count($leftMeds) + 1;
-                @endphp
-
-                @if ($useTwoColumns)
-
-                    <div class="two-column-medicines">
-
-                        <table>
-                            <tr>
-
-                                <td>
-
-                                    <ol class="medicine-list">
-
-                                        @foreach ($leftMeds as $med)
-                                            <li>
-                                                <strong>
-                                                    {{ $med['name'] ?? ($med->name ?? '-') }}
-                                                </strong>
-
-                                                —
-                                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
-
-                                                |
-                                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
-                                            </li>
-                                        @endforeach
-
-                                    </ol>
-
-                                </td>
-
-                                <td>
-
-                                    <ol class="medicine-list" start="{{ $startNumber }}">
-
-                                        @foreach ($rightMeds as $med)
-                                            <li>
-                                                <strong>
-                                                    {{ $med['name'] ?? ($med->name ?? '-') }}
-                                                </strong>
-
-                                                —
-                                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
-
-                                                |
-                                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
-                                            </li>
-                                        @endforeach
-
-                                    </ol>
-
-                                </td>
-
-                            </tr>
-                        </table>
-
-                    </div>
-                @else
-                    <ol class="medicine-list">
-
-                        @foreach ($medicines as $med)
-                            <li>
-                                <strong>
-                                    {{ $med['name'] ?? ($med->name ?? '-') }}
-                                </strong>
-
+                            @if(!empty($med['dosage']) || !empty($med->dosage))
                                 —
                                 {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
+                            @endif
 
-                                |
+                            @if(!empty($med['quantity']) || !empty($med->quantity))
+                                → 
                                 {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
-                            </li>
-                        @endforeach
+                            @endif
 
-                    </ol>
+                        </li>
 
-                @endif
-            @else
-                <p style="text-align:center;color:#999;">
-                    No medicines prescribed
-                </p>
+                    @endforeach
 
-            @endif
+                </ol>
 
-        </div>
+            </td>
+
+        </tr>
+
+    </table>
+
+</div>
 
         {{-- SIGNATURE --}}
         <div class="signature">
