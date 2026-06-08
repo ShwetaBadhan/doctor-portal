@@ -7,7 +7,8 @@
         .header { text-align: center; border-bottom: 3px solid #2E37A4; padding-bottom: 15px; margin-bottom: 20px; }
         .header h1 { color: #2E37A4; margin: 0; }
         .content { margin-bottom: 20px; }
-        .footer { text-align: center; font-size: 12px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 30px; }
+        p { font-size:18px }
+        .footer { text-align: center; font-size: 20px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 30px; }
    
     </style>
 </head>
@@ -21,7 +22,7 @@
         <div class="content">
             <p>Dear {{ $patient->first_name }},</p>
             
-            <p>Welcome to E-Bio-Cares! We are delighted to have you as our patient.</p>
+            <p>Welcome to E-BioCares! We are delighted to have you as our patient.</p>
             
             <p>Please find attached your welcome letter which contains important information about our practice, office hours, and what to expect during your visit.</p>
             
@@ -34,10 +35,7 @@
             E-Bio-Cares</p>
         </div>
         
-        <div class="footer">
-            <p>E-Bio-Cares | VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR<br>
-            Contact: 98720-01445, 9888501445 | www.ebiocares.in</p>
-        </div>
+   
     </div>
 </body>
 </html>

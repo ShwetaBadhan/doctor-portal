@@ -15,7 +15,7 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            font-size: 11px;
+            font-size: 13px;
             line-height: 1.5;
             color: #000;
             background: #fff;
@@ -181,11 +181,7 @@
                 </div>
             </div>
 
-            <!-- FOOTER -->
-            <div
-                style="margin-top: 20px; text-align: center; font-size: 9px; color: #666; border-top: 1px solid #eee; padding-top: 10px;">
-                E-Bio-Cares | VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR
-            </div>
+            
         </div>
     </div>
 
