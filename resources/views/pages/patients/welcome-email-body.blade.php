@@ -26,7 +26,7 @@
             
             <p>Please find attached your welcome letter which contains important information about our practice, office hours, and what to expect during your visit.</p>
             
-            <p>If you have any questions, please don't hesitate to contact us at 98720-01445 or 180012301445.</p>
+            <p>If you have any questions, please don't hesitate to contact us at 98720-01445 or 9888501445.</p>
             
             <p>We look forward to serving you!</p>
             

@@ -36,44 +36,53 @@ class Patient extends Model
      * ✅ NEW: Generate unique patient ID with all initials + country code + serial number
      * Example: Shweta Badhan, Care of: Ramesh, Jalandhar, Punjab, India → SBRJPIN4501
      */
-    public static function generatePatientId($firstName, $lastName, $careOfName, $city, $state, $countryIso = 'IN')
-    {
-        // Get first letter of each field (uppercase, remove non-alpha characters)
-        $first = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $firstName), 0, 1));
-        $last = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $lastName), 0, 1));
-        $careOf = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $careOfName), 0, 1));
-        $cityLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $city), 0, 1));
-        $stateLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $state), 0, 1));
-        
-        // Country code (2 letters, uppercase)
-        $countryCode = strtoupper(substr($countryIso, 0, 2));
-        
-        // Handle empty values with fallback 'X'
-        $first = $first ?: 'X';
-        $last = $last ?: 'X';
-        $careOf = $careOf ?: 'X';
-        $cityLetter = $cityLetter ?: 'X';
-        $stateLetter = $stateLetter ?: 'X';
-        $countryCode = $countryCode ?: 'XX';
-        
-        // Find all patients with this country code to find the highest serial number
-        $patients = self::where('patient_id', 'LIKE', '%' . $countryCode . '%')->get();
-        $maxNumber = 4500;
-        
-        foreach ($patients as $p) {
-            if (preg_match('/(\d+)$/', $p->patient_id, $matches)) {
-                $num = (int) $matches[1];
-                if ($num > $maxNumber) {
-                    $maxNumber = $num;
-                }
+   public static function generatePatientId($firstName, $lastName, $careOfName, $city, $state, $countryIso = 'IN')
+{
+    // Get first letter of each field (uppercase, remove non-alpha characters)
+    $first = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $firstName), 0, 1));
+    $last = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $lastName), 0, 1));
+    $careOf = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $careOfName), 0, 1));
+    $cityLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $city), 0, 1));
+    $stateLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $state), 0, 1));
+    
+    // Country code (2 letters, uppercase)
+    $countryCode = strtoupper(substr($countryIso, 0, 2));
+    
+    // Handle empty values with fallback 'X'
+    $first = $first ?: 'X';
+    $last = $last ?: 'X';
+    $careOf = $careOf ?: 'X';
+    $cityLetter = $cityLetter ?: 'X';
+    $stateLetter = $stateLetter ?: 'X';
+    $countryCode = $countryCode ?: 'XX';
+    
+    // Find all patients with this country code to find the highest serial number
+    $patients = self::where('patient_id', 'LIKE', '%' . $countryCode . '%')->get();
+    
+    
+    $maxNumber = 0; 
+    
+    foreach ($patients as $p) {
+        if (preg_match('/(\d+)$/', $p->patient_id, $matches)) {
+            $num = (int) $matches[1];
+            if ($num > $maxNumber) {
+                $maxNumber = $num;
             }
         }
-
-        // Combine all parts
-        $patientId = $first . $last . $careOf . $cityLetter . $stateLetter . $countryCode . ($maxNumber + 1);
-        
-        return $patientId;
     }
+
+    // Next number calculate karein
+    $nextNumber = $maxNumber + 1;
+    
+    // 💡 PRO TIP: Agar aap chahte ho ki number hamesha 2 digit ka hi aaye (jaise 01, 02, 10), 
+    // toh aap upar wali line ko comment karke yeh use kar sakte ho:
+    // $nextNumber = str_pad($maxNumber + 1, 2, '0', STR_PAD_LEFT);
+
+    // Combine all parts
+    $patientId = $first . $last . $careOf . $cityLetter . $stateLetter . $countryCode . $nextNumber;
+    
+    return $patientId;
+}
 
     public static function calculateAge($dob)
     {

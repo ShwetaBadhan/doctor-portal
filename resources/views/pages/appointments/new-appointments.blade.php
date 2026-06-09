@@ -43,17 +43,21 @@
                                             <div class="mb-3">
                                                 <label class="form-label mb-1 fw-medium">Patient<span
                                                         class="text-danger ms-1">*</span></label>
-                                                <select name="patient_id"
-                                                    class="select @error('patient_id') is-invalid @enderror" required>
-                                                    <option value="">Select Patient</option>
-                                                    @foreach ($patients as $patient)
-                                                        <option value="{{ $patient->id }}"
-                                                            {{ (old('patient_id') ?? $selectedPatient) == $patient->id ? 'selected' : '' }}>
-                                                            {{ $patient->first_name }} {{ $patient->last_name }}
-                                                            ({{ $patient->patient_id }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                               <!-- ✅ YE PURANA SELECT TAG HATA KAR YE NAYA WALA LAGAYEN -->
+        <select name="patient_id" id="patientSelect" class="form-select" required>
+            <option value="">-- Search by ID, name or phone --</option>
+            @foreach ($patients as $patient)
+                <option value="{{ $patient->id }}"
+                    data-name="{{ $patient->first_name }} {{ $patient->last_name }}"
+                    data-phone="{{ $patient->phone ?? '' }}"
+                    data-patient-id="{{ $patient->patient_id }}"
+                    data-address="{{ $patient->address ?? '' }}"
+                    {{ (old('patient_id') ?? $selectedPatient) == $patient->id ? 'selected' : '' }}>
+                    {{ $patient->first_name }} {{ $patient->last_name }}
+                    ({{ $patient->patient_id }})
+                </option>
+            @endforeach
+        </select>
                                                 @error('patient_id')
                                                     <span class="invalid-feedback">{{ $message }}</span>
                                                 @enderror
@@ -305,7 +309,7 @@
         </div>
     </div>
 
-  <script>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     
     // ✅ BP Auto-Format (120/80)
@@ -317,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 val = val.slice(0, 3) + '/' + val.slice(3, 5);
             }
             if (val.includes('/')) {
-                const [sys, dia] = val.split('/');
+                const [sys, dia] = val.Patient('/');
                 val = sys.slice(0, 3) + '/' + (dia ? dia.slice(0, 2) : '');
             }
             e.target.value = val;
@@ -366,13 +370,63 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.target.style.borderColor = '';
                     e.target.style.boxShadow = '';
                 }, 2000);
-                console.log(`✓ Converted: ${num}°C → ${fahrenheit.toFixed(1)}°F`);
             }
             else if (num < 90 || num > 115) {
                 e.target.style.borderColor = '#ffc107';
                 setTimeout(() => e.target.style.borderColor = '', 2000);
             }
         });
+    }
+
+    // ✅ TOM SELECT INITIALIZATION FOR PATIENT SEARCH
+    if (typeof TomSelect !== 'undefined') {
+        const patientSelect = document.getElementById('patientSelect');
+        
+        if (patientSelect) {
+            // Extract options data for Tom Select
+            const patientOptions = Array.from(patientSelect.options)
+                .filter(opt => opt.value)
+                .map(opt => ({
+                    value: opt.value,
+                    text: opt.text,
+                    name: opt.dataset.name || '',
+                    phone: opt.dataset.phone || '',
+                    patientId: opt.dataset.patientId || '',
+                    address: opt.dataset.address || ''
+                }));
+
+            // Initialize Tom Select
+            new TomSelect('#patientSelect', {
+                placeholder: 'Search by Patient ID, name or phone...',
+                maxItems: 1,
+                valueField: 'value',
+                labelField: 'text',
+                // Yeh fields search honge jab aap type karenge
+                searchField: ['text', 'name', 'phone', 'patientId'], 
+                options: patientOptions,
+                items: [],
+                // Custom UI for dropdown options
+                render: {
+                    option: (data, escape) => `
+                        <div class="py-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold text-primary">${escape(data.patientId)}</span>
+                                <small class="text-muted">${escape(data.phone)}</small>
+                            </div>
+                            <div class="fw-medium">${escape(data.name)}</div>
+                        </div>
+                    `,
+                    // UI for selected item
+                    item: (data, escape) => `
+                        <div>${escape(data.patientId)} - ${escape(data.name)}</div>
+                    `
+                },
+                onChange: function(value) {
+                    // Jab koi patient select ho, toh aap yahan extra logic likh sakte ho
+                    console.log('Selected Patient ID:', value);
+                }
+            });
+        }
     }
 });
 </script>
