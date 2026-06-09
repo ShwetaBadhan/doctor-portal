@@ -61,7 +61,9 @@
                                 </p>
                                 <h5 class="mb-1">
                                     <a href="javascript:void(0);" class="fw-bold">
-                                        {{ $patient->first_name }} {{ $patient->last_name }}
+                                        {{ $patient->first_name }} {{ $patient->last_name }} 
+                                        <br>
+                                        {{ $patient->care_of_name }}
                                     </a>
                                 </h5>
                                 <p class="mb-3">
@@ -238,158 +240,165 @@
                                 </small>
                             @endif
                         </div>
-                      <div class="card-body pb-0">
-    @if (
-        $latestAppointment &&
-            ($latestAppointment->bp || $latestAppointment->temp || $latestAppointment->pulse || $latestAppointment->weight || $latestAppointment->vat || $latestAppointment->pit || $latestAppointment->kuff || $latestAppointment->delusion))
-        <div class="row">
-            @php
-                $vitals = [
-                    [
-                        'key' => 'bp',
-                        'label' => 'Blood Pressure',
-                        'icon' => 'ti ti-droplet',
-                        'unit' => '',
-                    ],
-                    [
-                        'key' => 'pulse',
-                        'label' => 'Heart Rate',
-                        'icon' => 'ti ti-heart',
-                        'unit' => 'bpm',
-                    ],
-                    [
-                        'key' => 'temp',
-                        'label' => 'Temperature',
-                        'icon' => 'ti ti-temperature',
-                        'unit' => '°F',
-                    ],
-                    [
-                        'key' => 'weight',
-                        'label' => 'Weight',
-                        'icon' => 'ti ti-weight',
-                        'unit' => 'kg',
-                    ],
-                    [
-                        'key' => 'vat',
-                        'label' => 'VAT',
-                        'icon' => 'ti ti-hexagons',
-                        'unit' => '',
-                    ],
-                    [
-                        'key' => 'pit',
-                        'label' => 'PIT',
-                        'icon' => 'ti ti-activity',
-                        'unit' => '',
-                    ],
-                    [
-                        'key' => 'kuff',
-                        'label' => 'Kuff',
-                        'icon' => 'ti ti-windmill',
-                        'unit' => '',
-                    ],
-                    [
-                        'key' => 'delusion',
-                        'label' => 'Delusion',
-                        'icon' => 'ti ti-brain',
-                        'unit' => '',
-                    ],
-                ];
-            @endphp
-            @foreach ($vitals as $vital)
-                @if ($latestAppointment->{$vital['key']})
-                    <div class="col-sm-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <span
-                                class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                                <i class="{{ $vital['icon'] }} fs-16 text-body"></i>
-                            </span>
-                            <div>
-                                <h6 class="fs-13 fw-bold mb-1 text-truncate">{{ $vital['label'] }}
-                                </h6>
-                                <p class="mb-0 d-inline-flex align-items-center text-truncate">
-                                    <i class="ti ti-point-filled me-1 text-success fs-18"></i>
-                                    {{ $latestAppointment->{$vital['key']} }} {{ $vital['unit'] }}
-                                </p>
-                            </div>
+                        <div class="card-body pb-0">
+                            @if (
+                                $latestAppointment &&
+                                    ($latestAppointment->bp ||
+                                        $latestAppointment->temp ||
+                                        $latestAppointment->pulse ||
+                                        $latestAppointment->weight ||
+                                        $latestAppointment->vat ||
+                                        $latestAppointment->pit ||
+                                        $latestAppointment->kuff ||
+                                        $latestAppointment->delusion))
+                                <div class="row">
+                                    @php
+                                        $vitals = [
+                                            [
+                                                'key' => 'bp',
+                                                'label' => 'Blood Pressure',
+                                                'icon' => 'ti ti-droplet',
+                                                'unit' => '',
+                                            ],
+                                            [
+                                                'key' => 'pulse',
+                                                'label' => 'Heart Rate',
+                                                'icon' => 'ti ti-heart',
+                                                'unit' => 'bpm',
+                                            ],
+                                            [
+                                                'key' => 'temp',
+                                                'label' => 'Temperature',
+                                                'icon' => 'ti ti-temperature',
+                                                'unit' => '°F',
+                                            ],
+                                            [
+                                                'key' => 'weight',
+                                                'label' => 'Weight',
+                                                'icon' => 'ti ti-weight',
+                                                'unit' => 'kg',
+                                            ],
+                                            [
+                                                'key' => 'vat',
+                                                'label' => 'VAT',
+                                                'icon' => 'ti ti-hexagons',
+                                                'unit' => '',
+                                            ],
+                                            [
+                                                'key' => 'pit',
+                                                'label' => 'PIT',
+                                                'icon' => 'ti ti-activity',
+                                                'unit' => '',
+                                            ],
+                                            [
+                                                'key' => 'kuff',
+                                                'label' => 'Kuff',
+                                                'icon' => 'ti ti-windmill',
+                                                'unit' => '',
+                                            ],
+                                            [
+                                                'key' => 'delusion',
+                                                'label' => 'Delusion',
+                                                'icon' => 'ti ti-brain',
+                                                'unit' => '',
+                                            ],
+                                        ];
+                                    @endphp
+                                    @foreach ($vitals as $vital)
+                                        @if ($latestAppointment->{$vital['key']})
+                                            <div class="col-sm-4">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <span
+                                                        class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                                                        <i class="{{ $vital['icon'] }} fs-16 text-body"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h6 class="fs-13 fw-bold mb-1 text-truncate">{{ $vital['label'] }}
+                                                        </h6>
+                                                        <p class="mb-0 d-inline-flex align-items-center text-truncate">
+                                                            <i class="ti ti-point-filled me-1 text-success fs-18"></i>
+                                                            {{ $latestAppointment->{$vital['key']} }} {{ $vital['unit'] }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+
+                                    <!-- Tongue, Nails, Cerebral Fluid -->
+                                    @if ($latestAppointment->tongue || $latestAppointment->nails)
+                                        <div class="col-sm-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <span
+                                                    class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                                                    <i class="ti ti-eye fs-16 text-body"></i>
+                                                </span>
+                                                <div>
+                                                    <h6 class="fs-13 fw-bold mb-1">Observations</h6>
+                                                    <p class="mb-0 text-truncate">
+                                                        @if ($latestAppointment->tongue)
+                                                            Tongue: {{ $latestAppointment->tongue }}
+                                                        @endif
+                                                        @if ($latestAppointment->tongue && $latestAppointment->nails)
+                                                            |
+                                                        @endif
+                                                        @if ($latestAppointment->nails)
+                                                            Nails: {{ $latestAppointment->nails }}
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if ($latestAppointment->cerebral_fluid)
+                                        <div class="col-sm-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <span
+                                                    class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
+                                                    <i class="ti ti-brain fs-16 text-body"></i>
+                                                </span>
+                                                <div>
+                                                    <h6 class="fs-13 fw-bold mb-1">Cerebral Fluid</h6>
+                                                    <p class="mb-0 d-inline-flex align-items-center">
+                                                        <i
+                                                            class="ti ti-point-filled me-1 text-{{ $latestAppointment->cerebral_fluid == 'normal' ? 'success' : 'warning' }} fs-18"></i>
+                                                        {{ ucfirst($latestAppointment->cerebral_fluid) }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Vital Notes -->
+                                    @if ($latestAppointment->vital_notes)
+                                        <div class="col-12 mt-2">
+                                            <small class="text-muted d-block">Notes</small>
+                                            <p class="mb-0 text-muted small">{{ $latestAppointment->vital_notes }}</p>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- View All Appointments Link -->
+                                <div class="mt-3 text-end">
+                                    <a href="#appointments" data-bs-toggle="tab" class="btn btn-sm btn-outline-primary">
+                                        <i class="ti ti-list me-1"></i> View All Visits
+                                    </a>
+                                </div>
+                            @else
+                                <!-- Empty State -->
+                                <div class="text-center py-4">
+                                    <i class="ti ti-heart-rate-monitor fs-1 text-muted opacity-50"></i>
+                                    <p class="text-muted mt-2 mb-0">No vital signs recorded yet.</p>
+                                    <small class="text-muted d-block">Vitals are recorded during each appointment
+                                        visit.</small>
+                                    <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                                        class="btn btn-sm btn-primary mt-3">
+                                        <i class="ti ti-plus me-1"></i> Schedule Appointment
+                                    </a>
+                                </div>
+                            @endif
                         </div>
-                    </div>
-                @endif
-            @endforeach
-
-            <!-- Tongue, Nails, Cerebral Fluid -->
-            @if ($latestAppointment->tongue || $latestAppointment->nails)
-                <div class="col-sm-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <span
-                            class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                            <i class="ti ti-eye fs-16 text-body"></i>
-                        </span>
-                        <div>
-                            <h6 class="fs-13 fw-bold mb-1">Observations</h6>
-                            <p class="mb-0 text-truncate">
-                                @if ($latestAppointment->tongue)
-                                    Tongue: {{ $latestAppointment->tongue }}
-                                @endif
-                                @if ($latestAppointment->tongue && $latestAppointment->nails)
-                                    |
-                                @endif
-                                @if ($latestAppointment->nails)
-                                    Nails: {{ $latestAppointment->nails }}
-                                @endif
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if ($latestAppointment->cerebral_fluid)
-                <div class="col-sm-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <span
-                            class="avatar rounded-2 bg-light text-dark flex-shrink-0 me-2 border">
-                            <i class="ti ti-brain fs-16 text-body"></i>
-                        </span>
-                        <div>
-                            <h6 class="fs-13 fw-bold mb-1">Cerebral Fluid</h6>
-                            <p class="mb-0 d-inline-flex align-items-center">
-                                <i
-                                    class="ti ti-point-filled me-1 text-{{ $latestAppointment->cerebral_fluid == 'normal' ? 'success' : 'warning' }} fs-18"></i>
-                                {{ ucfirst($latestAppointment->cerebral_fluid) }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            <!-- Vital Notes -->
-            @if ($latestAppointment->vital_notes)
-                <div class="col-12 mt-2">
-                    <small class="text-muted d-block">Notes</small>
-                    <p class="mb-0 text-muted small">{{ $latestAppointment->vital_notes }}</p>
-                </div>
-            @endif
-        </div>
-
-        <!-- View All Appointments Link -->
-        <div class="mt-3 text-end">
-            <a href="#appointments" data-bs-toggle="tab" class="btn btn-sm btn-outline-primary">
-                <i class="ti ti-list me-1"></i> View All Visits
-            </a>
-        </div>
-    @else
-        <!-- Empty State -->
-        <div class="text-center py-4">
-            <i class="ti ti-heart-rate-monitor fs-1 text-muted opacity-50"></i>
-            <p class="text-muted mt-2 mb-0">No vital signs recorded yet.</p>
-            <small class="text-muted d-block">Vitals are recorded during each appointment
-                visit.</small>
-            <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
-                class="btn btn-sm btn-primary mt-3">
-                <i class="ti ti-plus me-1"></i> Schedule Appointment
-            </a>
-        </div>
-    @endif
-</div>
                     </div>
                 </div>
             </div>
@@ -699,71 +708,78 @@
                         </div>
                     @endif
 
-                  <!-- Medicine History -->
-<h6 class="fw-bold mb-3">
-    <i class="ti ti-history me-2"></i>Medicine Assignment History
-</h6>
+                    <!-- Medicine History -->
+                    <h6 class="fw-bold mb-3">
+                        <i class="ti ti-history me-2"></i>Medicine Assignment History
+                    </h6>
 
-@php
-    $allMedicines = \App\Models\PatientMedicine::where('patient_id', $patient->id)
-        ->with(['medicine', 'medicineGroup'])
-        ->orderBy('created_at', 'desc')
-        ->get();
-@endphp
+                    @php
+                        $allMedicines = \App\Models\PatientMedicine::where('patient_id', $patient->id)
+                            ->with(['medicine', 'medicineGroup'])
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+                    @endphp
 
-@if($allMedicines->count())
-    <div class="card">
-        <div class="card-body">
-            <div class="list-group list-group-flush">
-                @foreach($allMedicines as $index => $history)
-                    <div class="list-group-item px-0 py-2 {{ !$history->is_active ? 'bg-light' : '' }}">
-                        <div class="d-flex align-items-center">
-                            <!-- Serial Number -->
-                            <span class="fw-bold text-primary me-3" style="min-width: 30px;">
-                                {{ $loop->iteration }}.
-                            </span>
+                    @if ($allMedicines->count())
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    @foreach ($allMedicines as $index => $history)
+                                        <div
+                                            class="list-group-item px-0 py-2 {{ !$history->is_active ? 'bg-light' : '' }}">
+                                            <div class="d-flex align-items-center">
+                                                <!-- Serial Number -->
+                                                <span class="fw-bold text-primary me-3" style="min-width: 30px;">
+                                                    {{ $loop->iteration }}.
+                                                </span>
 
-                            <!-- Medicine Name -->
-                            <div class="flex-grow-1">
-                                <span class="fw-medium">
-                                    {{ $history->medicine->name ?? 'Unknown' }}
-                                </span>
+                                                <!-- Medicine Name -->
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-medium">
+                                                        {{ $history->medicine->name ?? 'Unknown' }}
+                                                    </span>
 
-                                <!-- Dosage, Quantity, Instructions -->
-                                <span class="text-muted mx-2">
-                                    @if($history->dosage || $history->quantity || $history->instructions)
-                                        ---->
-                                        @if($history->dosage) {{ $history->dosage }} @endif
-                                        @if($history->quantity) ----> {{ $history->quantity }} @endif
-                                        @if($history->instructions) ({{ $history->instructions }}) @endif
-                                    @endif
-                                </span>
+                                                    <!-- Dosage, Quantity, Instructions -->
+                                                    <span class="text-muted mx-2">
+                                                        @if ($history->dosage || $history->quantity || $history->instructions)
+                                                            ---->
+                                                            @if ($history->dosage)
+                                                                {{ $history->dosage }}
+                                                            @endif
+                                                            @if ($history->quantity)
+                                                                ----> {{ $history->quantity }}
+                                                            @endif
+                                                            @if ($history->instructions)
+                                                                ({{ $history->instructions }})
+                                                            @endif
+                                                        @endif
+                                                    </span>
 
-                                <!-- Status Badge -->
-                                @if(!$history->is_active)
-                                    <span class="badge bg-secondary ms-2 fs-11">Removed</span>
-                                @endif
+                                                    <!-- Status Badge -->
+                                                    @if (!$history->is_active)
+                                                        <span class="badge bg-secondary ms-2 fs-11">Removed</span>
+                                                    @endif
+                                                </div>
+
+                                                <!-- Date -->
+                                                <small class="text-muted">
+                                                    {{ $history->created_at->format('d M Y') }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-
-                            <!-- Date -->
-                            <small class="text-muted">
-                                {{ $history->created_at->format('d M Y') }}
-                            </small>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-@else
-    <div class="card border-dashed">
-        <div class="card-body text-center py-5">
-            <i class="ti ti-history fs-1 text-muted opacity-50"></i>
-            <h5 class="mt-3 text-muted">No Medicine History</h5>
-            <p class="text-muted mb-0">Medicine assignment history will appear here.</p>
-        </div>
-    </div>
-@endif
+                    @else
+                        <div class="card border-dashed">
+                            <div class="card-body text-center py-5">
+                                <i class="ti ti-history fs-1 text-muted opacity-50"></i>
+                                <h5 class="mt-3 text-muted">No Medicine History</h5>
+                                <p class="text-muted mb-0">Medicine assignment history will appear here.</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Test Reports Tab (NEW) -->
@@ -1118,10 +1134,10 @@
                                                     <td>
                                                         <small class="text-muted">
                                                             @if ($apt->tongue)
-                                                                Toungue:{{ $apt->tongue }} 
+                                                                Toungue:{{ $apt->tongue }}
                                                             @endif
                                                             @if ($apt->nails)
-                                                              |   Nails:{{ $apt->nails }}
+                                                                | Nails:{{ $apt->nails }}
                                                             @endif
                                                             @if ($apt->cerebral_fluid)
                                                                 | Cerebral:{{ ucfirst($apt->cerebral_fluid) }}
@@ -1169,152 +1185,159 @@
 
         @include('components.copyright')
     </div>
-<!-- Assign Medicine Group Modal (With Extra Medicines Option) -->
-<div class="modal fade" id="assignMedicineModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <form id="assignMedicineForm" action="{{ route('patients.medicines.assign-custom', $patient->id) }}" method="POST">
-                @csrf
-                <div class="modal-header sticky-top bg-white z-3">
-                    <h5 class="modal-title"><i class="ti ti-pills me-2"></i>Assign Medicines</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
-
-                    <p class="text-muted mb-3">
-                        Select medicines from group for <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
-                    </p>
-
-                    <!-- Medicine Group Selector -->
-                    <div class="mb-3 sticky-top bg-white z-2 pb-2 border-bottom">
-                        <label class="form-label fw-medium">Medicine Group <span class="text-danger">*</span></label>
-                        <select name="medicine_group_id" id="medicineGroupSelect" class="form-select" required>
-                            <option value="">Select group...</option>
-                            @foreach ($medicineGroups as $group)
-                                <option value="{{ $group->id }}" data-count="{{ $group->medicines_count }}">
-                                    {{ $group->name }} @if ($group->code)({{ $group->code }})@endif 
-                                    - {{ $group->medicines_count }} medicines
-                                </option>
-                            @endforeach
-                        </select>
+    <!-- Assign Medicine Group Modal (With Extra Medicines Option) -->
+    <div class="modal fade" id="assignMedicineModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="assignMedicineForm" action="{{ route('patients.medicines.assign-custom', $patient->id) }}"
+                    method="POST">
+                    @csrf
+                    <div class="modal-header sticky-top bg-white z-3">
+                        <h5 class="modal-title"><i class="ti ti-pills me-2"></i>Assign Medicines</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+                    <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
 
-                    <!-- Loading State -->
-                    <div id="medicinesLoading" class="text-center py-4 d-none">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted small">Loading medicines...</p>
+                        <p class="text-muted mb-3">
+                            Select medicines from group for <strong>{{ $patient->first_name }}
+                                {{ $patient->last_name }}</strong>
+                        </p>
+
+                        <!-- Medicine Group Selector -->
+                        <div class="mb-3 sticky-top bg-white z-2 pb-2 border-bottom">
+                            <label class="form-label fw-medium">Medicine Group <span class="text-danger">*</span></label>
+                            <select name="medicine_group_id" id="medicineGroupSelect" class="form-select" required>
+                                <option value="">Select group...</option>
+                                @foreach ($medicineGroups as $group)
+                                    <option value="{{ $group->id }}" data-count="{{ $group->medicines_count }}">
+                                        {{ $group->name }} @if ($group->code)
+                                            ({{ $group->code }})
+                                        @endif
+                                        - {{ $group->medicines_count }} medicines
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="medicinesLoading" class="text-center py-4 d-none">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted small">Loading medicines...</p>
+                        </div>
+
+                        <!-- Dynamic Medicines Container -->
+                        <div id="medicinesContainer" class="d-none">
+
+                            <!-- Check All Header -->
+                            <div
+                                class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom sticky-top bg-white z-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="checkAllMedicines">
+                                    <label class="form-check-label fw-medium" for="checkAllMedicines">Select All</label>
+                                </div>
+                                <span class="badge bg-light text-dark" id="selectedCount">0 selected</span>
+                            </div>
+
+                            <!-- Group Medicines List -->
+                            <div id="medicinesList" class="space-y-2"
+                                style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                                <!-- Dynamic content injected here -->
+                            </div>
+
+                            <!-- ===== EXTRA MEDICINES SECTION ===== -->
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">
+                                        <i class="ti ti-plus me-1 text-primary"></i>Extra Medicines
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="addExtraMedicine()">
+                                        <i class="ti ti-plus me-1"></i> Add Extra Medicine
+                                    </button>
+                                </div>
+
+                                <!-- Extra Medicines Container -->
+                                <div id="extraMedicinesContainer">
+                                    <!-- Extra medicines will be added here -->
+                                </div>
+                                <small class="text-muted">
+                                    <i class="ti ti-info-circle me-1"></i>
+                                    Add medicines that are not part of this group
+                                </small>
+                            </div>
+                            <!-- ===== END EXTRA MEDICINES SECTION ===== -->
+
+                            <!-- Date & Notes Section -->
+                            <div class="row mt-4 pt-3 border-top">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" name="start_date" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" name="end_date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">General Notes</label>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="noMedicines" class="alert alert-warning d-none">
+                            <i class="ti ti-alert-circle me-2"></i>This group has no medicines.
+                        </div>
+
                     </div>
-
-                    <!-- Dynamic Medicines Container -->
-                    <div id="medicinesContainer" class="d-none">
-                        
-                        <!-- Check All Header -->
-                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom sticky-top bg-white z-1">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="checkAllMedicines">
-                                <label class="form-check-label fw-medium" for="checkAllMedicines">Select All</label>
-                            </div>
-                            <span class="badge bg-light text-dark" id="selectedCount">0 selected</span>
-                        </div>
-
-                        <!-- Group Medicines List -->
-                        <div id="medicinesList" class="space-y-2" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                            <!-- Dynamic content injected here -->
-                        </div>
-
-                        <!-- ===== EXTRA MEDICINES SECTION ===== -->
-                        <div class="mt-4 pt-3 border-top">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="fw-bold mb-0">
-                                    <i class="ti ti-plus me-1 text-primary"></i>Extra Medicines
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addExtraMedicine()">
-                                    <i class="ti ti-plus me-1"></i> Add Extra Medicine
-                                </button>
-                            </div>
-                            
-                            <!-- Extra Medicines Container -->
-                            <div id="extraMedicinesContainer">
-                                <!-- Extra medicines will be added here -->
-                            </div>
-                            <small class="text-muted">
-                                <i class="ti ti-info-circle me-1"></i>
-                                Add medicines that are not part of this group
-                            </small>
-                        </div>
-                        <!-- ===== END EXTRA MEDICINES SECTION ===== -->
-
-                        <!-- Date & Notes Section -->
-                        <div class="row mt-4 pt-3 border-top">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Start Date</label>
-                                <input type="date" name="start_date" class="form-control">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">End Date</label>
-                                <input type="date" name="end_date" class="form-control">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">General Notes</label>
-                            <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
-                        </div>
+                    <div class="modal-footer sticky-bottom bg-white border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submitAssignBtn" disabled>
+                            <i class="ti ti-check me-1"></i> Assign (<span id="submitCount">0</span>)
+                        </button>
                     </div>
-
-                    <!-- Empty State -->
-                    <div id="noMedicines" class="alert alert-warning d-none">
-                        <i class="ti ti-alert-circle me-2"></i>This group has no medicines.
-                    </div>
-
-                </div>
-                <div class="modal-footer sticky-bottom bg-white border-top">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="submitAssignBtn" disabled>
-                        <i class="ti ti-check me-1"></i> Assign (<span id="submitCount">0</span>)
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 
 @endsection
 
 
 @push('scripts')
-<script>
-    window.patientId = {{ $patient->id }};
-    let extraMedicineCounter = 0;
+    <script>
+        window.patientId = {{ $patient->id }};
+        let extraMedicineCounter = 0;
 
-    function confirmRemoveMedicine(id, name) {
-        Swal.fire({
-            title: 'Remove Medicine?',
-            html: `Remove <strong>${name}</strong> from this patient's prescription?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, remove',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#dc3545'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/patient-medicines/${id}/remove`;
-                form.innerHTML = `@csrf @method('DELETE')`;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    }
+        function confirmRemoveMedicine(id, name) {
+            Swal.fire({
+                title: 'Remove Medicine?',
+                html: `Remove <strong>${name}</strong> from this patient's prescription?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, remove',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/patient-medicines/${id}/remove`;
+                    form.innerHTML = `@csrf @method('DELETE')`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
 
-    // Add extra medicine row
-    function addExtraMedicine() {
-        extraMedicineCounter++;
-        const container = document.getElementById('extraMedicinesContainer');
-        const extraIndex = extraMedicineCounter;
-        
-        const extraMedHtml = `
+        // Add extra medicine row
+        function addExtraMedicine() {
+            extraMedicineCounter++;
+            const container = document.getElementById('extraMedicinesContainer');
+            const extraIndex = extraMedicineCounter;
+
+            const extraMedHtml = `
             <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${extraIndex}">
                 <div class="card-body py-2 px-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1333,13 +1356,13 @@
                                     class="form-select form-select-sm extra-medicine-select" 
                                     required onchange="autoFillExtraMedicine(this)">
                                 <option value="">-- Select medicine --</option>
-                                @foreach(\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
+                                @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
                                     <option value="{{ $med->id }}" 
                                             data-dosage="{{ $med->dosage }}"
                                             data-quantity="{{ $med->quantity }}"
                                             data-route="{{ $med->route }}"
                                             data-instructions="{{ $med->instructions }}">
-                                        {{ $med->name }} @if($med->code)({{ $med->code }})@endif
+                                        {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
                                     </option>
                                 @endforeach
                             </select>
@@ -1360,146 +1383,147 @@
                 </div>
             </div>
         `;
-        
-        container.insertAdjacentHTML('beforeend', extraMedHtml);
-        updateSubmitButton();
-    }
 
-    // Remove extra medicine
-    function removeExtraMedicine(index) {
-        const element = document.getElementById(`extraMed_${index}`);
-        if (element) {
-            element.remove();
+            container.insertAdjacentHTML('beforeend', extraMedHtml);
             updateSubmitButton();
         }
-    }
 
-    // Auto-fill medicine details when selected
-    function autoFillExtraMedicine(select) {
-        const selectedOption = select.options[select.selectedIndex];
-        updateSubmitButton();
-        
-        if (!selectedOption.value) return;
-        
-        const row = select.closest('.extra-medicine-item');
-        const dosageField = row.querySelector('.extra-dosage');
-        const qtyField = row.querySelector('.extra-quantity');
-        
-        if (dosageField && selectedOption.dataset.dosage) {
-            dosageField.value = selectedOption.dataset.dosage;
-        }
-        if (qtyField && selectedOption.dataset.quantity) {
-            qtyField.value = selectedOption.dataset.quantity;
-        }
-    }
-
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        const patientId = window.patientId || {{ $patient->id }};
-
-        // Medicine Group Change Handler
-        const groupSelect = document.getElementById('medicineGroupSelect');
-        if (groupSelect) {
-            groupSelect.addEventListener('change', function() {
-                const groupId = this.value;
-                if (!groupId) {
-                    resetMedicinesUI();
-                    return;
-                }
-                showLoading();
-                fetchMedicines(groupId, patientId);
-            });
-        }
-
-        // Check All Handler
-        const checkAll = document.getElementById('checkAllMedicines');
-        if (checkAll) {
-            checkAll.addEventListener('change', function(e) {
-                const checked = e.target.checked;
-                document.querySelectorAll('.medicine-checkbox').forEach(cb => {
-                    cb.checked = checked;
-                    toggleMedicineFields(cb, checked);
-                });
+        // Remove extra medicine
+        function removeExtraMedicine(index) {
+            const element = document.getElementById(`extraMed_${index}`);
+            if (element) {
+                element.remove();
                 updateSubmitButton();
-            });
+            }
         }
 
-        // Dynamic checkbox handler
-        const medicinesList = document.getElementById('medicinesList');
-        if (medicinesList) {
-            medicinesList.addEventListener('change', function(e) {
-                if (e.target.classList.contains('medicine-checkbox')) {
-                    toggleMedicineFields(e.target, e.target.checked);
+        // Auto-fill medicine details when selected
+        function autoFillExtraMedicine(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            updateSubmitButton();
+
+            if (!selectedOption.value) return;
+
+            const row = select.closest('.extra-medicine-item');
+            const dosageField = row.querySelector('.extra-dosage');
+            const qtyField = row.querySelector('.extra-quantity');
+
+            if (dosageField && selectedOption.dataset.dosage) {
+                dosageField.value = selectedOption.dataset.dosage;
+            }
+            if (qtyField && selectedOption.dataset.quantity) {
+                qtyField.value = selectedOption.dataset.quantity;
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const patientId = window.patientId || {{ $patient->id }};
+
+            // Medicine Group Change Handler
+            const groupSelect = document.getElementById('medicineGroupSelect');
+            if (groupSelect) {
+                groupSelect.addEventListener('change', function() {
+                    const groupId = this.value;
+                    if (!groupId) {
+                        resetMedicinesUI();
+                        return;
+                    }
+                    showLoading();
+                    fetchMedicines(groupId, patientId);
+                });
+            }
+
+            // Check All Handler
+            const checkAll = document.getElementById('checkAllMedicines');
+            if (checkAll) {
+                checkAll.addEventListener('change', function(e) {
+                    const checked = e.target.checked;
+                    document.querySelectorAll('.medicine-checkbox').forEach(cb => {
+                        cb.checked = checked;
+                        toggleMedicineFields(cb, checked);
+                    });
+                    updateSubmitButton();
+                });
+            }
+
+            // Dynamic checkbox handler
+            const medicinesList = document.getElementById('medicinesList');
+            if (medicinesList) {
+                medicinesList.addEventListener('change', function(e) {
+                    if (e.target.classList.contains('medicine-checkbox')) {
+                        toggleMedicineFields(e.target, e.target.checked);
+                        updateSubmitButton();
+                    }
+                });
+            }
+
+            // Listen for changes in extra medicine dropdowns
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('extra-medicine-select')) {
                     updateSubmitButton();
                 }
             });
-        }
 
-        // Listen for changes in extra medicine dropdowns
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('extra-medicine-select')) {
-                updateSubmitButton();
+            // Form submit handler
+            const assignForm = document.getElementById('assignMedicineForm');
+            if (assignForm) {
+                assignForm.addEventListener('submit', function(e) {
+                    const checked = document.querySelectorAll('.medicine-checkbox:checked').length;
+                    const extraFilled = document.querySelectorAll('.extra-medicine-select[value!=""]')
+                        .length;
+                    if (checked === 0 && extraFilled === 0) {
+                        e.preventDefault();
+                        Swal.fire('Warning', 'Please select at least one medicine', 'warning');
+                    }
+                });
             }
         });
 
-        // Form submit handler
-        const assignForm = document.getElementById('assignMedicineForm');
-        if (assignForm) {
-            assignForm.addEventListener('submit', function(e) {
-                const checked = document.querySelectorAll('.medicine-checkbox:checked').length;
-                const extraFilled = document.querySelectorAll('.extra-medicine-select[value!=""]').length;
-                if (checked === 0 && extraFilled === 0) {
-                    e.preventDefault();
-                    Swal.fire('Warning', 'Please select at least one medicine', 'warning');
-                }
-            });
-        }
-    });
+        // Fetch medicines via AJAX
+        function fetchMedicines(groupId, patientId) {
+            const url = `/medicine-groups/${groupId}/medicines?patient_id=${patientId}`;
 
-    // Fetch medicines via AJAX
-    function fetchMedicines(groupId, patientId) {
-        const url = `/medicine-groups/${groupId}/medicines?patient_id=${patientId}`;
-        
-        fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                hideLoading();
-                if (!data.medicines || data.medicines.length === 0) {
-                    document.getElementById('noMedicines').classList.remove('d-none');
-                    document.getElementById('medicinesContainer').classList.add('d-none');
-                    return;
-                }
-                renderMedicines(data.medicines);
-            })
-            .catch(err => {
-                console.error('Fetch error:', err);
-                hideLoading();
-                Swal.fire('Error', 'Failed to load medicines', 'error');
-            });
-    }
-
-    function renderMedicines(medicines) {
-        hideLoading();
-        const container = document.getElementById('medicinesList');
-        
-        if (!medicines || medicines.length === 0) {
-            document.getElementById('noMedicines').classList.remove('d-none');
-            document.getElementById('medicinesContainer').classList.add('d-none');
-            return;
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    if (!data.medicines || data.medicines.length === 0) {
+                        document.getElementById('noMedicines').classList.remove('d-none');
+                        document.getElementById('medicinesContainer').classList.add('d-none');
+                        return;
+                    }
+                    renderMedicines(data.medicines);
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    hideLoading();
+                    Swal.fire('Error', 'Failed to load medicines', 'error');
+                });
         }
 
-        document.getElementById('noMedicines').classList.add('d-none');
-        document.getElementById('medicinesContainer').classList.remove('d-none');
+        function renderMedicines(medicines) {
+            hideLoading();
+            const container = document.getElementById('medicinesList');
 
-        container.innerHTML = medicines.map((med, i) => {
-            const route = med.route || '';
-            const dosage = med.dosage || '';
-            const quantity = med.quantity || '';
-            
-            return `
+            if (!medicines || medicines.length === 0) {
+                document.getElementById('noMedicines').classList.remove('d-none');
+                document.getElementById('medicinesContainer').classList.add('d-none');
+                return;
+            }
+
+            document.getElementById('noMedicines').classList.add('d-none');
+            document.getElementById('medicinesContainer').classList.remove('d-none');
+
+            container.innerHTML = medicines.map((med, i) => {
+                const route = med.route || '';
+                const dosage = med.dosage || '';
+                const quantity = med.quantity || '';
+
+                return `
         <div class="card border-0 shadow-sm mb-2 medicine-card" data-id="${med.id}">
             <div class="card-body py-2 px-3">
                 <div class="d-flex align-items-start gap-2">
@@ -1533,85 +1557,85 @@
                 </div>
             </div>
         </div>`;
-        }).join('');
+            }).join('');
 
-        updateSelectAllState();
-        updateSubmitButton();
-    }
-
-    function toggleMedicineFields(checkbox, enable) {
-        const card = checkbox.closest('.medicine-card');
-        if (!card) return;
-        const fields = card.querySelector('.medicine-fields');
-        if (!fields) return;
-        fields.querySelectorAll('input, select').forEach(input => {
-            if (!input.name.includes('[assign]')) {
-                input.disabled = !enable;
-            }
-        });
-    }
-
-    // Update submit button - count both group and extra medicines
-    function updateSubmitButton() {
-        const groupChecked = document.querySelectorAll('.medicine-checkbox:checked').length;
-        
-        let extraFilled = 0;
-        document.querySelectorAll('.extra-medicine-select').forEach(select => {
-            if (select.value && select.value !== '') extraFilled++;
-        });
-        
-        const totalSelected = groupChecked + extraFilled;
-        
-        const selectedCountEl = document.getElementById('selectedCount');
-        const submitCountEl = document.getElementById('submitCount');
-        const submitBtn = document.getElementById('submitAssignBtn');
-        
-        if (selectedCountEl) selectedCountEl.textContent = `${totalSelected} selected`;
-        if (submitCountEl) submitCountEl.textContent = totalSelected;
-        if (submitBtn) submitBtn.disabled = totalSelected === 0;
-    }
-
-    function updateSelectAllState() {
-        const all = document.querySelectorAll('.medicine-checkbox');
-        const checked = document.querySelectorAll('.medicine-checkbox:checked');
-        const checkAll = document.getElementById('checkAllMedicines');
-        
-        if (all.length > 0 && checkAll) {
-            checkAll.checked = all.length === checked.length;
-            checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+            updateSelectAllState();
+            updateSubmitButton();
         }
-    }
 
-    function showLoading() {
-        const loading = document.getElementById('medicinesLoading');
-        const container = document.getElementById('medicinesContainer');
-        const noMeds = document.getElementById('noMedicines');
-        
-        if (loading) loading.classList.remove('d-none');
-        if (container) container.classList.add('d-none');
-        if (noMeds) noMeds.classList.add('d-none');
-    }
+        function toggleMedicineFields(checkbox, enable) {
+            const card = checkbox.closest('.medicine-card');
+            if (!card) return;
+            const fields = card.querySelector('.medicine-fields');
+            if (!fields) return;
+            fields.querySelectorAll('input, select').forEach(input => {
+                if (!input.name.includes('[assign]')) {
+                    input.disabled = !enable;
+                }
+            });
+        }
 
-    function hideLoading() {
-        const loading = document.getElementById('medicinesLoading');
-        if (loading) loading.classList.add('d-none');
-    }
+        // Update submit button - count both group and extra medicines
+        function updateSubmitButton() {
+            const groupChecked = document.querySelectorAll('.medicine-checkbox:checked').length;
 
-    function resetMedicinesUI() {
-        const container = document.getElementById('medicinesContainer');
-        const noMeds = document.getElementById('noMedicines');
-        const list = document.getElementById('medicinesList');
-        const checkAll = document.getElementById('checkAllMedicines');
-        const extraContainer = document.getElementById('extraMedicinesContainer');
-        
-        if (container) container.classList.add('d-none');
-        if (noMeds) noMeds.classList.add('d-none');
-        if (list) list.innerHTML = '';
-        if (extraContainer) extraContainer.innerHTML = '';
-        if (checkAll) checkAll.checked = false;
-        
-        extraMedicineCounter = 0;
-        updateSubmitButton();
-    }
-</script>
+            let extraFilled = 0;
+            document.querySelectorAll('.extra-medicine-select').forEach(select => {
+                if (select.value && select.value !== '') extraFilled++;
+            });
+
+            const totalSelected = groupChecked + extraFilled;
+
+            const selectedCountEl = document.getElementById('selectedCount');
+            const submitCountEl = document.getElementById('submitCount');
+            const submitBtn = document.getElementById('submitAssignBtn');
+
+            if (selectedCountEl) selectedCountEl.textContent = `${totalSelected} selected`;
+            if (submitCountEl) submitCountEl.textContent = totalSelected;
+            if (submitBtn) submitBtn.disabled = totalSelected === 0;
+        }
+
+        function updateSelectAllState() {
+            const all = document.querySelectorAll('.medicine-checkbox');
+            const checked = document.querySelectorAll('.medicine-checkbox:checked');
+            const checkAll = document.getElementById('checkAllMedicines');
+
+            if (all.length > 0 && checkAll) {
+                checkAll.checked = all.length === checked.length;
+                checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+            }
+        }
+
+        function showLoading() {
+            const loading = document.getElementById('medicinesLoading');
+            const container = document.getElementById('medicinesContainer');
+            const noMeds = document.getElementById('noMedicines');
+
+            if (loading) loading.classList.remove('d-none');
+            if (container) container.classList.add('d-none');
+            if (noMeds) noMeds.classList.add('d-none');
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('medicinesLoading');
+            if (loading) loading.classList.add('d-none');
+        }
+
+        function resetMedicinesUI() {
+            const container = document.getElementById('medicinesContainer');
+            const noMeds = document.getElementById('noMedicines');
+            const list = document.getElementById('medicinesList');
+            const checkAll = document.getElementById('checkAllMedicines');
+            const extraContainer = document.getElementById('extraMedicinesContainer');
+
+            if (container) container.classList.add('d-none');
+            if (noMeds) noMeds.classList.add('d-none');
+            if (list) list.innerHTML = '';
+            if (extraContainer) extraContainer.innerHTML = '';
+            if (checkAll) checkAll.checked = false;
+
+            extraMedicineCounter = 0;
+            updateSubmitButton();
+        }
+    </script>
 @endpush
