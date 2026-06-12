@@ -8,9 +8,10 @@
             <div class="d-flex align-items-sm-center flex-sm-row flex-column gap-2 pb-3 mb-3 border-1 border-bottom">
                 <div class="flex-grow-1">
                     <h4 class="fw-semibold mb-0">
-                        Appointments
+                        {{-- Dynamic title based on route --}}
+                        {{ request()->routeIs('appointments.today') ? "Today's Appointments" : 'Appointments' }}
                         <span class="badge badge-soft-primary fw-medium border py-1 px-2 border-primary fs-13 ms-1">
-                            Total: {{ $appointments->total() ?? $appointments->count() }}
+                            Total: {{ $appointments->count() }}
                         </span>
                     </h4>
                 </div>
@@ -32,7 +33,7 @@
                     <div
                         class="bg-white border shadow-sm rounded px-1 pb-0 text-center d-flex align-items-center justify-content-center">
                         <a href="{{ route('appointments.index') }}"
-                            class="bg-light rounded p-1 d-flex align-items-center justify-content-center">
+                            class="{{ request()->routeIs('appointments.index') ? 'bg-light' : 'bg-white' }} rounded p-1 d-flex align-items-center justify-content-center">
                             <i class="ti ti-list fs-14 text-body"></i>
                         </a>
                         <a href="{{ route('appointment-calendar') }}"
@@ -110,7 +111,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($appointments as $appointment)
+                        @foreach ($appointments as $appointment)
                             <tr>
                                 <!-- Date & Time -->
                                 <td>
@@ -126,24 +127,23 @@
                                     <div class="d-flex align-items-center">
                                         <a href="{{ route('patients.show', $appointment->patient_id) }}"
                                             class="avatar avatar-md me-2">
-                                            @if ($appointment->patient->profile_image)
+                                            @if ($appointment->patient && $appointment->patient->profile_image)
                                                 <img src="{{ Storage::url($appointment->patient->profile_image) }}"
                                                     alt="{{ $appointment->patient->first_name }}" class="rounded-circle">
                                             @else
                                                 <span
                                                     class="avatar-text bg-light text-muted rounded-circle d-flex align-items-center justify-content-center w-100 h-100">
-                                                    {{ substr($appointment->patient->first_name, 0, 1) }}
+                                                    {{ $appointment->patient ? substr($appointment->patient->first_name, 0, 1) : '?' }}
                                                 </span>
                                             @endif
                                         </a>
                                         <div>
                                             <a href="{{ route('patients.show', $appointment->patient_id) }}"
                                                 class="text-dark fw-semibold">
-                                                {{ $appointment->patient->first_name }}
-                                                {{ $appointment->patient->last_name }}
+                                                {{ $appointment->patient ? $appointment->patient->first_name . ' ' . $appointment->patient->last_name : 'N/A' }}
                                             </a>
                                             <span
-                                                class="text-body fs-13 fw-normal d-block">{{ $appointment->patient->phone }}</span>
+                                                class="text-body fs-13 fw-normal d-block">{{ $appointment->patient->phone ?? '' }}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -186,9 +186,6 @@
                                 <!-- Actions -->
                                 <td class="action-item">
                                     <div class="d-flex align-items-center gap-1">
-                                        {{-- <a href="javascript:void(0);" class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1 me-1" title="Appointment">
-                                        <i class="ti ti-calendar-cog"></i>
-                                    </a> --}}
                                         <div class="dropdown">
                                             <a href="javascript:void(0);"
                                                 class="shadow-sm fs-14 d-inline-flex border rounded-2 p-1"
@@ -203,7 +200,6 @@
                                                             <i class="ti ti-edit me-2 fs-14"></i> Edit
                                                         </a>
                                                     @endcan
-
                                                 </li>
                                                 <li>
                                                     @can('view-appointment-details')
@@ -295,7 +291,7 @@
                                         <p class="text-muted">{{ $appointment->reason }}</p>
                                     </div>
 
-                                    <!-- ✅ VITAL SIGNS SECTION (NEW) -->
+                                    <!-- VITAL SIGNS SECTION -->
                                     @if ($appointment->bp || $appointment->temp || $appointment->pulse || $appointment->weight || $appointment->vital_notes)
                                         <h6 class="bg-light py-2 px-3 fw-bold">
                                             <i class="ti ti-heartbeat me-2 text-primary"></i>Vital Signs (This Visit)
@@ -442,26 +438,10 @@
                                     </div>
                                 </div>
                             </div>
-                        @empty
-                            <!-- Empty State -->
-                            <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="ti ti-calendar-off fs-1 text-secondary"></i>
-                                        <h5 class="mt-3 mb-1">No Appointments Found</h5>
-                                        <p class="mb-3">Get started by scheduling your first appointment.</p>
-                                        <a href="{{ route('appointments.create') }}" class="btn btn-primary">
-                                            <i class="ti ti-plus me-1"></i> New Appointment
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-
-
 
         </div>
 

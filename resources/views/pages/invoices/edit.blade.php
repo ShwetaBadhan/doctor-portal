@@ -158,77 +158,61 @@
                                                 <th width="15%">Tax</th>
                                                 <th width="10%">Unit Price <small class="text-muted">(Auto)</small>
                                                 </th>
-                                                <th width="12%">Line Total <small class="text-muted">(Auto
+                                                <th width="12%">Line Total <small class="text-muted">(Total
                                                         +GST)</small></th>
                                                 <th width="5%"></th>
                                             </tr>
                                         </thead>
                                         <tbody id="itemsBody">
                                             @foreach ($invoice->items as $index => $item)
-                                                <tr class="item-row"
-                                                    data-original-tax-percent="{{ $item['tax_percent'] ?? 0 }}"
-                                                    data-original-tax-type="{{ $item['tax_type'] ?? 'NONE' }}">
+                                                <tr class="item-row">
                                                     <td class="row-num text-center fw-medium align-middle">
                                                         {{ $index + 1 }}</td>
                                                     <td>
                                                         <input type="text" name="items[{{ $index }}][name]"
-                                                            class="form-control form-control-sm item-name"
+                                                            class="form-control item-name"
                                                             value="{{ old('items.' . $index . '.name', $item['name']) }}"
-                                                            required style="min-width: 150px;">
+                                                            required style="min-width: 180px; height: 42px; font-size: 14px;">
                                                     </td>
                                                     <td>
                                                         <input type="text" name="items[{{ $index }}][hsn]"
-                                                            class="form-control form-control-sm"
+                                                            class="form-control"
                                                             value="{{ old('items.' . $index . '.hsn', $item['hsn'] ?? '') }}"
-                                                            style="min-width: 80px;">
+                                                            style="min-width: 100px; height: 42px; font-size: 14px;">
                                                     </td>
                                                     <td>
                                                         <input type="number" name="items[{{ $index }}][quantity]"
-                                                            class="form-control form-control-sm item-qty" step="0.01"
+                                                            class="form-control item-qty" step="0.01"
                                                             min="0.01"
                                                             value="{{ old('items.' . $index . '.quantity', $item['quantity']) }}"
-                                                            required oninput="calculateRowTotal(this)"
-                                                            style="min-width: 90px;">
+                                                            required oninput="calculateFromLineTotal(this)"
+                                                            style="min-width: 100px; height: 42px; font-size: 14px;">
                                                     </td>
                                                     <td>
-                                                        {{-- ✅ Calculate Amount WITHOUT tax from Line Total --}}
+                                                        {{-- ✅ Amount WITHOUT tax - AUTO CALCULATED (readonly) --}}
                                                         @php
                                                             $taxPercent = $item['tax_percent'] ?? 0;
                                                             $taxType = $item['tax_type'] ?? 'NONE';
-
-                                                            // DB me already taxable amount save hai
                                                             $amountWithoutTax = $item['amount'];
-
-                                                            // Tax calculate
                                                             $taxAmount = 0;
                                                             if ($taxPercent > 0 && $taxType !== 'NONE') {
                                                                 $taxAmount = ($amountWithoutTax * $taxPercent) / 100;
                                                             }
-
-                                                            // Final total with GST
                                                             $lineTotal = $amountWithoutTax + $taxAmount;
-
-                                                            $unitPrice =
-                                                                $item['quantity'] > 0
-                                                                    ? $amountWithoutTax / $item['quantity']
-                                                                    : 0;
+                                                            $unitPrice = $item['quantity'] > 0 ? $amountWithoutTax / $item['quantity'] : 0;
                                                         @endphp
                                                         <input type="number" name="items[{{ $index }}][amount]"
-                                                            class="form-control form-control-sm item-amount fw-bold text-primary"
+                                                            class="form-control item-amount bg-light"
                                                             step="0.01" min="0"
                                                             value="{{ old('items.' . $index . '.amount', round($amountWithoutTax, 2)) }}"
-                                                            required oninput="calculateRowTotal(this)"
-                                                            style="min-width: 110px;">
-                                                        <input type="hidden"
-                                                            name="items[{{ $index }}][amount_hidden]"
-                                                            class="item-amount-hidden"
-                                                            value="{{ number_format($amountWithoutTax, 2) }}">
+                                                            readonly
+                                                            style="min-width: 130px; height: 42px; font-size: 14px;">
                                                     </td>
                                                     <td>
                                                         <select name="items[{{ $index }}][tax_type]"
-                                                            class="form-select form-select-sm item-tax-type"
-                                                            onchange="toggleTaxInput(this); calculateRowTotal(this)"
-                                                            style="min-width: 120px;">
+                                                            class="form-select item-tax-type"
+                                                            onchange="toggleTaxInput(this); calculateFromLineTotal(this)"
+                                                            style="min-width: 120px; height: 42px; font-size: 14px;">
                                                             <option value="NONE"
                                                                 {{ old('items.' . $index . '.tax_type', $taxType) == 'NONE' ? 'selected' : '' }}>
                                                                 No Tax</option>
@@ -241,32 +225,31 @@
                                                         </select>
                                                         <input type="number"
                                                             name="items[{{ $index }}][tax_percent]"
-                                                            class="form-control form-control-sm item-tax-percent mt-1"
+                                                            class="form-control item-tax-percent mt-1"
                                                             step="0.01" min="0" max="100"
                                                             placeholder="Tax %"
                                                             value="{{ old('items.' . $index . '.tax_percent', $taxPercent) }}"
-                                                            style="{{ old('items.' . $index . '.tax_type', $taxType) == 'NONE' ? 'display:none;' : '' }} min-width: 90px;"
-                                                            oninput="calculateRowTotal(this)">
+                                                            style="{{ old('items.' . $index . '.tax_type', $taxType) == 'NONE' ? 'display:none;' : '' }} min-width: 90px; height: 38px; font-size: 14px;"
+                                                            oninput="calculateFromLineTotal(this)">
                                                     </td>
                                                     <td>
                                                         <input type="text"
-                                                            class="form-control form-control-sm item-unit-price bg-light"
+                                                            class="form-control item-unit-price bg-light"
                                                             value="₹{{ number_format($unitPrice, 2) }}" readonly
-                                                            style="min-width: 100px;">
+                                                            style="min-width: 120px; height: 42px; font-size: 14px;">
                                                         <input type="hidden"
                                                             name="items[{{ $index }}][unit_price]"
                                                             class="item-unit-price-hidden"
                                                             value="{{ number_format($unitPrice, 2) }}">
                                                     </td>
                                                     <td>
-                                                        <input type="text"
-                                                            class="form-control form-control-sm item-line-total bg-success bg-opacity-10 text-success fw-bold"
-                                                            value="₹{{ number_format($lineTotal, 2) }}" readonly
-                                                            style="min-width: 110px;">
-                                                        <input type="hidden"
-                                                            name="items[{{ $index }}][line_total]"
-                                                            class="item-line-total-hidden"
-                                                            value="{{ number_format($lineTotal, 2) }}">
+                                                        {{-- ✅ Line Total - USER ENTERS THIS (editable) --}}
+                                                        <input type="number" name="items[{{ $index }}][line_total]"
+                                                            class="form-control item-line-total fw-bold text-primary"
+                                                            step="0.01" min="0"
+                                                            value="{{ old('items.' . $index . '.line_total', round($lineTotal, 2)) }}"
+                                                            required oninput="calculateFromLineTotal(this)"
+                                                            style="min-width: 140px; height: 42px; font-size: 14px;">
                                                         <input type="hidden"
                                                             name="items[{{ $index }}][tax_amount]"
                                                             class="item-tax-amount-hidden"
@@ -274,7 +257,8 @@
                                                     </td>
                                                     <td class="align-middle">
                                                         <button type="button" class="btn btn-sm btn-light text-danger"
-                                                            onclick="removeItemRow(this)" title="Remove">
+                                                            onclick="removeItemRow(this)" title="Remove"
+                                                            style="width: 36px; height: 36px;">
                                                             <i class="ti ti-x"></i>
                                                         </button>
                                                     </td>
@@ -373,10 +357,10 @@
                                 <!-- Payment Status -->
                                 <div class="mb-3">
                                     <label class="form-label fw-medium">Payment Status</label>
-                                    <select name="is_paid" class="form-select">
-                                        <option value="0" {{ !$invoice->is_paid ? 'selected' : '' }}>⏳ Unpaid
+                                    <select name="is_paid" class="select">
+                                        <option value="0" {{ !$invoice->is_paid ? 'selected' : '' }}>Unpaid
                                         </option>
-                                        <option value="1" {{ $invoice->is_paid ? 'selected' : '' }}>✅ Paid</option>
+                                        <option value="1" {{ $invoice->is_paid ? 'selected' : '' }}>Paid</option>
                                     </select>
                                 </div>
 
@@ -405,67 +389,70 @@
             </form>
         </div>
     </div>
-    <!-- Item Row Template - FIXED -->
+    <!-- Item Row Template - UPDATED -->
     <template id="itemRowTemplate">
         <tr class="item-row">
             <td class="row-num text-center fw-medium align-middle">1</td>
 
             <td>
-                <input type="text" name="items[][name]" class="form-control form-control-sm item-name"
-                    placeholder="Item name" required style="min-width: 150px;">
+                <input type="text" name="items[][name]" class="form-control item-name"
+                    placeholder="Item name" required style="min-width: 180px; height: 42px; font-size: 14px;">
             </td>
 
             <td>
-                <input type="text" name="items[][hsn]" class="form-control form-control-sm" placeholder="HSN"
-                    style="min-width: 80px;">
+                <input type="text" name="items[][hsn]" class="form-control" placeholder="HSN"
+                    style="min-width: 100px; height: 42px; font-size: 14px;">
             </td>
 
             <td>
-                <input type="number" name="items[][quantity]" class="form-control form-control-sm item-qty"
-                    step="0.01" min="0.01" value="1" required oninput="calculateRowTotal(this)"
-                    style="min-width: 90px;">
+                <input type="number" name="items[][quantity]" class="form-control item-qty"
+                    step="0.01" min="0.01" value="1" required oninput="calculateFromLineTotal(this)"
+                    style="min-width: 100px; height: 42px; font-size: 14px;">
             </td>
 
             <td>
-                {{-- ✅ Amount WITHOUT tax - Visible Input --}}
+                {{-- ✅ Amount WITHOUT tax - AUTO CALCULATED (readonly) --}}
                 <input type="number" name="items[][amount]"
-                    class="form-control form-control-sm item-amount fw-bold text-primary" step="0.01" min="0"
-                    placeholder="₹ Amount (without tax)" required oninput="calculateRowTotal(this)"
-                    style="min-width: 110px;">
-                {{-- ✅ Hidden field for JS - FIXED NAME --}}
-                <input type="hidden" name="items[][amount_hidden]" class="item-amount-hidden">
+                    class="form-control item-amount bg-light" 
+                    step="0.01" min="0" placeholder="₹ 0.00" readonly
+                    style="min-width: 130px; height: 42px; font-size: 14px;">
             </td>
 
             <td>
-                <select name="items[][tax_type]" class="form-select form-select-sm item-tax-type"
-                    onchange="toggleTaxInput(this); calculateRowTotal(this)" style="min-width: 120px;">
+                <select name="items[][tax_type]" class="form-select item-tax-type"
+                    onchange="toggleTaxInput(this); calculateFromLineTotal(this)"
+                    style="min-width: 120px; height: 42px; font-size: 14px;">
                     <option value="NONE">No Tax</option>
                     <option value="IGST">IGST</option>
                     <option value="CGST+SGST">CGST + SGST</option>
                 </select>
                 <input type="number" name="items[][tax_percent]"
-                    class="form-control form-control-sm item-tax-percent mt-1" step="0.01" min="0"
-                    max="100" placeholder="Tax %" style="display:none; min-width: 90px;"
-                    oninput="calculateRowTotal(this)">
+                    class="form-control item-tax-percent mt-1" 
+                    step="0.01" min="0" max="100" placeholder="Tax %" 
+                    style="display:none; min-width: 90px; height: 38px; font-size: 14px;"
+                    oninput="calculateFromLineTotal(this)">
             </td>
 
             <td>
-                <input type="text" class="form-control form-control-sm item-unit-price bg-light" placeholder="₹ 0.00"
-                    readonly style="min-width: 100px;">
+                <input type="text" class="form-control item-unit-price bg-light" 
+                    placeholder="₹ 0.00" readonly
+                    style="min-width: 120px; height: 42px; font-size: 14px;">
                 <input type="hidden" name="items[][unit_price]" class="item-unit-price-hidden">
             </td>
 
             <td>
-                <input type="text"
-                    class="form-control form-control-sm item-line-total bg-success bg-opacity-10 text-success fw-bold"
-                    placeholder="₹ 0.00" readonly style="min-width: 110px;">
-                <input type="hidden" name="items[][line_total]" class="item-line-total-hidden">
+                {{-- ✅ Line Total - USER ENTERS THIS (editable) --}}
+                <input type="number" name="items[][line_total]"
+                    class="form-control item-line-total fw-bold text-primary"
+                    step="0.01" min="0" placeholder="₹ Total with GST" required 
+                    oninput="calculateFromLineTotal(this)"
+                    style="min-width: 140px; height: 42px; font-size: 14px;">
                 <input type="hidden" name="items[][tax_amount]" class="item-tax-amount-hidden">
             </td>
 
             <td class="align-middle">
                 <button type="button" class="btn btn-sm btn-light text-danger" onclick="removeItemRow(this)"
-                    title="Remove">
+                    title="Remove" style="width: 36px; height: 36px;">
                     <i class="ti ti-x"></i>
                 </button>
             </td>
@@ -477,41 +464,45 @@
     <script>
         let rowIndex = {{ count($invoice->items) }};
 
-        // Calculate row total
-        function calculateRowTotal(changedElement) {
+        // Calculate backwards from Line Total (user enters Line Total, system calculates Amount)
+        function calculateFromLineTotal(changedElement) {
             const row = changedElement.closest('.item-row');
             if (!row) return;
 
             const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
-            const amount = parseFloat(row.querySelector('.item-amount')?.value) || 0;
+            const lineTotal = parseFloat(row.querySelector('.item-line-total')?.value) || 0;
             const taxType = row.querySelector('.item-tax-type')?.value || 'NONE';
             const taxPercent = parseFloat(row.querySelector('.item-tax-percent')?.value) || 0;
 
+            let amount = 0;
             let taxAmount = 0;
+
+            // Reverse calculate: Line Total se Amount nikalo
             if (taxPercent > 0 && taxType !== 'NONE') {
-                taxAmount = (amount * taxPercent) / 100;
+                // Formula: Amount = Line Total / (1 + tax%/100)
+                amount = lineTotal / (1 + (taxPercent / 100));
+                taxAmount = lineTotal - amount;
+            } else {
+                // No tax case
+                amount = lineTotal;
+                taxAmount = 0;
             }
 
-            const lineTotal = amount + taxAmount;
+            // Unit Price = Amount / Qty
             const unitPrice = qty > 0 ? amount / qty : 0;
 
-            // Update visible fields
+            // Update fields
+            const amountEl = row.querySelector('.item-amount');
             const unitPriceEl = row.querySelector('.item-unit-price');
-            const lineTotalEl = row.querySelector('.item-line-total');
-            if (unitPriceEl) unitPriceEl.value = '₹' + unitPrice.toFixed(2);
-            if (lineTotalEl) lineTotalEl.value = '₹' + lineTotal.toFixed(2);
-
-            // Update hidden fields for form submission
-            const amountHidden = row.querySelector('.item-amount-hidden');
-            const lineTotalHidden = row.querySelector('.item-line-total-hidden');
-            const taxAmountHidden = row.querySelector('.item-tax-amount-hidden');
             const unitPriceHidden = row.querySelector('.item-unit-price-hidden');
+            const taxAmountHidden = row.querySelector('.item-tax-amount-hidden');
 
-            if (amountHidden) amountHidden.value = amount.toFixed(2);
-            if (lineTotalHidden) lineTotalHidden.value = lineTotal.toFixed(2);
-            if (taxAmountHidden) taxAmountHidden.value = taxAmount.toFixed(2);
+            if (amountEl) amountEl.value = amount.toFixed(2);
+            if (unitPriceEl) unitPriceEl.value = '₹' + unitPrice.toFixed(2);
             if (unitPriceHidden) unitPriceHidden.value = unitPrice.toFixed(2);
+            if (taxAmountHidden) taxAmountHidden.value = taxAmount.toFixed(2);
 
+            // Recalculate grand total
             calculateGrandTotal();
         }
 
@@ -529,7 +520,7 @@
                 input.style.display = 'block';
                 if (!input.value) input.value = '18';
             }
-            calculateRowTotal(select);
+            calculateFromLineTotal(select);
         }
 
         // Calculate grand total
@@ -542,30 +533,27 @@
 
             document.querySelectorAll('.item-row').forEach(row => {
                 const amount = parseFloat(row.querySelector('.item-amount')?.value) || 0;
+                const lineTotal = parseFloat(row.querySelector('.item-line-total')?.value) || 0;
                 const taxType = row.querySelector('.item-tax-type')?.value || 'NONE';
                 const taxPercent = parseFloat(row.querySelector('.item-tax-percent')?.value) || 0;
-
-                let rowTax = 0;
-                if (taxPercent > 0 && taxType !== 'NONE') {
-                    rowTax = (amount * taxPercent) / 100;
-                }
-
-                const lineTotal = amount + rowTax;
 
                 taxableAmount += amount;
                 grandTotal += lineTotal;
 
-                if (taxType === 'IGST' && taxPercent > 0) {
-                    igstTotal += rowTax;
-                } else if (taxType === 'CGST+SGST' && taxPercent > 0) {
-                    cgstTotal += rowTax / 2;
-                    sgstTotal += rowTax / 2;
+                if (taxPercent > 0 && taxType !== 'NONE') {
+                    const taxAmt = lineTotal - amount;
+                    if (taxType === 'IGST') {
+                        igstTotal += taxAmt;
+                    } else if (taxType === 'CGST+SGST') {
+                        cgstTotal += taxAmt / 2;
+                        sgstTotal += taxAmt / 2;
+                    }
                 }
             });
 
             const totalGst = igstTotal + cgstTotal + sgstTotal;
 
-            // Update display
+            // Update summary display
             document.getElementById('taxableAmount').textContent = '₹' + taxableAmount.toFixed(2);
             document.getElementById('igstAmount').textContent = '₹' + igstTotal.toFixed(2);
             document.getElementById('cgstAmount').textContent = '₹' + cgstTotal.toFixed(2);
@@ -580,7 +568,7 @@
             document.getElementById('inputSgst').value = sgstTotal.toFixed(2);
             document.getElementById('inputTotal').value = grandTotal.toFixed(2);
 
-            // Show/hide tax rows
+            // Show/hide tax rows based on values
             document.getElementById('igstRow').style.display = igstTotal > 0.005 ? 'flex' : 'none';
             document.getElementById('cgstRow').style.display = cgstTotal > 0.005 ? 'flex' : 'none';
             document.getElementById('sgstRow').style.display = sgstTotal > 0.005 ? 'flex' : 'none';
@@ -597,21 +585,6 @@
 
             clone.querySelectorAll('[name]').forEach(input => {
                 if (input.name) input.name = input.name.replace('[]', `[${rowIndex}]`);
-            });
-
-            // Add event listeners
-            clone.querySelector('.item-qty')?.addEventListener('input', function() {
-                calculateRowTotal(this);
-            });
-            clone.querySelector('.item-amount')?.addEventListener('input', function() {
-                calculateRowTotal(this);
-            });
-            clone.querySelector('.item-tax-type')?.addEventListener('change', function() {
-                toggleTaxInput(this);
-                calculateRowTotal(this);
-            });
-            clone.querySelector('.item-tax-percent')?.addEventListener('input', function() {
-                calculateRowTotal(this);
             });
 
             const rowNum = clone.querySelector('.row-num');
@@ -673,35 +646,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔄 Initializing invoice edit page...');
 
-            // ✅ Step 1: Sync hidden fields with visible inputs for existing rows
-            document.querySelectorAll('.item-row').forEach(row => {
-                const amountInput = row.querySelector('.item-amount');
-                const amountHidden = row.querySelector('.item-amount-hidden');
-                const lineTotalInput = row.querySelector('.item-line-total');
-                const lineTotalHidden = row.querySelector('.item-line-total-hidden');
-                const taxAmountHidden = row.querySelector('.item-tax-amount-hidden');
-                const unitPriceInput = row.querySelector('.item-unit-price');
-                const unitPriceHidden = row.querySelector('.item-unit-price-hidden');
-
-                if (amountInput && amountHidden) {
-                    const amount = parseFloat(amountInput.value) || 0;
-                    amountHidden.value = amount.toFixed(2);
-                }
-                if (lineTotalInput && lineTotalHidden) {
-                    const lineTotal = parseFloat(lineTotalInput.value.replace('₹', '')) || 0;
-                    lineTotalHidden.value = lineTotal.toFixed(2);
-                }
-                if (taxAmountHidden) {
-                    const taxAmount = parseFloat(taxAmountHidden.value) || 0;
-                    taxAmountHidden.value = taxAmount.toFixed(2);
-                }
-                if (unitPriceInput && unitPriceHidden) {
-                    const unitPrice = parseFloat(unitPriceInput.value.replace('₹', '')) || 0;
-                    unitPriceHidden.value = unitPrice.toFixed(2);
-                }
-            });
-
-            // ✅ Step 2: Calculate grand total after syncing
+            // ✅ Calculate grand total on page load
             setTimeout(function() {
                 calculateGrandTotal();
                 console.log('✅ Calculations complete');

@@ -234,7 +234,7 @@
                                 <!-- ✅ Payment Status -->
                                 <div class="mb-3">
                                     <label class="form-label fw-medium">Payment Status</label>
-                                    <select name="is_paid" class="form-select">
+                                    <select name="is_paid" class="select">
                                         <option value="0">Unpaid</option>
                                         <option value="1">Paid</option>
                                     </select>
@@ -260,71 +260,76 @@
             </form>
         </div>
     </div>
-    <template id="itemRowTemplate">
-        <tr class="item-row">
-            <td class="row-num text-center fw-medium align-middle">1</td>
+<template id="itemRowTemplate">
+    <tr class="item-row">
+        <td class="row-num text-center fw-medium align-middle">1</td>
 
-            <td>
-                <input type="text" name="items[][name]" class="form-control form-control-sm item-name"
-                    placeholder="Item name" required style="min-width: 150px;">
-            </td>
+        <td>
+            <input type="text" name="items[][name]" class="form-control item-name"
+                placeholder="Item name" required style="min-width: 180px; height: 42px; font-size: 14px;">
+        </td>
 
-            <td>
-                <input type="text" name="items[][hsn]" class="form-control form-control-sm" placeholder="HSN"
-                    style="min-width: 80px;">
-            </td>
+        <td>
+            <input type="text" name="items[][hsn]" class="form-control" placeholder="HSN"
+                style="min-width: 100px; height: 42px; font-size: 14px;">
+        </td>
 
-            <td>
-                <input type="number" name="items[][quantity]" class="form-control form-control-sm item-qty"
-                    step="0.01" min="0.01" value="1" required oninput="calculateRowTotal(this)"
-                    style="min-width: 90px;">
-            </td>
+        <td>
+            <input type="number" name="items[][quantity]" class="form-control item-qty"
+                step="0.01" min="0.01" value="1" required oninput="calculateFromLineTotal(this)"
+                style="min-width: 100px; height: 42px; font-size: 14px;">
+        </td>
 
-            <!-- ✅ User enters AMOUNT (without tax) -->
-            <td>
-                <input type="number" name="items[][amount]"
-                    class="form-control form-control-sm item-amount fw-bold text-primary" step="0.01" min="0"
-                    placeholder="₹ Amount" required oninput="calculateRowTotal(this)" style="min-width: 110px;">
-                <input type="hidden" name="items[][amount_hidden]" class="item-amount-hidden">
-            </td>
+        <!-- Amount (without tax) - AUTO CALCULATED (readonly) -->
+        <td>
+            <input type="number" name="items[][amount]"
+                class="form-control item-amount bg-light" 
+                step="0.01" min="0" placeholder="₹ 0.00" readonly
+                style="min-width: 130px; height: 42px; font-size: 14px;">
+        </td>
 
-            <td>
-                <select name="items[][tax_type]" class="form-select form-select-sm item-tax-type"
-                    onchange="toggleTaxInput(this); calculateRowTotal(this)" style="min-width: 120px;">
-                    <option value="NONE">No Tax</option>
-                    <option value="IGST">IGST</option>
-                    <option value="CGST+SGST">CGST + SGST</option>
-                </select>
-                <input type="number" name="items[][tax_percent]"
-                    class="form-control form-control-sm item-tax-percent mt-1" step="0.01" min="0"
-                    max="100" placeholder="Tax %" style="display:none; min-width: 90px;"
-                    oninput="calculateRowTotal(this)">
-            </td>
+        <td>
+            <select name="items[][tax_type]" class="form-select item-tax-type"
+                onchange="toggleTaxInput(this); calculateFromLineTotal(this)"
+                style="min-width: 120px; height: 42px; font-size: 14px;">
+                <option value="NONE">No Tax</option>
+                <option value="IGST">IGST</option>
+                <option value="CGST+SGST">CGST + SGST</option>
+            </select>
+            <input type="number" name="items[][tax_percent]"
+                class="form-control item-tax-percent mt-1" 
+                step="0.01" min="0" max="100" placeholder="Tax %" 
+                style="display:none; min-width: 90px; height: 38px; font-size: 14px;"
+                oninput="calculateFromLineTotal(this)">
+        </td>
 
-            <!-- ✅ Auto: Unit Price -->
-            <td>
-                <input type="text" class="form-control form-control-sm item-unit-price bg-light" placeholder="₹ 0.00"
-                    readonly style="min-width: 100px;">
-                <input type="hidden" name="items[][unit_price]" class="item-unit-price-hidden">
-            </td>
+        <!-- Unit Price - Auto calculated -->
+        <td>
+            <input type="text" class="form-control item-unit-price bg-light" 
+                placeholder="₹ 0.00" readonly
+                style="min-width: 120px; height: 42px; font-size: 14px;">
+            <input type="hidden" name="items[][unit_price]" class="item-unit-price-hidden">
+        </td>
 
-            <!-- ✅ Auto: Line Total (Amount + Tax) -->
-            <td>
-                <input type="text"
-                    class="form-control form-control-sm item-line-total bg-success bg-opacity-10 text-success fw-bold"
-                    placeholder="₹ 0.00" readonly style="min-width: 110px;">
-                <input type="hidden" name="items[][line_total]" class="item-line-total-hidden">
-                <input type="hidden" name="items[][tax_amount]" class="item-tax-amount-hidden">
-            </td>
+        <!-- Line Total - USER ENTERS THIS (editable) -->
+        <td>
+            <input type="number" name="items[][line_total]"
+                class="form-control item-line-total fw-bold text-primary"
+                step="0.01" min="0" placeholder="₹ Total with GST" required 
+                oninput="calculateFromLineTotal(this)"
+                style="min-width: 140px; height: 42px; font-size: 14px;">
+            <input type="hidden" name="items[][tax_amount]" class="item-tax-amount-hidden">
+        </td>
 
-            <td class="align-middle">
-                <button type="button" class="btn btn-sm btn-light text-danger" onclick="removeItemRow(this)"
-                    title="Remove">
-                    <i class="ti ti-x"></i>
-                </button>
-            </td>
-        </tr>
-    </template>
+        <td class="align-middle">
+            <button type="button" class="btn btn-sm btn-light text-danger" 
+                onclick="removeItemRow(this)" title="Remove"
+                style="width: 36px; height: 36px;">
+                <i class="ti ti-x"></i>
+            </button>
+        </td>
+    </tr>
+</template>
 @endsection
 
 
@@ -332,43 +337,45 @@
     <script>
         let rowIndex = 0;
 
-        // Calculate: Amount + Tax = Line Total, and Unit Price
-        function calculateRowTotal(changedElement) {
+        // Calculate backwards from Line Total (user enters Line Total, system calculates Amount)
+        function calculateFromLineTotal(changedElement) {
             const row = changedElement.closest('.item-row');
             if (!row) return;
 
             const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const amount = parseFloat(row.querySelector('.item-amount').value) || 0; // Amount WITHOUT tax
+            const lineTotal = parseFloat(row.querySelector('.item-line-total').value) || 0;
             const taxType = row.querySelector('.item-tax-type').value;
             const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
 
-            // Calculate tax on amount
+            let amount = 0;
             let taxAmount = 0;
-            if (taxPercent > 0 && taxType !== 'NONE') {
-                taxAmount = (amount * taxPercent) / 100;
-            }
 
-            // Line Total = Amount + Tax
-            const lineTotal = amount + taxAmount;
+            // Reverse calculate: Line Total se Amount nikalo
+            if (taxPercent > 0 && taxType !== 'NONE') {
+                // Formula: Amount = Line Total / (1 + tax%/100)
+                amount = lineTotal / (1 + (taxPercent / 100));
+                taxAmount = lineTotal - amount;
+            } else {
+                // No tax case
+                amount = lineTotal;
+                taxAmount = 0;
+            }
 
             // Unit Price = Amount / Qty
             const unitPrice = qty > 0 ? amount / qty : 0;
 
             // Update fields
+            const amountEl = row.querySelector('.item-amount');
             const unitPriceEl = row.querySelector('.item-unit-price');
             const unitPriceHidden = row.querySelector('.item-unit-price-hidden');
-            const lineTotalEl = row.querySelector('.item-line-total');
-            const lineTotalHidden = row.querySelector('.item-line-total-hidden');
             const taxAmountHidden = row.querySelector('.item-tax-amount-hidden');
-            const amountHidden = row.querySelector('.item-amount-hidden');
 
+            if (amountEl) amountEl.value = amount.toFixed(2);
             if (unitPriceEl) unitPriceEl.value = '₹' + unitPrice.toFixed(2);
             if (unitPriceHidden) unitPriceHidden.value = unitPrice.toFixed(2);
-            if (lineTotalEl) lineTotalEl.value = '₹' + lineTotal.toFixed(2);
-            if (lineTotalHidden) lineTotalHidden.value = lineTotal.toFixed(2);
             if (taxAmountHidden) taxAmountHidden.value = taxAmount.toFixed(2);
-            if (amountHidden) amountHidden.value = amount.toFixed(2);
 
+            // Recalculate grand total
             calculateGrandTotal();
         }
 
@@ -386,7 +393,7 @@
                 input.style.display = 'block';
                 if (!input.value) input.value = '18';
             }
-            calculateRowTotal(select);
+            calculateFromLineTotal(select);
         }
 
         // Calculate grand total
@@ -398,13 +405,13 @@
                 grandTotal = 0;
 
             document.querySelectorAll('.item-row').forEach(row => {
-                const amount = parseFloat(row.querySelector('.item-amount-hidden')?.value) || 0;
-                const lineTotal = parseFloat(row.querySelector('.item-line-total-hidden')?.value) || 0;
-                const taxType = row.querySelector('.item-tax-type')?.value;
-                const taxPercent = parseFloat(row.querySelector('.item-tax-percent')?.value) || 0;
+                const amount = parseFloat(row.querySelector('.item-amount').value) || 0;
+                const lineTotal = parseFloat(row.querySelector('.item-line-total').value) || 0;
+                const taxType = row.querySelector('.item-tax-type').value;
+                const taxPercent = parseFloat(row.querySelector('.item-tax-percent').value) || 0;
 
-                taxableAmount += amount; // Subtotal (without tax)
-                grandTotal += lineTotal; // Total with tax
+                taxableAmount += amount;
+                grandTotal += lineTotal;
 
                 if (taxPercent > 0 && taxType !== 'NONE') {
                     const taxAmt = lineTotal - amount;
@@ -419,7 +426,7 @@
 
             const totalGst = igstTotal + cgstTotal + sgstTotal;
 
-            // Update summary
+            // Update summary display
             document.getElementById('taxableAmount').textContent = '₹' + taxableAmount.toFixed(2);
             document.getElementById('igstAmount').textContent = '₹' + igstTotal.toFixed(2);
             document.getElementById('cgstAmount').textContent = '₹' + cgstTotal.toFixed(2);
@@ -434,7 +441,7 @@
             document.getElementById('inputSgst').value = sgstTotal.toFixed(2);
             document.getElementById('inputTotal').value = grandTotal.toFixed(2);
 
-            // Show/hide tax rows
+            // Show/hide tax rows based on values
             document.getElementById('igstRow').style.display = igstTotal > 0.005 ? 'flex' : 'none';
             document.getElementById('cgstRow').style.display = cgstTotal > 0.005 ? 'flex' : 'none';
             document.getElementById('sgstRow').style.display = sgstTotal > 0.005 ? 'flex' : 'none';

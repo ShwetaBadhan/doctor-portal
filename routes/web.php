@@ -79,12 +79,12 @@ Route::middleware('auth')->group(function () {
     // Route::get('{patient}/download-report', [PatientController::class, 'downloadReport'])
     //     ->name('download-report');
 
-Route::get('/patients/{patient}/diagnosis-report/preview', [PatientController::class, 'previewDiagnosisReport'])
-    ->name('diagnosis-report.preview');
+    Route::get('/patients/{patient}/diagnosis-report/preview', [PatientController::class, 'previewDiagnosisReport'])
+        ->name('diagnosis-report.preview');
 
 
-Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
-    ->name('diagnosis-report.download');
+    Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
+        ->name('diagnosis-report.download');
 });
 // doctors
 
@@ -111,35 +111,16 @@ Route::get('/appointment-calendar', function () {
 
 
 Route::middleware('auth')->group(function () {
+
+    // ✅ ONLY ONE appointment route group - remove all duplicates
+    Route::get('/appointments/today', [AppointmentController::class, 'todayAppointments'])
+        ->name('appointments.today');
+
     Route::resource('appointments', AppointmentController::class);
 });
-
-
-// appointments
-
-Route::middleware('auth')->group(function () {
-    // ✅ This creates ALL CRUD routes with proper names
-    Route::resource('appointments', AppointmentController::class);
-});
-Route::get('appointments/create', [AppointmentController::class, 'create'])
-    ->name('appointments.create');
-// Route::get('/appointments', function () {
-//     return view('pages.appointments.appointments');
-// })->name('appointments');
-
-// Route::get('/edit-appointment', function () {
-//     return view('pages.appointments.edit-appointment');
-// })->name('edit-appointment');
-
-// Route::get('/new-appointments', function () {
-//     return view('pages.appointments.new-appointments');
-// })->name('new-appointments');
-
-// Route::get('/appointment-consultations', function () {
-//     return view('pages.appointments.appointment-consultations');
-// })->name('appointment-consultations');
-
-
+// Route::get('/test-today', function() {
+//     return "Route is working!";
+// })->name('test.today');
 
 // patients
 
