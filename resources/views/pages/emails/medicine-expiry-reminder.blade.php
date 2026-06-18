@@ -42,7 +42,7 @@
             
             <p>
                 <strong>Need help?</strong><br>
-                Contact us: 98720-01445, 180012301445<br>
+                Contact us: 98720-01445, 98885-01445<br>
                 Website: www.ebiocares.in
             </p>
         </div>

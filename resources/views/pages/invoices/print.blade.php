@@ -88,9 +88,13 @@
             margin-bottom: 15px;
             font-size: 11px;
         }
+        .bill-to p{
+           
+            font-size: 13px;
+        }
 
         .bill-to strong {
-            font-size: 12px;
+            font-size: 15px;
         }
 
         /* ITEMS TABLE */
@@ -98,7 +102,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
-            font-size: 10px;
+            font-size: 13px;
         }
 
         .items-table th,
@@ -121,7 +125,7 @@
         .totals-table {
             width: 280px;
             margin-left: auto;
-            font-size: 11px;
+            font-size: 15px;
         }
 
         .totals-table td {
@@ -130,7 +134,7 @@
 
         .totals-table .total-row {
             font-weight: bold;
-            font-size: 12px;
+            font-size: 15px;
             border-top: 2px solid #000;
         }
 
@@ -186,13 +190,13 @@
             <!-- BILL TO -->
             <div class="bill-to">
                 <strong>Bill To:</strong><br>
-                {{ $invoice->patient_name }}<br>
+              <p>  {{ $invoice->patient_name }}<br>
                 @if ($invoice->patient_mobile)
                     Mobile: {{ $invoice->patient_mobile }}<br>
                 @endif
                 @if ($invoice->patient_address)
                     {!! nl2br(e($invoice->patient_address)) !!}
-                @endif
+                @endif</p>
             </div>
 
             <!-- ITEMS TABLE -->

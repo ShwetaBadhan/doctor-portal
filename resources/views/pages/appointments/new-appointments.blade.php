@@ -43,21 +43,21 @@
                                             <div class="mb-3">
                                                 <label class="form-label mb-1 fw-medium">Patient<span
                                                         class="text-danger ms-1">*</span></label>
-                                               <!-- ✅ YE PURANA SELECT TAG HATA KAR YE NAYA WALA LAGAYEN -->
-        <select name="patient_id" id="patientSelect" class="form-select" required>
-            <option value="">-- Search by ID, name or phone --</option>
-            @foreach ($patients as $patient)
-                <option value="{{ $patient->id }}"
-                    data-name="{{ $patient->first_name }} {{ $patient->last_name }}"
-                    data-phone="{{ $patient->phone ?? '' }}"
-                    data-patient-id="{{ $patient->patient_id }}"
-                    data-address="{{ $patient->address ?? '' }}"
-                    {{ (old('patient_id') ?? $selectedPatient) == $patient->id ? 'selected' : '' }}>
-                    {{ $patient->first_name }} {{ $patient->last_name }}
-                    ({{ $patient->patient_id }})
-                </option>
-            @endforeach
-        </select>
+                                                <!-- ✅ YE PURANA SELECT TAG HATA KAR YE NAYA WALA LAGAYEN -->
+                                                <select name="patient_id" id="patientSelect" class="form-select" required>
+                                                    <option value="">-- Search by ID, name or phone --</option>
+                                                    @foreach ($patients as $patient)
+                                                        <option value="{{ $patient->id }}"
+                                                            data-name="{{ $patient->first_name }} {{ $patient->last_name }}"
+                                                            data-phone="{{ $patient->phone ?? '' }}"
+                                                            data-patient-id="{{ $patient->patient_id }}"
+                                                            data-address="{{ $patient->address ?? '' }}"
+                                                            {{ (old('patient_id') ?? $selectedPatient) == $patient->id ? 'selected' : '' }}>
+                                                            {{ $patient->first_name }} {{ $patient->last_name }}
+                                                            ({{ $patient->patient_id }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                                 @error('patient_id')
                                                     <span class="invalid-feedback">{{ $message }}</span>
                                                 @enderror
@@ -142,13 +142,14 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                              <!-- ✅ Delusion Field -->
+                                                <!-- ✅ Delusion Field -->
                                                 <div class="col-md-4">
                                                     <div class="mb-3">
                                                         <label class="form-label small fw-medium">Delusion</label>
                                                         <input type="text" name="delusion"
                                                             class="form-control form-control-sm @error('delusion') is-invalid @enderror"
-                                                            value="{{ old('delusion') }}" placeholder="e.g., None, Present, or describe type">
+                                                            value="{{ old('delusion') }}"
+                                                            placeholder="e.g., None, Present, or describe type">
                                                         @error('delusion')
                                                             <span class="invalid-feedback">{{ $message }}</span>
                                                         @enderror
@@ -179,7 +180,40 @@
                                                             value="{{ old('kuff') }}" placeholder="e.g., Dry/Wet">
                                                     </div>
                                                 </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Tongue</label>
+                                                        <input type="text" name="tongue"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old('tongue') }}" placeholder="e.g., Coated">
+                                                    </div>
+                                                </div>
 
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Nails</label>
+                                                        <input type="text" name="nails"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old('nails') }}" placeholder="e.g., Normal">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Pulse</label>
+                                                        <input type="text" name="pulse"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old('pulse') }}" placeholder="e.g., 72 bpm">
+                                                    </div>
+                                                </div>
+                                                <!-- Weight, Tongue, Nails -->
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label class="form-label small fw-medium">Weight</label>
+                                                        <input type="text" name="weight"
+                                                            class="form-control form-control-sm"
+                                                            value="{{ old('weight') }}" placeholder="e.g., 65 kg">
+                                                    </div>
+                                                </div>
                                                 <!-- BP, Temp, Pulse -->
 
                                                 <div class="col-md-4">
@@ -213,40 +247,9 @@
                                                         @enderror
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label small fw-medium">Pulse</label>
-                                                        <input type="text" name="pulse"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('pulse') }}" placeholder="e.g., 72 bpm">
-                                                    </div>
-                                                </div>
 
-                                                <!-- Weight, Tongue, Nails -->
-                                                <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label small fw-medium">Weight</label>
-                                                        <input type="text" name="weight"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('weight') }}" placeholder="e.g., 65 kg">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label small fw-medium">Tongue</label>
-                                                        <input type="text" name="tongue"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('tongue') }}" placeholder="e.g., Coated">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <div class="mb-3">
-                                                        <label class="form-label small fw-medium">Nails</label>
-                                                        <input type="text" name="nails"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ old('nails') }}" placeholder="e.g., Normal">
-                                                    </div>
-                                                </div>
+
+
 
                                                 <!-- Cerebral Fluid -->
                                                 <div class="col-md-4">
@@ -309,105 +312,104 @@
         </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // ✅ BP Auto-Format (120/80)
-    const bpInput = document.getElementById('bpInput');
-    if (bpInput) {
-        bpInput.addEventListener('input', function(e) {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.length >= 3 && !val.includes('/')) {
-                val = val.slice(0, 3) + '/' + val.slice(3, 5);
-            }
-            if (val.includes('/')) {
-                const [sys, dia] = val.Patient('/');
-                val = sys.slice(0, 3) + '/' + (dia ? dia.slice(0, 2) : '');
-            }
-            e.target.value = val;
-        });
-        bpInput.addEventListener('blur', function(e) {
-            const val = e.target.value;
-            if (val && !/^\d{2,3}\/\d{2}$/.test(val)) {
-                e.target.style.borderColor = '#dc3545';
-                setTimeout(() => e.target.style.borderColor = '', 2000);
-            }
-        });
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
-    // ✅ Temperature: Smart Celsius/Fahrenheit Handling
-    const tempInput = document.getElementById('tempInput');
-    if (tempInput) {
-        tempInput.addEventListener('input', function(e) {
-            let val = e.target.value.toLowerCase().replace(/[^0-9.c]/g, '');
-            const parts = val.split('.');
-            if (parts.length > 2) {
-                val = parts[0] + '.' + parts.slice(1).join('').replace('c', '');
+            // ✅ BP Auto-Format (120/80)
+            const bpInput = document.getElementById('bpInput');
+            if (bpInput) {
+                bpInput.addEventListener('input', function(e) {
+                    let val = e.target.value.replace(/\D/g, '');
+                    if (val.length >= 3 && !val.includes('/')) {
+                        val = val.slice(0, 3) + '/' + val.slice(3, 5);
+                    }
+                    if (val.includes('/')) {
+                        const [sys, dia] = val.Patient('/');
+                        val = sys.slice(0, 3) + '/' + (dia ? dia.slice(0, 2) : '');
+                    }
+                    e.target.value = val;
+                });
+                bpInput.addEventListener('blur', function(e) {
+                    const val = e.target.value;
+                    if (val && !/^\d{2,3}\/\d{2}$/.test(val)) {
+                        e.target.style.borderColor = '#dc3545';
+                        setTimeout(() => e.target.style.borderColor = '', 2000);
+                    }
+                });
             }
-            const hasC = val.endsWith('c');
-            const numPart = hasC ? val.slice(0, -1) : val;
-            if (numPart.includes('.') && numPart.split('.')[1]?.length > 1) {
-                const [int, dec] = numPart.split('.');
-                val = int + '.' + dec.substring(0, 1) + (hasC ? 'c' : '');
-            }
-            e.target.value = val;
-        });
 
-        tempInput.addEventListener('blur', function(e) {
-            const raw = e.target.value.trim().toLowerCase();
-            if (!raw) return;
-            
-            const isExplicitCelsius = raw.endsWith('c');
-            let num = parseFloat(raw);
-            if (isNaN(num)) return;
-            
-            if (isExplicitCelsius || num < 60) {
-                const fahrenheit = (num * 9/5) + 32;
-                e.target.value = fahrenheit.toFixed(1);
-                e.target.style.borderColor = '#28a745';
-                e.target.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
-                setTimeout(() => {
-                    e.target.style.borderColor = '';
-                    e.target.style.boxShadow = '';
-                }, 2000);
-            }
-            else if (num < 90 || num > 115) {
-                e.target.style.borderColor = '#ffc107';
-                setTimeout(() => e.target.style.borderColor = '', 2000);
-            }
-        });
-    }
+            // ✅ Temperature: Smart Celsius/Fahrenheit Handling
+            const tempInput = document.getElementById('tempInput');
+            if (tempInput) {
+                tempInput.addEventListener('input', function(e) {
+                    let val = e.target.value.toLowerCase().replace(/[^0-9.c]/g, '');
+                    const parts = val.split('.');
+                    if (parts.length > 2) {
+                        val = parts[0] + '.' + parts.slice(1).join('').replace('c', '');
+                    }
+                    const hasC = val.endsWith('c');
+                    const numPart = hasC ? val.slice(0, -1) : val;
+                    if (numPart.includes('.') && numPart.split('.')[1]?.length > 1) {
+                        const [int, dec] = numPart.split('.');
+                        val = int + '.' + dec.substring(0, 1) + (hasC ? 'c' : '');
+                    }
+                    e.target.value = val;
+                });
 
-    // ✅ TOM SELECT INITIALIZATION FOR PATIENT SEARCH
-    if (typeof TomSelect !== 'undefined') {
-        const patientSelect = document.getElementById('patientSelect');
-        
-        if (patientSelect) {
-            // Extract options data for Tom Select
-            const patientOptions = Array.from(patientSelect.options)
-                .filter(opt => opt.value)
-                .map(opt => ({
-                    value: opt.value,
-                    text: opt.text,
-                    name: opt.dataset.name || '',
-                    phone: opt.dataset.phone || '',
-                    patientId: opt.dataset.patientId || '',
-                    address: opt.dataset.address || ''
-                }));
+                tempInput.addEventListener('blur', function(e) {
+                    const raw = e.target.value.trim().toLowerCase();
+                    if (!raw) return;
 
-            // Initialize Tom Select
-            new TomSelect('#patientSelect', {
-                placeholder: 'Search by Patient ID, name or phone...',
-                maxItems: 1,
-                valueField: 'value',
-                labelField: 'text',
-                // Yeh fields search honge jab aap type karenge
-                searchField: ['text', 'name', 'phone', 'patientId'], 
-                options: patientOptions,
-                items: [],
-                // Custom UI for dropdown options
-                render: {
-                    option: (data, escape) => `
+                    const isExplicitCelsius = raw.endsWith('c');
+                    let num = parseFloat(raw);
+                    if (isNaN(num)) return;
+
+                    if (isExplicitCelsius || num < 60) {
+                        const fahrenheit = (num * 9 / 5) + 32;
+                        e.target.value = fahrenheit.toFixed(1);
+                        e.target.style.borderColor = '#28a745';
+                        e.target.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+                        setTimeout(() => {
+                            e.target.style.borderColor = '';
+                            e.target.style.boxShadow = '';
+                        }, 2000);
+                    } else if (num < 90 || num > 115) {
+                        e.target.style.borderColor = '#ffc107';
+                        setTimeout(() => e.target.style.borderColor = '', 2000);
+                    }
+                });
+            }
+
+            // ✅ TOM SELECT INITIALIZATION FOR PATIENT SEARCH
+            if (typeof TomSelect !== 'undefined') {
+                const patientSelect = document.getElementById('patientSelect');
+
+                if (patientSelect) {
+                    // Extract options data for Tom Select
+                    const patientOptions = Array.from(patientSelect.options)
+                        .filter(opt => opt.value)
+                        .map(opt => ({
+                            value: opt.value,
+                            text: opt.text,
+                            name: opt.dataset.name || '',
+                            phone: opt.dataset.phone || '',
+                            patientId: opt.dataset.patientId || '',
+                            address: opt.dataset.address || ''
+                        }));
+
+                    // Initialize Tom Select
+                    new TomSelect('#patientSelect', {
+                        placeholder: 'Search by Patient ID, name or phone...',
+                        maxItems: 1,
+                        valueField: 'value',
+                        labelField: 'text',
+                        // Yeh fields search honge jab aap type karenge
+                        searchField: ['text', 'name', 'phone', 'patientId'],
+                        options: patientOptions,
+                        items: [],
+                        // Custom UI for dropdown options
+                        render: {
+                            option: (data, escape) => `
                         <div class="py-2">
                             <div class="d-flex justify-content-between">
                                 <span class="fw-bold text-primary">${escape(data.patientId)}</span>
@@ -416,18 +418,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="fw-medium">${escape(data.name)}</div>
                         </div>
                     `,
-                    // UI for selected item
-                    item: (data, escape) => `
+                            // UI for selected item
+                            item: (data, escape) => `
                         <div>${escape(data.patientId)} - ${escape(data.name)}</div>
                     `
-                },
-                onChange: function(value) {
-                    // Jab koi patient select ho, toh aap yahan extra logic likh sakte ho
-                    console.log('Selected Patient ID:', value);
+                        },
+                        onChange: function(value) {
+                            // Jab koi patient select ho, toh aap yahan extra logic likh sakte ho
+                            console.log('Selected Patient ID:', value);
+                        }
+                    });
                 }
-            });
-        }
-    }
-});
-</script>
+            }
+        });
+    </script>
 @endsection

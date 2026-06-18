@@ -530,7 +530,7 @@ public function sendWelcomeEmail(Request $request, Patient $patient)
             'company' => [
                 'name' => 'E-Bio-Cares',
                 'address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
-                'contact' => '98720-01445, 180012301445',
+                'contact' => '98720-01445, 98885-01445',
                 'gstin' => '03BHTPS6858P1Z4',
                 'pan' => 'BHTPS6858P',
             ]

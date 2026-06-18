@@ -61,7 +61,7 @@
                                 </p>
                                 <h5 class="mb-1">
                                     <a href="javascript:void(0);" class="fw-bold">
-                                        {{ $patient->first_name }} {{ $patient->last_name }} 
+                                        {{ $patient->first_name }} {{ $patient->last_name }}
                                         <br>
                                         {{ $patient->care_of_name }}
                                     </a>
@@ -243,40 +243,22 @@
                         <div class="card-body pb-0">
                             @if (
                                 $latestAppointment &&
-                                    ($latestAppointment->bp ||
-                                        $latestAppointment->temp ||
-                                        $latestAppointment->pulse ||
-                                        $latestAppointment->weight ||
+                                    ($latestAppointment->delusion ||
                                         $latestAppointment->vat ||
                                         $latestAppointment->pit ||
                                         $latestAppointment->kuff ||
-                                        $latestAppointment->delusion))
+                                        $latestAppointment->pulse ||
+                                        $latestAppointment->weight ||
+                                        $latestAppointment->bp ||
+                                        $latestAppointment->temp))
                                 <div class="row">
                                     @php
                                         $vitals = [
                                             [
-                                                'key' => 'bp',
-                                                'label' => 'Blood Pressure',
-                                                'icon' => 'ti ti-droplet',
+                                                'key' => 'delusion',
+                                                'label' => 'Delusion',
+                                                'icon' => 'ti ti-brain',
                                                 'unit' => '',
-                                            ],
-                                            [
-                                                'key' => 'pulse',
-                                                'label' => 'Heart Rate',
-                                                'icon' => 'ti ti-heart',
-                                                'unit' => 'bpm',
-                                            ],
-                                            [
-                                                'key' => 'temp',
-                                                'label' => 'Temperature',
-                                                'icon' => 'ti ti-temperature',
-                                                'unit' => '°F',
-                                            ],
-                                            [
-                                                'key' => 'weight',
-                                                'label' => 'Weight',
-                                                'icon' => 'ti ti-weight',
-                                                'unit' => 'kg',
                                             ],
                                             [
                                                 'key' => 'vat',
@@ -297,10 +279,29 @@
                                                 'unit' => '',
                                             ],
                                             [
-                                                'key' => 'delusion',
-                                                'label' => 'Delusion',
-                                                'icon' => 'ti ti-brain',
+                                                'key' => 'pulse',
+                                                'label' => 'Heart Rate',
+                                                'icon' => 'ti ti-heart',
+                                                'unit' => 'bpm',
+                                            ],
+                                            [
+                                                'key' => 'weight',
+                                                'label' => 'Weight',
+                                                'icon' => 'ti ti-weight',
+                                                'unit' => 'kg',
+                                            ],
+                                            [
+                                                'key' => 'bp',
+                                                'label' => 'Blood Pressure',
+                                                'icon' => 'ti ti-droplet',
                                                 'unit' => '',
+                                            ],
+
+                                            [
+                                                'key' => 'temp',
+                                                'label' => 'Temperature',
+                                                'icon' => 'ti ti-temperature',
+                                                'unit' => '°F',
                                             ],
                                         ];
                                     @endphp

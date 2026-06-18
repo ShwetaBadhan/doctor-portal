@@ -400,7 +400,7 @@ body {
 
             <tbody>
                 <tr>
-                    <td>{{ $appointment->vat ?? ($patient->delusion ?? '-') }}</td>
+                    <td>{{ $appointment->delusion ?? ($patient->delusion ?? '-') }}</td>
                     <td>{{ $appointment->vat ?? ($patient->vat ?? '-') }}</td>
                     <td>{{ $appointment->pit ?? ($patient->pit ?? '-') }}</td>
                     <td>{{ $appointment->kuff ?? ($patient->kuff ?? '-') }}</td>

@@ -121,7 +121,6 @@
                         </div>
 
                         <!-- Items Table -->
-                        <!-- Items Table -->
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="fw-bold mb-0"><i class="ti ti-list me-2"></i>Items</h6>
@@ -185,7 +184,6 @@
                         </div>
                     </div>
 
-                    <!-- Right: Summary -->
                     <!-- Right: Summary -->
                     <div class="col-lg-4">
                         <div class="card sticky-top" style="top: 20px;">
@@ -260,13 +258,15 @@
             </form>
         </div>
     </div>
+
 <template id="itemRowTemplate">
     <tr class="item-row">
         <td class="row-num text-center fw-medium align-middle">1</td>
 
         <td>
             <input type="text" name="items[][name]" class="form-control item-name"
-                placeholder="Item name" required style="min-width: 180px; height: 42px; font-size: 14px;">
+                placeholder="Item name" required style="min-width: 180px; height: 42px; font-size: 14px;"
+                value="Electropathy/ Biopathy Remedy">
         </td>
 
         <td>
@@ -332,11 +332,8 @@
 </template>
 @endsection
 
-
 @push('scripts')
     <script>
-        let rowIndex = 0;
-
         // Calculate backwards from Line Total (user enters Line Total, system calculates Amount)
         function calculateFromLineTotal(changedElement) {
             const row = changedElement.closest('.item-row');
@@ -450,18 +447,10 @@
 
         // Add new item row
         function addNewItemRow() {
-            rowIndex++;
             const template = document.getElementById('itemRowTemplate');
             if (!template) return;
 
             const clone = template.content.cloneNode(true);
-
-            clone.querySelectorAll('[name]').forEach(input => {
-                if (input.name) input.name = input.name.replace('[]', `[${rowIndex}]`);
-            });
-
-            const rowNum = clone.querySelector('.row-num');
-            if (rowNum) rowNum.textContent = rowIndex;
 
             const itemsBody = document.getElementById('itemsBody');
             const emptyItems = document.getElementById('emptyItems');
@@ -471,29 +460,39 @@
                 if (emptyItems) emptyItems.style.display = 'none';
             }
 
+            // Update row numbers and input names to ensure sequential indexing
             updateRowNumbers();
         }
 
         // Remove row
         function removeItemRow(btn) {
             btn.closest('.item-row')?.remove();
-            updateRowNumbers();
 
             const itemsBody = document.getElementById('itemsBody');
             const emptyItems = document.getElementById('emptyItems');
 
             if (itemsBody && itemsBody.querySelectorAll('.item-row').length === 0) {
                 if (emptyItems) emptyItems.style.display = 'block';
-                rowIndex = 0;
             }
+            
+            updateRowNumbers();
             calculateGrandTotal();
         }
 
-        // Update row numbers
+        // Update row numbers and input names
         function updateRowNumbers() {
             document.querySelectorAll('.item-row').forEach((row, idx) => {
+                // Update serial number in UI (Always starts from 1)
                 const rowNum = row.querySelector('.row-num');
                 if (rowNum) rowNum.textContent = idx + 1;
+                
+                // Update input names to be sequential starting from 0 for Laravel
+                row.querySelectorAll('[name]').forEach(input => {
+                    if (input.name) {
+                        // Replace items[][name] or items[X][name] with items[idx][name]
+                        input.name = input.name.replace(/items\[\d*\]/, `items[${idx}]`);
+                    }
+                });
             });
         }
 

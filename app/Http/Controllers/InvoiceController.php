@@ -78,7 +78,7 @@ class InvoiceController extends Controller
             'address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
             'gstin' => '03BHTPS6858P1Z4',
             'pan' => 'BHTPS6858P',
-            'contact' => '98720-01445, 180012301445',
+            'contact' => '98720-01445, 98885-01445',
             'website' => 'www.ebiocares.in'
         ];
 
@@ -158,7 +158,7 @@ class InvoiceController extends Controller
         'company_address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
         'gstin' => '03BHTPS6858P1Z4',
         'pan' => 'BHTPS6858P',
-        'contact' => '98720-01445, 180012301445',
+        'contact' => '98720-01445, 98885-01445',
         'items' => $items->all(),
         'taxable_amount' => round($taxableAmount, 2),
         'igst_amount' => round($igstTotal, 2),
@@ -202,7 +202,7 @@ class InvoiceController extends Controller
             'address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
             'gstin' => '03BHTPS6858P1Z4',
             'pan' => 'BHTPS6858P',
-            'contact' => '98720-01445, 180012301445',
+            'contact' => '98720-01445, 98885-01445',
             'website' => 'www.ebiocares.in'
         ];
 
