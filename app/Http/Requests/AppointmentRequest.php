@@ -32,6 +32,8 @@ class AppointmentRequest extends FormRequest {
         'cerebral_fluid' => 'nullable|in:normal,shrink,expand',
          'delusion'       => 'nullable|string|max:255', // ✅ Add this
         'vital_notes' => 'nullable|string|max:500',
+        'reports' => 'nullable|array', // ✅ Add this
+        'reports.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120', // ✅ Add this
     ];
     }
 

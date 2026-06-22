@@ -25,7 +25,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('appointments.store') }}" method="POST">
+                    <form action="{{ route('appointments.store') }}"  method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="card">
                             <div class="card-body">
@@ -281,23 +281,40 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Status -->
-                                    <div class="mb-0">
-                                        <label class="form-label mb-1 fw-medium">Status<span
-                                                class="text-danger ms-1">*</span></label>
-                                        <select name="status" class="select @error('status') is-invalid @enderror"
-                                            required>
-                                            <option value="">Select</option>
-                                            @foreach (['schedule' => 'Schedule', 'confirmed' => 'Confirmed', 'checked_in' => 'Checked In', 'checked_out' => 'Checked Out', 'cancelled' => 'Cancelled'] as $val => $label)
-                                                <option value="{{ $val }}"
-                                                    {{ old('status') == $val ? 'selected' : '' }}>{{ $label }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('status')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
+                                    <!-- ✅ REPORTS UPLOAD SECTION -->
+<div class="card mt-4">
+    <div class="card-header bg-light">
+        <h6 class="fw-bold mb-0">
+            <i class="ti ti-file-upload me-2 text-primary"></i>Upload Reports
+        </h6>
+        <small class="text-muted">Upload lab reports, prescriptions, or other documents</small>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label small fw-medium">Select Files</label>
+            <input type="file" name="reports[]" class="form-control form-control-sm" 
+                   multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+            <small class="text-muted d-block mt-1">
+                <i class="ti ti-info-circle me-1"></i>
+                PDF, JPG, PNG, DOC (Max 5MB each, Multiple files allowed)
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Status -->
+<div class="mb-0">
+    <label class="form-label mb-1 fw-medium">Status<span class="text-danger ms-1">*</span></label>
+    <select name="status" class="select @error('status') is-invalid @enderror" required>
+        <option value="">Select</option>
+        @foreach (['schedule' => 'Schedule', 'confirmed' => 'Confirmed', 'checked_in' => 'Checked In', 'checked_out' => 'Checked Out', 'cancelled' => 'Cancelled'] as $val => $label)
+            <option value="{{ $val }}" {{ old('status') == $val ? 'selected' : '' }}>{{ $label }}</option>
+        @endforeach
+    </select>
+    @error('status')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
                                 </div>
                             </div>
                         </div>
@@ -312,124 +329,121 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
 
-            // ✅ BP Auto-Format (120/80)
-            const bpInput = document.getElementById('bpInput');
-            if (bpInput) {
-                bpInput.addEventListener('input', function(e) {
-                    let val = e.target.value.replace(/\D/g, '');
-                    if (val.length >= 3 && !val.includes('/')) {
-                        val = val.slice(0, 3) + '/' + val.slice(3, 5);
-                    }
-                    if (val.includes('/')) {
-                        const [sys, dia] = val.Patient('/');
-                        val = sys.slice(0, 3) + '/' + (dia ? dia.slice(0, 2) : '');
-                    }
-                    e.target.value = val;
-                });
-                bpInput.addEventListener('blur', function(e) {
-                    const val = e.target.value;
-                    if (val && !/^\d{2,3}\/\d{2}$/.test(val)) {
-                        e.target.style.borderColor = '#dc3545';
-                        setTimeout(() => e.target.style.borderColor = '', 2000);
-                    }
-                });
-            }
-
-            // ✅ Temperature: Smart Celsius/Fahrenheit Handling
-            const tempInput = document.getElementById('tempInput');
-            if (tempInput) {
-                tempInput.addEventListener('input', function(e) {
-                    let val = e.target.value.toLowerCase().replace(/[^0-9.c]/g, '');
-                    const parts = val.split('.');
-                    if (parts.length > 2) {
-                        val = parts[0] + '.' + parts.slice(1).join('').replace('c', '');
-                    }
-                    const hasC = val.endsWith('c');
-                    const numPart = hasC ? val.slice(0, -1) : val;
-                    if (numPart.includes('.') && numPart.split('.')[1]?.length > 1) {
-                        const [int, dec] = numPart.split('.');
-                        val = int + '.' + dec.substring(0, 1) + (hasC ? 'c' : '');
-                    }
-                    e.target.value = val;
-                });
-
-                tempInput.addEventListener('blur', function(e) {
-                    const raw = e.target.value.trim().toLowerCase();
-                    if (!raw) return;
-
-                    const isExplicitCelsius = raw.endsWith('c');
-                    let num = parseFloat(raw);
-                    if (isNaN(num)) return;
-
-                    if (isExplicitCelsius || num < 60) {
-                        const fahrenheit = (num * 9 / 5) + 32;
-                        e.target.value = fahrenheit.toFixed(1);
-                        e.target.style.borderColor = '#28a745';
-                        e.target.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
-                        setTimeout(() => {
-                            e.target.style.borderColor = '';
-                            e.target.style.boxShadow = '';
-                        }, 2000);
-                    } else if (num < 90 || num > 115) {
-                        e.target.style.borderColor = '#ffc107';
-                        setTimeout(() => e.target.style.borderColor = '', 2000);
-                    }
-                });
-            }
-
-            // ✅ TOM SELECT INITIALIZATION FOR PATIENT SEARCH
-            if (typeof TomSelect !== 'undefined') {
-                const patientSelect = document.getElementById('patientSelect');
-
-                if (patientSelect) {
-                    // Extract options data for Tom Select
-                    const patientOptions = Array.from(patientSelect.options)
-                        .filter(opt => opt.value)
-                        .map(opt => ({
-                            value: opt.value,
-                            text: opt.text,
-                            name: opt.dataset.name || '',
-                            phone: opt.dataset.phone || '',
-                            patientId: opt.dataset.patientId || '',
-                            address: opt.dataset.address || ''
-                        }));
-
-                    // Initialize Tom Select
-                    new TomSelect('#patientSelect', {
-                        placeholder: 'Search by Patient ID, name or phone...',
-                        maxItems: 1,
-                        valueField: 'value',
-                        labelField: 'text',
-                        // Yeh fields search honge jab aap type karenge
-                        searchField: ['text', 'name', 'phone', 'patientId'],
-                        options: patientOptions,
-                        items: [],
-                        // Custom UI for dropdown options
-                        render: {
-                            option: (data, escape) => `
-                        <div class="py-2">
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold text-primary">${escape(data.patientId)}</span>
-                                <small class="text-muted">${escape(data.phone)}</small>
-                            </div>
-                            <div class="fw-medium">${escape(data.name)}</div>
-                        </div>
-                    `,
-                            // UI for selected item
-                            item: (data, escape) => `
-                        <div>${escape(data.patientId)} - ${escape(data.name)}</div>
-                    `
-                        },
-                        onChange: function(value) {
-                            // Jab koi patient select ho, toh aap yahan extra logic likh sakte ho
-                            console.log('Selected Patient ID:', value);
-                        }
-                    });
-                }
-            }
-        });
-    </script>
 @endsection
+@push('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ✅ BP Auto-Format (120/80)
+        const bpInput = document.getElementById('bpInput');
+        if (bpInput) {
+            bpInput.addEventListener('input', function(e) {
+                let val = e.target.value.replace(/\D/g, '');
+                if (val.length >= 3 && !val.includes('/')) {
+                    val = val.slice(0, 3) + '/' + val.slice(3, 5);
+                }
+                if (val.includes('/')) {
+                    const [sys, dia] = val.split('/');  // ✅ FIXED: Patient se split
+                    val = sys.slice(0, 3) + '/' + (dia ? dia.slice(0, 2) : '');
+                }
+                e.target.value = val;
+            });
+            bpInput.addEventListener('blur', function(e) {
+                const val = e.target.value;
+                if (val && !/^\d{2,3}\/\d{2}$/.test(val)) {
+                    e.target.style.borderColor = '#dc3545';
+                    setTimeout(() => e.target.style.borderColor = '', 2000);
+                }
+            });
+        }
+
+        // ✅ Temperature: Smart Celsius/Fahrenheit Handling
+        const tempInput = document.getElementById('tempInput');
+        if (tempInput) {
+            tempInput.addEventListener('input', function(e) {
+                let val = e.target.value.toLowerCase().replace(/[^0-9.c]/g, '');
+                const parts = val.split('.');
+                if (parts.length > 2) {
+                    val = parts[0] + '.' + parts.slice(1).join('').replace('c', '');
+                }
+                const hasC = val.endsWith('c');
+                const numPart = hasC ? val.slice(0, -1) : val;
+                if (numPart.includes('.') && numPart.split('.')[1]?.length > 1) {
+                    const [int, dec] = numPart.split('.');
+                    val = int + '.' + dec.substring(0, 1) + (hasC ? 'c' : '');
+                }
+                e.target.value = val;
+            });
+
+            tempInput.addEventListener('blur', function(e) {
+                const raw = e.target.value.trim().toLowerCase();
+                if (!raw) return;
+
+                const isExplicitCelsius = raw.endsWith('c');
+                let num = parseFloat(raw);
+                if (isNaN(num)) return;
+
+                if (isExplicitCelsius || num < 60) {
+                    const fahrenheit = (num * 9 / 5) + 32;
+                    e.target.value = fahrenheit.toFixed(1);
+                    e.target.style.borderColor = '#28a745';
+                    e.target.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+                    setTimeout(() => {
+                        e.target.style.borderColor = '';
+                        e.target.style.boxShadow = '';
+                    }, 2000);
+                } else if (num < 90 || num > 115) {
+                    e.target.style.borderColor = '#ffc107';
+                    setTimeout(() => e.target.style.borderColor = '', 2000);
+                }
+            });
+        }
+
+        // ✅ TOM SELECT INITIALIZATION FOR PATIENT SEARCH
+        if (typeof TomSelect !== 'undefined') {
+            const patientSelect = document.getElementById('patientSelect');
+
+            if (patientSelect) {
+                const patientOptions = Array.from(patientSelect.options)
+                    .filter(opt => opt.value)
+                    .map(opt => ({
+                        value: opt.value,
+                        text: opt.text,
+                        name: opt.dataset.name || '',
+                        phone: opt.dataset.phone || '',
+                        patientId: opt.dataset.patientId || '',
+                        address: opt.dataset.address || ''
+                    }));
+
+                new TomSelect('#patientSelect', {
+                    placeholder: 'Search by Patient ID, name or phone...',
+                    maxItems: 1,
+                    valueField: 'value',
+                    labelField: 'text',
+                    searchField: ['text', 'name', 'phone', 'patientId'],
+                    options: patientOptions,
+                    items: [],
+                    render: {
+                        option: (data, escape) => `
+                            <div class="py-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold text-primary">${escape(data.patientId)}</span>
+                                    <small class="text-muted">${escape(data.phone)}</small>
+                                </div>
+                                <div class="fw-medium">${escape(data.name)}</div>
+                            </div>
+                        `,
+                        item: (data, escape) => `
+                            <div>${escape(data.patientId)} - ${escape(data.name)}</div>
+                        `
+                    },
+                    onChange: function(value) {
+                        console.log('Selected Patient ID:', value);
+                    }
+                });
+            }
+        }
+    });
+</script>
+@endpush

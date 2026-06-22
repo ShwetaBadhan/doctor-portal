@@ -1,8 +1,8 @@
 @extends('layout.master')
 @section('content')
     <!-- ========================
-                                   Start Page Content
-                                  ========================= -->
+                                           Start Page Content
+                                          ========================= -->
 
     <div class="page-wrapper">
 
@@ -345,8 +345,8 @@
     </div>
 
     <!-- ========================
-                                   End Page Content
-                                  ========================= -->
+                                           End Page Content
+                                          ========================= -->
 
     <!-- Start Delete Modal  -->
     <div class="modal fade" id="delete_modal">
@@ -576,47 +576,49 @@
 @endsection
 @push('scripts')
     <script>
+        const allMedicines = @json($allMedicines);
+
         // Global counter for extra medicines
         let extraMedicineCounter = {};
-// Email confirmation function
-function confirmSendEmail(email, formId) {
-    if (!email || email === '') {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No Email',
-            text: 'This patient does not have an email address.',
-            confirmButtonColor: '#3085d6'
-        });
-        return;
-    }
+        // Email confirmation function
+        function confirmSendEmail(email, formId) {
+            if (!email || email === '') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Email',
+                    text: 'This patient does not have an email address.',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
 
-    Swal.fire({
-        title: 'Send Welcome Email?',
-        html: `Are you sure you want to send the welcome letter to:<br><strong>${email}</strong>`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, Send Email',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading
             Swal.fire({
-                title: 'Sending...',
-                html: 'Please wait while we send the email',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
+                title: 'Send Welcome Email?',
+                html: `Are you sure you want to send the welcome letter to:<br><strong>${email}</strong>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Send Email',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Sending...',
+                        html: 'Please wait while we send the email',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit the form
+                    document.getElementById(formId).submit();
                 }
             });
-            
-            // Submit the form
-            document.getElementById(formId).submit();
         }
-    });
-}
         // Add extra medicine row
         function addExtraMedicine(patientId) {
             if (!extraMedicineCounter[patientId]) {
@@ -628,51 +630,67 @@ function confirmSendEmail(email, formId) {
             const extraIndex = extraMedicineCounter[patientId];
 
             const extraMedHtml = `
-        <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${patientId}_${extraIndex}">
-            <div class="card-body py-2 px-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold mb-0 text-primary">
-                        <i class="ti ti-pill me-1"></i>Extra Medicine ${extraIndex}
-                    </h6>
-                    <button type="button" class="btn btn-sm btn-light text-danger" 
-                            onclick="removeExtraMedicine('${patientId}', ${extraIndex})" 
-                            title="Remove">
-                        <i class="ti ti-x"></i>
-                    </button>
+    <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${patientId}_${extraIndex}">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 text-primary">
+                    <i class="ti ti-pill me-1"></i>Extra Medicine ${extraIndex}
+                </h6>
+                <button type="button" class="btn btn-sm btn-light text-danger" 
+                        onclick="removeExtraMedicine('${patientId}', ${extraIndex})" 
+                        title="Remove">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <div class="row g-2">
+                <!-- Medicine Dropdown -->
+                <div class="col-md-4">
+                    <label class="form-label small">Select Medicine</label>
+                    <select name="extra_medicines[${extraIndex}][medicine_id]" 
+                            class="form-select form-select-sm extra-medicine-select" 
+                            onchange="autoFillExtraMedicine(this, '${patientId}', ${extraIndex})">
+                        <option value="">-- Select medicine --</option>
+                        @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
+                            <option value="{{ $med->id }}" 
+                                    data-name="{{ $med->name }}"
+                                    data-dosage="{{ $med->dosage }}"
+                                    data-quantity="{{ $med->quantity }}"
+                                    data-route="{{ $med->route }}"
+                                    data-instructions="{{ $med->instructions }}">
+                                {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <label class="form-label small">Select Medicine <span class="text-danger">*</span></label>
-                        <select name="extra_medicines[${extraIndex}][medicine_id]" 
-                                class="form-select form-select-sm extra-medicine-select" 
-                                required onchange="autoFillExtraMedicine(this, '${patientId}', ${extraIndex})">
-                            <option value="">-- Select medicine --</option>
-                            @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
-                                <option value="{{ $med->id }}" 
-                                        data-dosage="{{ $med->dosage }}"
-                                        data-quantity="{{ $med->quantity }}"
-                                        data-route="{{ $med->route }}"
-                                        data-instructions="{{ $med->instructions }}">
-                                    {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small">Dosage</label>
-                        <input type="text" name="extra_medicines[${extraIndex}][dosage]" 
-                               class="form-control form-control-sm extra-dosage" 
-                               placeholder="e.g., 1-0-1" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small">Quantity</label>
-                        <input type="text" name="extra_medicines[${extraIndex}][quantity]" 
-                               class="form-control form-control-sm extra-quantity" 
-                               placeholder="e.g., 30 tabs" required>
-                    </div>
+                
+                <!-- ✅ Editable Medicine Name Input -->
+                <div class="col-md-4">
+                    <label class="form-label small">Medicine Name <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           name="extra_medicines[${extraIndex}][custom_name]" 
+                           class="form-control form-control-sm extra-medicine-name" 
+                           placeholder="Medicine name (editable)" 
+                           required>
+                </div>
+                
+                <!-- Dosage -->
+                <div class="col-md-2">
+                    <label class="form-label small">Dosage</label>
+                    <input type="text" name="extra_medicines[${extraIndex}][dosage]" 
+                           class="form-control form-control-sm extra-dosage" 
+                           placeholder="e.g., 1-0-1" required>
+                </div>
+                
+                <!-- Quantity -->
+                <div class="col-md-2">
+                    <label class="form-label small">Quantity</label>
+                    <input type="text" name="extra_medicines[${extraIndex}][quantity]" 
+                           class="form-control form-control-sm extra-quantity" 
+                           placeholder="e.g., 30 tabs" required>
                 </div>
             </div>
         </div>
+    </div>
     `;
 
             container.insertAdjacentHTML('beforeend', extraMedHtml);
@@ -688,26 +706,39 @@ function confirmSendEmail(email, formId) {
             }
         }
 
-        // Auto-fill medicine details when selected
+        // Auto-fill medicine details when selected from dropdown
         function autoFillExtraMedicine(select, patientId, index) {
             const selectedOption = select.options[select.selectedIndex];
 
-            // ✅ FIXED: Update button whether medicine is selected or not
+            // Update submit button whether medicine is selected or not
             updateSubmitButton(patientId);
 
             if (!selectedOption.value) return;
 
             const row = select.closest('.extra-medicine-item');
 
-            // Auto-fill from data attributes
-            const dosageField = row.querySelector('.extra-dosage');
-            const qtyField = row.querySelector('.extra-quantity');
+            // ✅ Auto-fill editable name field from dropdown
+            const nameField = row.querySelector('.extra-medicine-name');
+            if (nameField && selectedOption.dataset.name) {
+                nameField.value = selectedOption.dataset.name;
+            }
 
+            // Auto-fill dosage
+            const dosageField = row.querySelector('.extra-dosage');
             if (dosageField && selectedOption.dataset.dosage) {
                 dosageField.value = selectedOption.dataset.dosage;
             }
+
+            // Auto-fill quantity
+            const qtyField = row.querySelector('.extra-quantity');
             if (qtyField && selectedOption.dataset.quantity) {
                 qtyField.value = selectedOption.dataset.quantity;
+            }
+
+            // Focus on name field so user can edit it immediately
+            if (nameField) {
+                nameField.focus();
+                nameField.select();
             }
         }
 
@@ -741,48 +772,59 @@ function confirmSendEmail(email, formId) {
                             return;
                         }
 
+                        // patients.blade.php - AJAX success block mein itemHtml update karein
+
                         data.medicines.forEach((medicine, index) => {
+                            // ✅ Use custom_name if exists, otherwise use medicine name
+                            const displayName = medicine.custom_name || medicine.name;
+
                             const itemHtml = `
-                        <div class="medicine-item card border-0 shadow-sm mb-2" data-medicine-id="${medicine.id}">
-                            <div class="card-body py-2 px-3">
-                                <div class="d-flex align-items-start gap-2">
-                                    <div class="pt-1">
-                                        <input class="form-check-input medicine-checkbox" 
-                                               type="checkbox" 
-                                               name="medicines[${index}][assign]" 
-                                               value="1"
-                                               ${medicine.already_assigned ? 'checked' : ''}>
-                                        <input type="hidden" name="medicines[${index}][medicine_id]" value="${medicine.id}">
-                                        ${medicine.already_assigned ? 
-                                            `<input type="hidden" name="medicines[${index}][patient_medicine_id]" value="${medicine.patient_medicine_id}">` 
-                                            : ''}
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1 fw-semibold">${medicine.name}</h6>
-                                        ${medicine.code ? `<small class="text-muted">Code: ${medicine.code}</small>` : ''}
-                                        ${medicine.already_assigned ? 
-                                            `<span class="badge badge-soft-success fs-10 ms-1">Already Assigned</span>` 
-                                            : ''}
-                                    </div>
-                                    <div class="medicine-fields" style="min-width: 200px;">
-                                        <div class="row g-2">
-                                            <div class="col-6">
-                                                <input type="text" name="medicines[${index}][dosage]" 
-                                                       class="form-control form-control-sm" 
-                                                       placeholder="Dosage" value="${medicine.dosage || ''}"
-                                                       ${medicine.already_assigned ? '' : 'disabled'}>
-                                            </div>
-                                            <div class="col-6">
-                                                <input type="text" name="medicines[${index}][quantity]" 
-                                                       class="form-control form-control-sm" 
-                                                       placeholder="Qty" value="${medicine.quantity || ''}"
-                                                       ${medicine.already_assigned ? '' : 'disabled'}>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
+<div class="medicine-item card border-0 shadow-sm mb-2" data-medicine-id="${medicine.id}">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-start gap-2">
+            <div class="pt-1">
+                <input class="form-check-input medicine-checkbox" 
+                       type="checkbox" 
+                       name="medicines[${index}][assign]" 
+                       value="1"
+                       ${medicine.already_assigned ? 'checked' : ''}>
+                <input type="hidden" name="medicines[${index}][medicine_id]" value="${medicine.id}">
+                ${medicine.already_assigned ? 
+                    `<input type="hidden" name="medicines[${index}][patient_medicine_id]" value="${medicine.patient_medicine_id}">` 
+                    : ''}
+            </div>
+            <div class="flex-grow-1">
+                <!-- ✅ EDITABLE INPUT FIELD for medicine name -->
+                <input type="text" 
+                       name="medicines[${index}][custom_name]" 
+                       class="form-control form-control-sm mb-1" 
+                       placeholder="Medicine name" 
+                       value="${displayName}"
+                       required>
+                
+                ${medicine.already_assigned ? 
+                    `<span class="badge badge-soft-success fs-10 ms-1">Already Assigned</span>` 
+                    : ''}
+            </div>
+            <div class="medicine-fields" style="min-width: 200px;">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <input type="text" name="medicines[${index}][dosage]" 
+                               class="form-control form-control-sm" 
+                               placeholder="Dosage" value="${medicine.dosage || ''}"
+                               ${medicine.already_assigned ? '' : 'disabled'}>
+                    </div>
+                    <div class="col-6">
+                        <input type="text" name="medicines[${index}][quantity]" 
+                               class="form-control form-control-sm" 
+                               placeholder="Qty" value="${medicine.quantity || ''}"
+                               ${medicine.already_assigned ? '' : 'disabled'}>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`;
                             container.insertAdjacentHTML('beforeend', itemHtml);
                         });
 
@@ -810,7 +852,27 @@ function confirmSendEmail(email, formId) {
                     });
             });
         });
+        // ✅ NEW: Auto-fill details when group medicine is changed from dropdown
+        function autoFillGroupMedicine(select) {
+            const medId = select.value;
+            const med = allMedicines.find(m => m.id == medId);
+            if (!med) return;
 
+            const row = select.closest('.medicine-item');
+            const dosageInput = row.querySelector('input[name*="[dosage]"]');
+            const qtyInput = row.querySelector('input[name*="[quantity]"]');
+
+            // Auto-fill dosage and quantity from the newly selected medicine
+            if (dosageInput && med.dosage) dosageInput.value = med.dosage;
+            if (qtyInput && med.quantity) qtyInput.value = med.quantity;
+
+            // Ensure fields are enabled if checkbox is checked
+            const checkbox = row.querySelector('.medicine-checkbox');
+            if (checkbox && checkbox.checked) {
+                if (dosageInput) dosageInput.disabled = false;
+                if (qtyInput) qtyInput.disabled = false;
+            }
+        }
         // Check All functionality
         document.addEventListener('change', function(e) {
             if (e.target.classList.contains('check-all-medicines')) {
@@ -828,7 +890,7 @@ function confirmSendEmail(email, formId) {
                     });
                 });
                 const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset
-                .patientId;
+                    .patientId;
                 updateSubmitButton(patientId);
             }
         });
@@ -839,14 +901,18 @@ function confirmSendEmail(email, formId) {
             const container = document.getElementById(`medicinesContainer_${patientId}`);
             const groupChecked = container ? container.querySelectorAll('.medicine-checkbox:checked').length : 0;
 
-            // Count extra medicines that have a medicine selected
+            // Count extra medicines that have a medicine selected OR custom name filled
             const extraContainer = document.getElementById(`extraMedicinesContainer_${patientId}`);
             let extraFilled = 0;
 
             if (extraContainer) {
-                const extraSelects = extraContainer.querySelectorAll('.extra-medicine-select');
-                extraSelects.forEach(select => {
-                    if (select.value && select.value !== '') {
+                const extraItems = extraContainer.querySelectorAll('.extra-medicine-item');
+                extraItems.forEach(item => {
+                    const select = item.querySelector('.extra-medicine-select');
+                    const nameField = item.querySelector('.extra-medicine-name');
+
+                    // Count if either dropdown selected OR custom name filled
+                    if ((select && select.value) || (nameField && nameField.value.trim())) {
                         extraFilled++;
                     }
                 });
@@ -873,7 +939,7 @@ function confirmSendEmail(email, formId) {
                     }
                 });
                 const patientId = e.target.closest('form').querySelector('.medicine-group-select').dataset
-                .patientId;
+                    .patientId;
                 updateSubmitButton(patientId);
             }
         });

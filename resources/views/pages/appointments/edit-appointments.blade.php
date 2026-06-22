@@ -30,10 +30,10 @@
                     @endif
 
                     <!-- Edit Form -->
-                    <form action="{{ route('appointments.update', $appointment->id) }}" method="POST" id="appointmentForm">
+                    <form action="{{ route('appointments.update', $appointment->id) }}"method="POST" id="appointmentForm"
+                        enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
-
                         <div class="card">
                             <div class="card-body">
                                 <div class="form">
@@ -291,7 +291,100 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- ✅ REPORTS UPLOAD SECTION -->
+                                    <div class="card mt-4">
+                                        <div class="card-header bg-light">
+                                            <h6 class="fw-bold mb-0">
+                                                <i class="ti ti-file-upload me-2 text-primary"></i>Upload Reports
+                                            </h6>
+                                            <small class="text-muted">Upload lab reports, prescriptions, or other
+                                                documents</small>
+                                        </div>
+                                        <div class="card-body">
 
+                                            {{-- ✅ Show Existing Reports --}}
+                                            @if ($appointment->reports && count($appointment->reports) > 0)
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-medium">Existing Reports</label>
+                                                    <div class="row">
+                                                        @foreach ($appointment->reports as $index => $reportPath)
+                                                            <div class="col-md-4 col-lg-3 mb-2">
+                                                                <div class="card border h-100">
+                                                                    <div class="card-body text-center p-2">
+                                                                        @php
+                                                                            $ext = pathinfo(
+                                                                                $reportPath,
+                                                                                PATHINFO_EXTENSION,
+                                                                            );
+                                                                            $icons = [
+                                                                                'pdf' => 'ti ti-file-text text-danger',
+                                                                                'jpg' => 'ti ti-photo text-primary',
+                                                                                'jpeg' => 'ti ti-photo text-primary',
+                                                                                'png' => 'ti ti-photo text-primary',
+                                                                                'doc' => 'ti ti-file-text text-info',
+                                                                                'docx' => 'ti ti-file-text text-info',
+                                                                            ];
+                                                                            $icon =
+                                                                                $icons[$ext] ?? 'ti ti-file text-muted';
+                                                                            $fileName = basename($reportPath);
+                                                                        @endphp
+
+                                                                        <div
+                                                                            class="avatar avatar-md bg-light rounded-circle mb-2 mx-auto">
+                                                                            <i class="{{ $icon }} fs-18"></i>
+                                                                        </div>
+
+                                                                        <p class="small text-truncate mb-2"
+                                                                            title="{{ $fileName }}">
+                                                                            {{ $fileName }}
+                                                                        </p>
+
+                                                                        <div class="btn-group btn-group-sm">
+                                                                            <a href="{{ Storage::url($reportPath) }}"
+                                                                                class="btn btn-light" target="_blank"
+                                                                                title="View">
+                                                                                <i class="ti ti-eye"></i>
+                                                                            </a>
+                                                                            <a href="{{ Storage::url($reportPath) }}"
+                                                                                class="btn btn-light" download
+                                                                                title="Download">
+                                                                                <i class="ti ti-download"></i>
+                                                                            </a>
+                                                                            <button type="button"
+                                                                                class="btn btn-light text-danger"
+                                                                                onclick="confirmDeleteReport({{ $appointment->id }}, {{ $index }}, '{{ $fileName }}')"
+                                                                                title="Delete">
+                                                                                <i class="ti ti-trash"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                            @endif
+
+                                            {{-- Upload New Files --}}
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-medium">Add New Files</label>
+                                                <input type="file" name="reports[]"
+                                                    class="form-control form-control-sm" multiple
+                                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="ti ti-info-circle me-1"></i>
+                                                    PDF, JPG, PNG, DOC (Max 5MB each, Multiple files allowed)
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- ✅ Hidden Form for Delete Report --}}
+                                    <form id="deleteReportForm" method="POST" style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
                                     <!-- Status -->
                                     <div class="mb-0">
                                         <label class="form-label mb-1 fw-medium">Status<span
@@ -326,8 +419,43 @@
         </div>
     </div>
 
-    <!-- ✅ Smart Input Scripts -->
+
+
+@endsection
+@push('scripts')
     <script>
+        function confirmDeleteReport(appointmentId, reportIndex, fileName) {
+            Swal.fire({
+                title: 'Delete Report?',
+                html: `Are you sure you want to delete <strong>${fileName}</strong>?`,
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="ti ti-trash me-1"></i> Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Deleting...',
+                        html: 'Please wait',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Set form action and submit
+                    const form = document.getElementById('deleteReportForm');
+                    form.action = `/appointments/${appointmentId}/reports/${reportIndex}`;
+                    form.submit();
+                }
+            });
+        }
         document.addEventListener('DOMContentLoaded', function() {
 
             // ✅ BP Auto-Format (120/80)
@@ -436,4 +564,4 @@
             }
         });
     </script>
-@endsection
+@endpush

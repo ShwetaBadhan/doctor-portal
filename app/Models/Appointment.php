@@ -32,11 +32,13 @@ class Appointment extends Model {
     'cerebral_fluid',
     'delusion', 
     'vital_notes',
+     'reports', // ✅ Add this
 ];
 
     protected $casts = [
         'appointment_date' => 'date',
         'appointment_time' => 'datetime:H:i',
+        'reports' => 'array',
     ];
 
     public function patient() {

@@ -459,28 +459,30 @@ body {
 
                 <ol class="medicine-list-new">
 
-                    @foreach ($medicines as $index => $med)
+                  @foreach ($medicines as $index => $med)
+    <li>
+        <strong>
+            {{-- ✅ Show custom_name if exists, otherwise show original medicine name --}}
+            {{ $med['custom_name'] ?? $med['name'] ?? ($med->custom_name ?? ($med->name ?? '-')) }}
+        </strong>
 
-                        <li>
+        @if(!empty($med['dosage']) || !empty($med->dosage))
+            —
+            {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
+        @endif
 
-                            <strong>
-                                {{ $med['name'] ?? ($med->name ?? '-') }}
-                            </strong>
+        @if(!empty($med['quantity']) || !empty($med->quantity))
+            → 
+            {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+        @endif
 
-                            @if(!empty($med['dosage']) || !empty($med->dosage))
-                                —
-                                {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
-                            @endif
-
-                            @if(!empty($med['quantity']) || !empty($med->quantity))
-                                → 
-                                {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
-                            @endif
-
-                        </li>
-
-                    @endforeach
-
+        @if(!empty($med['instructions']) || !empty($med->instructions))
+            <span class="text-muted">
+                ({{ $med['instructions'] ?? ($med->instructions ?? '') }})
+            </span>
+        @endif
+    </li>
+@endforeach
                 </ol>
 
             </td>

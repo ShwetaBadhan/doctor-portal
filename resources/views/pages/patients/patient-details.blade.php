@@ -545,7 +545,10 @@
                                                 <tr>
                                                     <td class="fw-medium">{{ $loop->iteration }}</td>
                                                     <td>
-                                                        <div class="fw-medium">{{ $pm->medicine->name ?? 'Unknown' }}
+                                                        {{-- ✅ Show custom_name if exists, otherwise show medicine name --}}
+                                                        <div class="fw-medium">
+                                                            {{ $pm->custom_name ?? ($pm->medicine->name ?? 'Unknown') }}
+
                                                         </div>
                                                         @if ($pm->notes)
                                                             <small
@@ -597,7 +600,7 @@
                                                                 <i class="ti ti-edit"></i>
                                                             </button>
                                                             <button type="button" class="btn btn-light text-danger"
-                                                                onclick="confirmRemoveMedicine({{ $pm->id }}, '{{ $pm->medicine->name ?? 'Medicine' }}')"
+                                                                onclick="confirmRemoveMedicine({{ $pm->id }}, '{{ $pm->custom_name ?? ($pm->medicine->name ?? 'Medicine') }}')"
                                                                 title="Remove">
                                                                 <i class="ti ti-trash"></i>
                                                             </button>
@@ -619,8 +622,21 @@
                                                                         data-bs-dismiss="modal"></button>
                                                                 </div>
                                                                 <div class="modal-body">
-                                                                    <p class="fw-medium mb-3">
-                                                                        {{ $pm->medicine->name ?? 'Medicine' }}</p>
+                                                                    {{-- ✅ Add Custom Name Field --}}
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label fw-medium">Medicine
+                                                                            Name</label>
+                                                                        <input type="text" class="form-control"
+                                                                            name="custom_name"
+                                                                            value="{{ old('custom_name', $pm->custom_name ?? ($pm->medicine->name ?? '')) }}"
+                                                                            placeholder="Enter medicine name">
+                                                                        @if ($pm->medicine)
+                                                                            <small class="text-muted">
+                                                                                Original: {{ $pm->medicine->name }}
+                                                                            </small>
+                                                                        @endif
+                                                                    </div>
+
                                                                     <div class="row">
                                                                         <div class="col-6 mb-3">
                                                                             <label class="form-label">Dosage</label>
@@ -714,76 +730,46 @@
                         <i class="ti ti-history me-2"></i>Medicine Assignment History
                     </h6>
 
-                    @php
-                        $allMedicines = \App\Models\PatientMedicine::where('patient_id', $patient->id)
-                            ->with(['medicine', 'medicineGroup'])
-                            ->orderBy('created_at', 'desc')
-                            ->get();
-                    @endphp
 
-                    @if ($allMedicines->count())
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="list-group list-group-flush">
-                                    @foreach ($allMedicines as $index => $history)
-                                        <div
-                                            class="list-group-item px-0 py-2 {{ !$history->is_active ? 'bg-light' : '' }}">
-                                            <div class="d-flex align-items-center">
-                                                <!-- Serial Number -->
-                                                <span class="fw-bold text-primary me-3" style="min-width: 30px;">
-                                                    {{ $loop->iteration }}.
-                                                </span>
 
-                                                <!-- Medicine Name -->
-                                                <div class="flex-grow-1">
-                                                    <span class="fw-medium">
-                                                        {{ $history->medicine->name ?? 'Unknown' }}
-                                                    </span>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-end g-3">
 
-                                                    <!-- Dosage, Quantity, Instructions -->
-                                                    <span class="text-muted mx-2">
-                                                        @if ($history->dosage || $history->quantity || $history->instructions)
-                                                            ---->
-                                                            @if ($history->dosage)
-                                                                {{ $history->dosage }}
-                                                            @endif
-                                                            @if ($history->quantity)
-                                                                ----> {{ $history->quantity }}
-                                                            @endif
-                                                            @if ($history->instructions)
-                                                                ({{ $history->instructions }})
-                                                            @endif
-                                                        @endif
-                                                    </span>
-
-                                                    <!-- Status Badge -->
-                                                    @if (!$history->is_active)
-                                                        <span class="badge bg-secondary ms-2 fs-11">Removed</span>
-                                                    @endif
-                                                </div>
-
-                                                <!-- Date -->
-                                                <small class="text-muted">
-                                                    {{ $history->created_at->format('d M Y') }}
-                                                </small>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                                {{-- Date Picker --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Report Date</label>
+                                    <input type="date" id="reportDate" class="form-control"
+                                        value="{{ now()->format('Y-m-d') }}">
                                 </div>
+
+                                {{-- Generate Button --}}
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-primary w-100" onclick="generateReport()">
+                                        <i class="ti ti-file-certificate me-1"></i> Generate & Save Report
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
-                    @else
-                        <div class="card border-dashed">
-                            <div class="card-body text-center py-5">
-                                <i class="ti ti-history fs-1 text-muted opacity-50"></i>
-                                <h5 class="mt-3 text-muted">No Medicine History</h5>
-                                <p class="text-muted mb-0">Medicine assignment history will appear here.</p>
-                            </div>
+                    </div>
+
+                    {{-- Saved Reports History --}}
+                    <h6 class="fw-bold mb-3 mt-4">
+                        <i class="ti ti-history me-2"></i>Saved Reports History
+                    </h6>
+
+                    <div id="reportsHistoryContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <p class="text-muted mt-2 mb-0">Loading reports...</p>
                         </div>
-                    @endif
+                    </div>
+
+
                 </div>
 
-                <!-- Test Reports Tab (NEW) -->
+                <!-- Test Reports Tab -->
                 <div class="tab-pane" id="reports">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0"><i class="ti ti-file me-2 text-primary"></i>Test Reports & Documents</h6>
@@ -804,14 +790,61 @@
                         @endcan
                     </div>
 
-                    @if ($patient->test_reports && count($patient->test_reports))
+                    {{-- ✅ Combine all reports into one collection --}}
+                    @php
+                        $allReports = [];
+
+                        // Add patient reports
+                        if ($patient->test_reports && count($patient->test_reports) > 0) {
+                            foreach ($patient->test_reports as $index => $reportPath) {
+                                $allReports[] = [
+                                    'type' => 'patient',
+                                    'path' => $reportPath,
+                                    'date' => \Carbon\Carbon::parse(
+                                        filemtime(storage_path('app/public/' . $reportPath)),
+                                    ),
+                                    'label' => 'Patient Report',
+                                    'badge_class' => 'primary',
+                                ];
+                            }
+                        }
+
+                        // Add appointment reports
+                        if ($appointmentsWithReports && $appointmentsWithReports->count() > 0) {
+                            foreach ($appointmentsWithReports as $appointment) {
+                                if ($appointment->reports && count($appointment->reports) > 0) {
+                                    foreach ($appointment->reports as $index => $reportPath) {
+                                        $allReports[] = [
+                                            'type' => 'appointment',
+                                            'path' => $reportPath,
+                                            'date' => \Carbon\Carbon::parse(
+                                                filemtime(storage_path('app/public/' . $reportPath)),
+                                            ),
+                                            'appointment_date' => $appointment->appointment_date,
+                                            'appointment_time' => $appointment->appointment_time,
+                                            'appointment_type' => $appointment->appointment_type,
+                                            'label' => 'Appointment Report',
+                                            'badge_class' => 'success',
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+
+                        // Sort all reports by date (newest first)
+                        usort($allReports, function ($a, $b) {
+                            return $b['date']->timestamp - $a['date']->timestamp;
+                        });
+                    @endphp
+
+                    @if (count($allReports) > 0)
                         <div class="row">
-                            @foreach ($patient->test_reports as $index => $reportPath)
+                            @foreach ($allReports as $report)
                                 <div class="col-md-4 col-lg-3 mb-3">
                                     <div class="card border h-100">
                                         <div class="card-body text-center">
                                             @php
-                                                $ext = pathinfo($reportPath, PATHINFO_EXTENSION);
+                                                $ext = pathinfo($report['path'], PATHINFO_EXTENSION);
                                                 $icons = [
                                                     'pdf' => 'ti ti-file-text text-danger',
                                                     'jpg' => 'ti ti-photo text-primary',
@@ -821,7 +854,7 @@
                                                     'docx' => 'ti ti-file-text text-info',
                                                 ];
                                                 $icon = $icons[$ext] ?? 'ti ti-file text-muted';
-                                                $fileName = basename($reportPath);
+                                                $fileName = basename($report['path']);
                                             @endphp
 
                                             <div class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
@@ -829,35 +862,54 @@
                                             </div>
 
                                             <p class="small text-truncate mb-2" title="{{ $fileName }}">
-                                                {{ $fileName }}</p>
+                                                {{ $fileName }}
+                                            </p>
                                             <p class="fs-11 text-muted mb-2">
-                                                {{ \Carbon\Carbon::parse(filemtime(storage_path('app/public/' . $reportPath)))->format('d M Y') }}
+                                                {{ $report['date']->format('d M Y') }}
                                             </p>
 
+                                            {{-- Report Type Badge --}}
+                                            <span
+                                                class="badge bg-{{ $report['badge_class'] }} bg-opacity-10 text-{{ $report['badge_class'] }} mb-2">
+                                                {{ $report['label'] }}
+                                            </span>
+
+                                            {{-- Appointment Info (if applicable) --}}
+                                            @if ($report['type'] == 'appointment')
+                                                <small class="text-muted d-block mb-2">
+                                                    {{ $report['appointment_date']->format('d M Y') }}
+                                                    @ {{ $report['appointment_time']->format('h:i A') }}
+                                                </small>
+                                            @endif
+
                                             <div class="btn-group btn-group-sm">
-                                                @can('view-patient-reports')
-                                                    <a href="{{ Storage::url($reportPath) }}" class="btn btn-light"
-                                                        target="_blank" title="View">
-                                                        <i class="ti ti-eye"></i>
-                                                    </a>
-                                                @endcan
-                                                @can('download-patient-reports')
-                                                    <a href="{{ Storage::url($reportPath) }}" class="btn btn-light" download
-                                                        title="Download">
-                                                        <i class="ti ti-download"></i>
-                                                    </a>
-                                                @endcan
-                                                @can('delete-patient-reports')
-                                                    <form action="{{ route('reports.delete', [$patient->id, $index]) }}"
-                                                        method="POST" class="d-inline"
-                                                        onsubmit="return confirm('Delete this report?')">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="btn btn-light text-danger"
-                                                            title="Delete">
+                                                <a href="{{ Storage::url($report['path']) }}" class="btn btn-light"
+                                                    target="_blank" title="View">
+                                                    <i class="ti ti-eye"></i>
+                                                </a>
+                                                <a href="{{ Storage::url($report['path']) }}" class="btn btn-light"
+                                                    download title="Download">
+                                                    <i class="ti ti-download"></i>
+                                                </a>
+
+                                                {{-- Delete Button for Both Patient and Appointment Reports --}}
+                                                @if ($report['type'] == 'patient')
+                                                    @can('delete-patient-reports')
+                                                        <button type="button" class="btn btn-light text-danger"
+                                                            title="Delete"
+                                                            onclick="confirmDeletePatientReport({{ $patient->id }}, {{ $loop->index }}, '{{ $fileName }}')">
                                                             <i class="ti ti-trash"></i>
                                                         </button>
-                                                    </form>
-                                                @endcan
+                                                    @endcan
+                                                @elseif ($report['type'] == 'appointment')
+                                                    @can('delete-appointments')
+                                                        <button type="button" class="btn btn-light text-danger"
+                                                            title="Delete"
+                                                            onclick="confirmDeleteAppointmentReport({{ $report['appointment_date']->format('Y-m-d') }}, {{ $loop->index }}, '{{ $fileName }}')">
+                                                            <i class="ti ti-trash"></i>
+                                                        </button>
+                                                    @endcan
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -874,6 +926,18 @@
                         </div>
                     @endif
                 </div>
+
+                {{-- ✅ Hidden Form for Delete Patient Report --}}
+                <form id="deleteReportForm" method="POST" style="display: none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
+
+                {{-- ✅ Hidden Form for Delete Appointment Report --}}
+                <form id="deleteAppointmentReportForm" method="POST" style="display: none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
 
                 <!-- Treatment Tab -->
                 <div class="tab-pane" id="treatment">
@@ -1268,23 +1332,23 @@
                             </div>
                             <!-- ===== END EXTRA MEDICINES SECTION ===== -->
 
-                            <!-- Date & Notes Section -->
-                            <div class="row mt-4 pt-3 border-top">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Start Date</label>
-                                    <input type="date" name="start_date" class="form-control">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">End Date</label>
-                                    <input type="date" name="end_date" class="form-control">
-                                </div>
+
+                        </div>
+                        <!-- Date & Notes Section -->
+                        <div class="row mt-4 pt-3 border-top">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" name="start_date" class="form-control">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">General Notes</label>
-                                <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" name="end_date" class="form-control">
                             </div>
                         </div>
-
+                        <div class="mb-3">
+                            <label class="form-label">General Notes</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
+                        </div>
                         <!-- Empty State -->
                         <div id="noMedicines" class="alert alert-warning d-none">
                             <i class="ti ti-alert-circle me-2"></i>This group has no medicines.
@@ -1302,7 +1366,24 @@
         </div>
     </div>
 
-
+    {{-- Report Preview Modal --}}
+    <div class="modal fade" id="reportPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95%;">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h6 class="modal-title fw-bold">
+                        <i class="ti ti-file-certificate me-2"></i>Diagnosis Report Preview
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 bg-light">
+                    <iframe id="reportFrame" src=""
+                        style="width: 100%; height: calc(100vh - 120px); border: none;" class="d-block">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
@@ -1332,58 +1413,74 @@
             });
         }
 
-        // Add extra medicine row
+        // ✅ UPDATED: Add extra medicine with dropdown + editable name
         function addExtraMedicine() {
             extraMedicineCounter++;
             const container = document.getElementById('extraMedicinesContainer');
             const extraIndex = extraMedicineCounter;
 
             const extraMedHtml = `
-            <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${extraIndex}">
-                <div class="card-body py-2 px-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 text-primary">
-                            <i class="ti ti-pill me-1"></i>Extra Medicine ${extraIndex}
-                        </h6>
-                        <button type="button" class="btn btn-sm btn-light text-danger" 
-                                onclick="removeExtraMedicine(${extraIndex})" title="Remove">
-                            <i class="ti ti-x"></i>
-                        </button>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label class="form-label small">Select Medicine <span class="text-danger">*</span></label>
-                            <select name="extra_medicines[${extraIndex}][medicine_id]" 
-                                    class="form-select form-select-sm extra-medicine-select" 
-                                    required onchange="autoFillExtraMedicine(this)">
-                                <option value="">-- Select medicine --</option>
-                                @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
-                                    <option value="{{ $med->id }}" 
-                                            data-dosage="{{ $med->dosage }}"
-                                            data-quantity="{{ $med->quantity }}"
-                                            data-route="{{ $med->route }}"
-                                            data-instructions="{{ $med->instructions }}">
-                                        {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Dosage</label>
-                            <input type="text" name="extra_medicines[${extraIndex}][dosage]" 
-                                   class="form-control form-control-sm extra-dosage" 
-                                   placeholder="e.g., 1-0-1" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Quantity</label>
-                            <input type="text" name="extra_medicines[${extraIndex}][quantity]" 
-                                   class="form-control form-control-sm extra-quantity" 
-                                   placeholder="e.g., 30 tabs" required>
-                        </div>
-                    </div>
+    <div class="extra-medicine-item card border-0 bg-light mb-2" id="extraMed_${extraIndex}">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 text-primary">
+                    <i class="ti ti-pill me-1"></i>Extra Medicine ${extraIndex}
+                </h6>
+                <button type="button" class="btn btn-sm btn-light text-danger" 
+                        onclick="removeExtraMedicine(${extraIndex})" title="Remove">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <div class="row g-2">
+                <!-- Medicine Dropdown -->
+                <div class="col-md-4">
+                    <label class="form-label small">Select Medicine</label>
+                    <select name="extra_medicines[${extraIndex}][medicine_id]" 
+                            class="form-select form-select-sm extra-medicine-select" 
+                            onchange="autoFillExtraMedicine(this)">
+                        <option value="">-- Select medicine --</option>
+                        @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
+                            <option value="{{ $med->id }}" 
+                                    data-name="{{ $med->name }}"
+                                    data-dosage="{{ $med->dosage }}"
+                                    data-quantity="{{ $med->quantity }}"
+                                    data-route="{{ $med->route }}"
+                                    data-instructions="{{ $med->instructions }}">
+                                {{ $med->name }} @if ($med->code)({{ $med->code }})@endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <!-- ✅ Editable Medicine Name Input -->
+                <div class="col-md-4">
+                    <label class="form-label small">Medicine Name <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           name="extra_medicines[${extraIndex}][custom_name]" 
+                           class="form-control form-control-sm extra-medicine-name" 
+                           placeholder="Medicine name (editable)" 
+                           required>
+                </div>
+                
+                <!-- Dosage -->
+                <div class="col-md-2">
+                    <label class="form-label small">Dosage</label>
+                    <input type="text" name="extra_medicines[${extraIndex}][dosage]" 
+                           class="form-control form-control-sm extra-dosage" 
+                           placeholder="e.g., 1-0-1" required>
+                </div>
+                
+                <!-- Quantity -->
+                <div class="col-md-2">
+                    <label class="form-label small">Quantity</label>
+                    <input type="text" name="extra_medicines[${extraIndex}][quantity]" 
+                           class="form-control form-control-sm extra-quantity" 
+                           placeholder="e.g., 30 tabs" required>
                 </div>
             </div>
-        `;
+        </div>
+    </div>
+    `;
 
             container.insertAdjacentHTML('beforeend', extraMedHtml);
             updateSubmitButton();
@@ -1398,7 +1495,7 @@
             }
         }
 
-        // Auto-fill medicine details when selected
+        // ✅ UPDATED: Auto-fill medicine details including name
         function autoFillExtraMedicine(select) {
             const selectedOption = select.options[select.selectedIndex];
             updateSubmitButton();
@@ -1406,14 +1503,29 @@
             if (!selectedOption.value) return;
 
             const row = select.closest('.extra-medicine-item');
-            const dosageField = row.querySelector('.extra-dosage');
-            const qtyField = row.querySelector('.extra-quantity');
 
+            // ✅ Auto-fill editable name field
+            const nameField = row.querySelector('.extra-medicine-name');
+            if (nameField && selectedOption.dataset.name) {
+                nameField.value = selectedOption.dataset.name;
+            }
+
+            // Auto-fill dosage
+            const dosageField = row.querySelector('.extra-dosage');
             if (dosageField && selectedOption.dataset.dosage) {
                 dosageField.value = selectedOption.dataset.dosage;
             }
+
+            // Auto-fill quantity
+            const qtyField = row.querySelector('.extra-quantity');
             if (qtyField && selectedOption.dataset.quantity) {
                 qtyField.value = selectedOption.dataset.quantity;
+            }
+
+            // Focus on name field so user can edit it immediately
+            if (nameField) {
+                nameField.focus();
+                nameField.select();
             }
         }
 
@@ -1459,9 +1571,16 @@
                 });
             }
 
-            // Listen for changes in extra medicine dropdowns
+            // ✅ Listen for changes in extra medicine dropdowns
             document.addEventListener('change', function(e) {
                 if (e.target.classList.contains('extra-medicine-select')) {
+                    updateSubmitButton();
+                }
+            });
+
+            // ✅ Listen for changes in extra medicine name fields
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('extra-medicine-name')) {
                     updateSubmitButton();
                 }
             });
@@ -1471,8 +1590,18 @@
             if (assignForm) {
                 assignForm.addEventListener('submit', function(e) {
                     const checked = document.querySelectorAll('.medicine-checkbox:checked').length;
-                    const extraFilled = document.querySelectorAll('.extra-medicine-select[value!=""]')
-                        .length;
+                    let extraFilled = 0;
+
+                    // Count extra medicines with either dropdown selected OR name filled
+                    document.querySelectorAll('.extra-medicine-item').forEach(item => {
+                        const select = item.querySelector('.extra-medicine-select');
+                        const nameField = item.querySelector('.extra-medicine-name');
+
+                        if ((select && select.value) || (nameField && nameField.value.trim())) {
+                            extraFilled++;
+                        }
+                    });
+
                     if (checked === 0 && extraFilled === 0) {
                         e.preventDefault();
                         Swal.fire('Warning', 'Please select at least one medicine', 'warning');
@@ -1523,41 +1652,47 @@
                 const route = med.route || '';
                 const dosage = med.dosage || '';
                 const quantity = med.quantity || '';
+                const displayName = med.custom_name || med.name || 'Unknown Medicine';
 
                 return `
-        <div class="card border-0 shadow-sm mb-2 medicine-card" data-id="${med.id}">
-            <div class="card-body py-2 px-3">
-                <div class="d-flex align-items-start gap-2">
-                    <input class="form-check-input medicine-checkbox mt-1" type="checkbox" 
-                           name="medicines[${i}][assign]" value="1"
-                           data-medicine-id="${med.id}"
-                           ${med.already_assigned ? 'checked' : ''}>
-                    <input type="hidden" name="medicines[${i}][medicine_id]" value="${med.id}">
-                    ${med.already_assigned && med.patient_medicine_id ? 
-                        `<input type="hidden" name="medicines[${i}][patient_medicine_id]" value="${med.patient_medicine_id}">` 
-                        : ''}
-                    
-                    <div class="flex-grow-1">
-                        <h6 class="mb-0 fw-semibold small">${med.name || 'Unknown Medicine'}</h6>
-                        ${med.code ? `<small class="text-muted">Code: ${med.code}</small>` : ''}
-                        ${med.already_assigned ? `<span class="badge badge-soft-success fs-10 ms-1">Assigned</span>` : ''}
+<div class="card border-0 shadow-sm mb-2 medicine-card" data-id="${med.id}">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-start gap-2">
+            <input class="form-check-input medicine-checkbox mt-1" type="checkbox" 
+                   name="medicines[${i}][assign]" value="1"
+                   data-medicine-id="${med.id}"
+                   ${med.already_assigned ? 'checked' : ''}>
+            <input type="hidden" name="medicines[${i}][medicine_id]" value="${med.id}">
+            ${med.already_assigned && med.patient_medicine_id ? 
+                `<input type="hidden" name="medicines[${i}][patient_medicine_id]" value="${med.patient_medicine_id}">` 
+                : ''}
+            
+            <div class="flex-grow-1">
+                <input type="text" 
+                       name="medicines[${i}][custom_name]" 
+                       class="form-control form-control-sm mb-1" 
+                       placeholder="Medicine name" 
+                       value="${displayName}"
+                       required>
+                ${med.code ? `<small class="text-muted">Code: ${med.code}</small>` : ''}
+                ${med.already_assigned ? `<span class="badge badge-soft-success fs-10 ms-1">Assigned</span>` : ''}
+            </div>
+            
+            <div class="medicine-fields" style="min-width: 200px;">
+                <div class="row g-1">
+                    <div class="col-6">
+                        <input type="text" name="medicines[${i}][dosage]" class="form-control form-control-sm" 
+                               placeholder="Dosage" value="${dosage}" ${med.already_assigned ? '' : 'disabled'}>
                     </div>
-                    
-                    <div class="medicine-fields" style="min-width: 200px;">
-                        <div class="row g-1">
-                            <div class="col-6">
-                                <input type="text" name="medicines[${i}][dosage]" class="form-control form-control-sm" 
-                                       placeholder="Dosage" value="${dosage}" ${med.already_assigned ? '' : 'disabled'}>
-                            </div>
-                            <div class="col-6">
-                                <input type="text" name="medicines[${i}][quantity]" class="form-control form-control-sm" 
-                                       placeholder="Qty" value="${quantity}" ${med.already_assigned ? '' : 'disabled'}>
-                            </div>
-                        </div>
+                    <div class="col-6">
+                        <input type="text" name="medicines[${i}][quantity]" class="form-control form-control-sm" 
+                               placeholder="Qty" value="${quantity}" ${med.already_assigned ? '' : 'disabled'}>
                     </div>
                 </div>
             </div>
-        </div>`;
+        </div>
+    </div>
+</div>`;
             }).join('');
 
             updateSelectAllState();
@@ -1576,13 +1711,19 @@
             });
         }
 
-        // Update submit button - count both group and extra medicines
+        // ✅ UPDATED: Count both dropdown and custom name fields
         function updateSubmitButton() {
             const groupChecked = document.querySelectorAll('.medicine-checkbox:checked').length;
 
             let extraFilled = 0;
-            document.querySelectorAll('.extra-medicine-select').forEach(select => {
-                if (select.value && select.value !== '') extraFilled++;
+            document.querySelectorAll('.extra-medicine-item').forEach(item => {
+                const select = item.querySelector('.extra-medicine-select');
+                const nameField = item.querySelector('.extra-medicine-name');
+
+                // Count if either dropdown selected OR custom name filled
+                if ((select && select.value) || (nameField && nameField.value.trim())) {
+                    extraFilled++;
+                }
             });
 
             const totalSelected = groupChecked + extraFilled;
@@ -1637,6 +1778,221 @@
 
             extraMedicineCounter = 0;
             updateSubmitButton();
+        }
+    </script>
+
+    <script>
+        // Load reports history on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📊 Patient ID:', {{ $patient->id }});
+            console.log(' History URL:', "{{ route('patients.reports.history', $patient->id) }}");
+            loadReportsHistory();
+        });
+
+        function generateReport() {
+            const date = document.getElementById('reportDate').value;
+
+            if (!date) {
+                Swal.fire('Error', 'Please select a date', 'error');
+                return;
+            }
+
+            console.log('🔄 Generating report for date:', date);
+
+            Swal.fire({
+                title: 'Generating Report...',
+                html: 'Please wait while we generate and save the report',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            fetch("{{ route('patients.reports.generate', $patient->id) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: date
+                    })
+                })
+                .then(response => {
+                    console.log('📥 Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📦 Response data:', data);
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        loadReportsHistory();
+                    } else {
+                        Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error:', error);
+                    Swal.fire('Error', 'Failed to generate report: ' + error.message, 'error');
+                });
+        }
+
+        function loadReportsHistory() {
+            const historyUrl = "{{ route('patients.reports.history', $patient->id) }}";
+            console.log('🔍 Fetching from:', historyUrl);
+
+            fetch(historyUrl)
+                .then(response => {
+                    console.log('📥 Response status:', response.status);
+                    console.log('📥 Response OK:', response.ok);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('📦 Received data:', data);
+                    console.log('📦 Reports count:', data.reports ? data.reports.length : 0);
+
+                    const container = document.getElementById('reportsHistoryContainer');
+
+                    if (!data.reports || data.reports.length === 0) {
+                        console.log('⚠️ No reports found');
+                        container.innerHTML = `
+                        <div class="card border-dashed">
+                            <div class="card-body text-center py-5">
+                                <i class="ti ti-history fs-1 text-muted opacity-50"></i>
+                                <h5 class="mt-3 text-muted">No Saved Reports</h5>
+                                <p class="text-muted mb-0">Generate a report to see it here.</p>
+                            </div>
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    console.log('✅ Rendering', data.reports.length, 'reports');
+
+                    let html = '<div class="card"><div class="card-body p-0"><div class="list-group list-group-flush">';
+
+                    data.reports.forEach((report, index) => {
+                        console.log('📄 Report', index + 1, ':', report);
+                        html += `
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold text-primary me-3" style="min-width: 30px;">
+                                        ${index + 1}.
+                                    </span>
+                                    <div>
+                                        <div class="fw-medium">
+                                            <i class="ti ti-file-certificate me-1 text-info"></i>
+                                            Report for ${report.date}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-primary" 
+                                            onclick="previewReport('${report.preview_url}')">
+                                        <i class="ti ti-eye"></i> Preview
+                                    </button>
+                                    <a href="${report.download_url}" class="btn btn-sm btn-success" target="_blank">
+                                        <i class="ti ti-download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    });
+
+                    html += '</div></div></div>';
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('❌ Fetch error:', error);
+                    document.getElementById('reportsHistoryContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error loading reports!</strong><br>
+                        <small>${error.message}</small><br>
+                        <small class="text-muted">Check console for details</small>
+                    </div>
+                `;
+                });
+        }
+
+        function previewReport(url) {
+            console.log('👁️ Preview URL:', url);
+            document.getElementById('reportFrame').src = url;
+            const modal = new bootstrap.Modal(document.getElementById('reportPreviewModal'));
+            modal.show();
+        }
+
+        // ✅ Delete Patient Report with SweetAlert
+        function confirmDeletePatientReport(patientId, reportIndex, fileName) {
+            Swal.fire({
+                title: 'Delete Report?',
+                html: `Are you sure you want to delete <strong>${fileName}</strong>?`,
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="ti ti-trash me-1"></i> Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Deleting...',
+                        html: 'Please wait',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const form = document.getElementById('deleteReportForm');
+                    form.action = `/reports/${patientId}/${reportIndex}`;
+                    form.submit();
+                }
+            });
+        }
+
+        // ✅ Delete Appointment Report with SweetAlert
+        function confirmDeleteAppointmentReport(appointmentDate, reportIndex, fileName) {
+            Swal.fire({
+                title: 'Delete Appointment Report?',
+                html: `Are you sure you want to delete <strong>${fileName}</strong>?`,
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="ti ti-trash me-1"></i> Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Deleting...',
+                        html: 'Please wait',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    const form = document.getElementById('deleteAppointmentReportForm');
+                    form.action = `/appointments/reports/${appointmentDate}/${reportIndex}`;
+                    form.submit();
+                }
+            });
         }
     </script>
 @endpush

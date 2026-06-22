@@ -14,22 +14,26 @@ class AppointmentController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        // ALL appointments - no pagination
-        $appointments = Appointment::with('patient')->latest()->get();
-        return view('pages.appointments.appointments', compact('appointments'));
-    }
+{
 
-    public function todayAppointments()
-    {
-        $appointments = Appointment::with('patient')
-            ->whereDate('appointment_date', Carbon::today())
-            ->orderBy('appointment_time', 'asc')
-            ->get();
+    $appointments = Appointment::with('patient')
+        ->whereHas('patient') 
+        ->latest()
+        ->get();
+        
+    return view('pages.appointments.appointments', compact('appointments'));
+}
 
-        return view('pages.appointments.appointments', compact('appointments'));
-    }
+public function todayAppointments()
+{
+    $appointments = Appointment::with('patient')
+        ->whereHas('patient')  
+        ->whereDate('appointment_date', Carbon::today())
+        ->orderBy('appointment_time', 'asc')
+        ->get();
 
+    return view('pages.appointments.appointments', compact('appointments'));
+}
     /**
      * Show the form for creating a new resource.
      */
@@ -47,13 +51,27 @@ class AppointmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(AppointmentRequest $request)
-    {
-        Appointment::create($request->validated());
+   public function store(AppointmentRequest $request)
+{
+    $data = $request->validated();
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment created successfully!');
+    // Handle file uploads
+    if ($request->hasFile('reports')) {
+        $reportPaths = [];
+        foreach ($request->file('reports') as $file) {
+            $path = $file->store('appointments/reports', 'public');
+            $reportPaths[] = $path;
+        }
+        $data['reports'] = $reportPaths;
+    } else {
+        $data['reports'] = [];
     }
+
+    Appointment::create($data);
+
+    return redirect()->route('appointments.index')
+        ->with('success', 'Appointment created successfully!');
+}
 
     /**
      * Display the specified resource.
@@ -77,13 +95,43 @@ class AppointmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(AppointmentRequest $request, Appointment $appointment)
-    {
-        $appointment->update($request->validated());
+   public function update(AppointmentRequest $request, Appointment $appointment)
+{
+    $data = $request->validated();
 
-        return redirect()->route('appointments.index')
-            ->with('success', 'Appointment updated successfully!');
+    // ✅ Handle new file uploads
+    if ($request->hasFile('reports')) {
+        $reportPaths = $appointment->reports ?? []; // Keep existing reports
+        
+        foreach ($request->file('reports') as $file) {
+            $path = $file->store('appointments/reports', 'public');
+            $reportPaths[] = $path;
+        }
+        $data['reports'] = $reportPaths;
     }
+
+    $appointment->update($data);
+
+    return redirect()->route('appointments.index')
+        ->with('success', 'Appointment updated successfully!');
+}
+
+// ✅ Add this method for deleting individual reports
+public function deleteReport(Appointment $appointment, $index)
+{
+    $reports = $appointment->reports ?? [];
+
+    if (isset($reports[$index])) {
+        // Delete file from storage
+        Storage::disk('public')->delete($reports[$index]);
+        
+        // Remove from array and re-index
+        unset($reports[$index]);
+        $appointment->update(['reports' => array_values($reports)]);
+    }
+
+    return redirect()->back()->with('success', 'Report deleted successfully.');
+}
 
     /**
      * Remove the specified resource from storage.

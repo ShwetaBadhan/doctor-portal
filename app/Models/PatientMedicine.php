@@ -13,6 +13,7 @@ class PatientMedicine extends Model
     'patient_id',
     'medicine_group_id', 
     'medicine_id',
+    'custom_name',
     'dosage',
     'quantity',
     'instructions',

@@ -215,3 +215,20 @@ Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::
 Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])
     ->name('invoices.download')
     ->middleware('auth');
+Route::post('/patients/{patient}/reports/generate', [PatientController::class, 'generateAndSaveReport'])
+    ->name('patients.reports.generate');
+
+Route::get('/patients/{patient}/reports/history', [PatientController::class, 'getReportHistory'])
+    ->name('patients.reports.history');
+
+Route::get('/diagnosis-report/preview/{patient}', [PatientController::class, 'previewDiagnosisReport'])
+    ->name('diagnosis-report.preview');
+
+Route::get('/diagnosis-report/download/{patient}', [PatientController::class, 'downloadDiagnosisReport'])
+    ->name('diagnosis-report.download');
+Route::delete('/reports/{patient}/{index}', [PatientController::class, 'deleteReport'])
+    ->name('reports.delete');
+Route::delete('/appointments/{appointment}/reports/{index}', [AppointmentController::class, 'deleteReport'])
+    ->name('appointments.reports.delete');
+    Route::delete('/appointments/reports/{date}/{index}', [AppointmentController::class, 'deleteReport'])
+    ->name('appointments.reports.delete');
