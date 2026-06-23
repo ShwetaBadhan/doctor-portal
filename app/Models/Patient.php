@@ -56,40 +56,26 @@ class Patient extends Model
      * ✅ NEW: Generate unique patient ID with all initials + country code + serial number
      * Example: Shweta Badhan, Care of: Ramesh, Jalandhar, Punjab, India → SBRJPIN4501
      */
-    public static function generatePatientId($firstName, $lastName, $careOfName, $city, $state, $countryIso = 'IN')
-    {
-        $first = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $firstName), 0, 1));
-        $last = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $lastName), 0, 1));
-        $careOf = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $careOfName), 0, 1));
-        $cityLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $city), 0, 1));
-        $stateLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $state), 0, 1));
-        $countryCode = strtoupper(substr($countryIso, 0, 2));
+  public static function generatePatientId($firstName, $lastName, $careOfName, $city, $state, $countryIso = 'IN')
+{
+    $first = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $firstName), 0, 1)) ?: 'X';
+    $last  = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $lastName), 0, 1)) ?: 'X';
+    $careOf = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $careOfName), 0, 1)) ?: 'X';
+    $cityLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $city), 0, 1)) ?: 'X';
+    $stateLetter = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $state), 0, 1)) ?: 'X';
+    $countryCode = strtoupper(substr($countryIso, 0, 2)) ?: 'XX';
 
-        $first = $first ?: 'X';
-        $last = $last ?: 'X';
-        $careOf = $careOf ?: 'X';
-        $cityLetter = $cityLetter ?: 'X';
-        $stateLetter = $stateLetter ?: 'X';
-        $countryCode = $countryCode ?: 'XX';
+    // ✅ sscanf - no regex for number extraction
+    $maxNumber = self::whereNotNull('patient_id')
+        ->get()
+        ->map(function ($p) {
+            $result = sscanf($p->patient_id, "%[A-Za-z]%d", $letters, $number);
+            return $result === 2 ? (int) $number : 0;
+        })
+        ->max() ?: 4499;
 
-        // ✅ Max serial number nikalo
-        $maxNumber = self::whereNotNull('patient_id')
-            ->get()
-            ->map(function ($p) {
-                if (preg_match('/(\d{4})$/', $p->patient_id, $matches)) {
-                    $num = (int) $matches[1];
-                    return ($num >= 4500) ? $num : 0;
-                }
-                return 0;
-            })
-            ->max() ?: 4500;
-
-        $nextNumber = $maxNumber + 1;
-
-        $patientId = $first . $last . $careOf . $cityLetter . $stateLetter . $countryCode . $nextNumber;
-
-        return $patientId;
-    }
+    return $first . $last . $careOf . $cityLetter . $stateLetter . $countryCode . ($maxNumber + 1);
+}
     public static function calculateAge($dob)
     {
         return \Carbon\Carbon::parse($dob)->age;
