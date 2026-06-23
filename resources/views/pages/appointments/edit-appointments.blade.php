@@ -424,6 +424,136 @@
 @endsection
 @push('scripts')
     <script>
+     // ✅ 413 Error Handler - SweetAlert mein dikhao
+    const form = document.querySelector('form[method="POST"]');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const files = document.querySelector('input[type="file"][name="reports[]"]');
+            
+            // Check file sizes before submit
+            if (files && files.files.length > 0) {
+                let totalSize = 0;
+                let oversizedFiles = [];
+                
+                Array.from(files.files).forEach(file => {
+                    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    totalSize += file.size;
+                    
+                    if (file.size > 5 * 1024 * 1024) { // 5MB se bada
+                        oversizedFiles.push({
+                            name: file.name,
+                            size: fileSizeMB
+                        });
+                    }
+                });
+                
+                const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
+                
+                // ✅ Check for oversized files
+                if (oversizedFiles.length > 0) {
+                    e.preventDefault();
+                    let fileList = oversizedFiles.map(f => `<li>${f.name} (${f.size} MB)</li>`).join('');
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Size Exceeded!',
+                        html: `
+                            <p class="mb-2">Some files are larger than 5MB:</p>
+                            <ul class="text-start mb-3">${fileList}</ul>
+                            <p class="text-danger mb-0"><i class="ti ti-alert-circle me-1"></i>Maximum allowed: 5MB per file</p>
+                        `,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return false;
+                }
+                
+                // ✅ Warn if total size is too large (>15MB)
+                if (totalMB > 15) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Large Upload Warning',
+                        html: `
+                            <p>Total upload size: <strong class="text-danger">${totalMB} MB</strong></p>
+                            <p class="text-muted small mb-0">This may take longer to upload or fail if server limit is exceeded.</p>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Continue Anyway',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#6c757d'
+                    }).then((result) => {
+                        if (!result.isConfirmed) {
+                            e.preventDefault();
+                        }
+                    });
+                }
+            }
+        });
+    }
+    
+    // ✅ Catch 413 Error from AJAX or Form Submit
+    window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('413')) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Upload Failed!',
+                html: `
+                    <h5 class="text-danger mb-2">413 Request Entity Too Large</h5>
+                    <p class="mb-2">The file(s) you're trying to upload are too large.</p>
+                    <ul class="text-start mb-3">
+                        <li>Maximum file size: <strong>5MB per file</strong></li>
+                        <li>Allowed formats: PDF, JPG, PNG, DOC</li>
+                    </ul>
+                    <p class="text-muted small mb-0">Please compress your files or contact support.</p>
+                `,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    }, true);
+    
+    // ✅ Show file sizes in real-time
+    const fileInput = document.querySelector('input[type="file"][name="reports[]"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                let totalSize = 0;
+                let fileList = '<ul class="list-unstyled mb-0">';
+                
+                Array.from(this.files).forEach(file => {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    totalSize += file.size;
+                    
+                    const statusIcon = file.size > 5 * 1024 * 1024 
+                        ? '<i class="ti ti-x text-danger ms-1"></i>' 
+                        : '<i class="ti ti-check text-success ms-1"></i>';
+                    
+                    fileList += `
+                        <li class="small mb-1">
+                            ${file.name} 
+                            <span class="text-muted">(${sizeMB} MB)</span>
+                            ${statusIcon}
+                        </li>
+                    `;
+                });
+                
+                fileList += '</ul>';
+                fileList += `<hr class="my-2"><strong>Total: ${(totalSize / (1024 * 1024)).toFixed(2)} MB</strong>`;
+                
+                // Show preview or alert
+                Swal.fire({
+                    title: 'Selected Files',
+                    html: fileList,
+                    icon: totalSize > 15 * 1024 * 1024 ? 'warning' : 'info',
+                    confirmButtonText: 'OK',
+                    showConfirmButton: true
+                });
+            }
+        });
+    }
         function confirmDeleteReport(appointmentId, reportIndex, fileName) {
             Swal.fire({
                 title: 'Delete Report?',
