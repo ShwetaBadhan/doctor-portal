@@ -380,11 +380,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- ✅ Hidden Form for Delete Report --}}
-                                    <form id="deleteReportForm" method="POST" style="display: none;">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
+                                 
                                     <!-- Status -->
                                     <div class="mb-0">
                                         <label class="form-label mb-1 fw-medium">Status<span
@@ -413,7 +409,11 @@
                             <button type="submit" class="btn btn-primary">Update Appointment</button>
                         </div>
                     </form>
-
+   {{-- ✅ Hidden Form for Delete Report --}}
+                                    <form id="deleteReportForm" method="POST" style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
                 </div>
             </div>
         </div>
