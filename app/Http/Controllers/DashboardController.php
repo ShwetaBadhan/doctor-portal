@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         // 1. Handle Period Filter
         $period = $request->get('period', 'monthly');
-        $dateRange = match($period) {
+        $dateRange = match ($period) {
             'weekly' => [now()->startOfWeek(), now()->endOfWeek()],
             'yearly' => [now()->startOfYear(), now()->endOfYear()],
             default  => [now()->startOfMonth(), now()->endOfMonth()],
@@ -60,7 +60,7 @@ class DashboardController extends Controller
         // 3. GRAPH SECTION DATA (Filtered by Period)
         // ==========================================
         $baseQuery = Appointment::whereBetween('appointment_date', $dateRange);
-        
+
         $allAppointments       = $baseQuery->count();
         $cancelledAppointments = (clone $baseQuery)->where('status', 'cancelled')->count();
         $pendingAppointments   = (clone $baseQuery)->whereIn('status', ['schedule', 'confirmed'])->count();
@@ -70,12 +70,12 @@ class DashboardController extends Controller
         $chartLabels = [];
         $chartData   = [];
         $days = $period === 'weekly' ? 7 : ($period === 'yearly' ? 12 : date('t'));
-        
+
         for ($i = 0; $i < $days; $i++) {
-            $date = $period === 'yearly' 
-                ? Carbon::now()->subMonths($days - $i - 1)->format('M') 
+            $date = $period === 'yearly'
+                ? Carbon::now()->subMonths($days - $i - 1)->format('M')
                 : Carbon::now()->subDays($days - $i - 1)->format('d M');
-            
+
             $chartLabels[] = $date;
             $chartData[]   = Appointment::whereDate('appointment_date', Carbon::now()->subDays($days - $i - 1))->count();
         }
@@ -83,26 +83,36 @@ class DashboardController extends Controller
         // ==========================================
         // 4. RECENT APPOINTMENTS (Fixing the Error)
         // ==========================================
-        $recentAppointments = Appointment::with('patient')
+        $recentAppointments = Appointment::with(['patient'])
+            ->whereHas('patient')
             ->where('appointment_date', '>=', now()->toDateString())
-            ->orderBy('appointment_date', 'asc')
-            ->limit(5)
+            ->orderBy('appointment_date')
+            ->orderBy('appointment_time')
+            ->take(5)
             ->get();
 
-            $recentShipments = \App\Models\Shipment::latest()->take(5)->get();
+        $recentShipments = \App\Models\Shipment::latest()->take(5)->get();
         // ==========================================
         // 5. RETURN TO VIEW (Passing ALL variables)
         // ==========================================
         return view('pages.dashboard', compact(
             'period',
-            'chartLabels', 'chartData',
-            'allAppointments', 'cancelledAppointments', 'pendingAppointments', 'completedAppointments',
+            'chartLabels',
+            'chartData',
+            'allAppointments',
+            'cancelledAppointments',
+            'pendingAppointments',
+            'completedAppointments',
             'recentAppointments', // <--- This was missing!
-            'shipmentsTotal', 'shipmentsChange',
-            'patientsTotal', 'patientsChange',
-            'appointmentsTotal', 'appointmentsChange',
-            'revenueTotal', 'revenueChange',
-             'recentShipments' // ✅ Added this
+            'shipmentsTotal',
+            'shipmentsChange',
+            'patientsTotal',
+            'patientsChange',
+            'appointmentsTotal',
+            'appointmentsChange',
+            'revenueTotal',
+            'revenueChange',
+            'recentShipments' // ✅ Added this
         ));
     }
 

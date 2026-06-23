@@ -7,33 +7,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 
-class Appointment extends Model {
+class Appointment extends Model
+{
     use HasFactory, SoftDeletes;
 
-   protected $fillable = [
-    'appointment_id',
-    'patient_id',
-    'appointment_type',
-    'appointment_date',
-    'appointment_time',
-    'reason',
-    'status',
-    
-    // ✅ Vitals Fields
-    'vat',
-    'pit',
-    'kuff',
-    'bp',
-    'temp',
-    'pulse',
-    'weight',
-    'tongue',
-    'nails',
-    'cerebral_fluid',
-    'delusion', 
-    'vital_notes',
-     'reports', // ✅ Add this
-];
+    protected $fillable = [
+        'appointment_id',
+        'patient_id',
+        'appointment_type',
+        'appointment_date',
+        'appointment_time',
+        'reason',
+        'status',
+
+        // ✅ Vitals Fields
+        'vat',
+        'pit',
+        'kuff',
+        'bp',
+        'temp',
+        'pulse',
+        'weight',
+        'tongue',
+        'nails',
+        'cerebral_fluid',
+        'delusion',
+        'vital_notes',
+        'reports', // ✅ Add this
+    ];
 
     protected $casts = [
         'appointment_date' => 'date',
@@ -41,12 +42,14 @@ class Appointment extends Model {
         'reports' => 'array',
     ];
 
-    public function patient() {
+    public function patient()
+    {
         return $this->belongsTo(Patient::class);
     }
 
     // Auto-generate Appointment ID
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         static::creating(function ($model) {
             $count = self::withTrashed()->count() + 1;
