@@ -118,42 +118,42 @@ class PatientController extends Controller
      * Display the specified resource.
      */
     public function show(Patient $patient)
-{
-    // Load patient with relationships
-    $patient->load(['patientMedicines.medicine', 'appointments']);
+    {
+        // Load patient with relationships
+        $patient->load(['patientMedicines.medicine', 'appointments']);
 
-    // ✅ Get latest appointment with vitals (for display)
-    $latestAppointment = $patient->appointments()
-        ->where(function ($q) {
-            $q->whereNotNull('bp')
-                ->orWhereNotNull('temp')
-                ->orWhereNotNull('pulse')
-                ->orWhereNotNull('weight');
-        })
-        ->orderBy('appointment_date', 'desc')
-        ->orderBy('appointment_time', 'desc')
-        ->first();
+        // ✅ Get latest appointment with vitals (for display)
+        $latestAppointment = $patient->appointments()
+            ->where(function ($q) {
+                $q->whereNotNull('bp')
+                    ->orWhereNotNull('temp')
+                    ->orWhereNotNull('pulse')
+                    ->orWhereNotNull('weight');
+            })
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('appointment_time', 'desc')
+            ->first();
 
-    // ✅ Get all appointments with reports
-    $appointmentsWithReports = $patient->appointments()
-        ->whereNotNull('reports')
-        ->where('reports', '!=', '[]')
-        ->orderBy('appointment_date', 'desc')
-        ->get();
+        // ✅ Get all appointments with reports
+        $appointmentsWithReports = $patient->appointments()
+            ->whereNotNull('reports')
+            ->where('reports', '!=', '[]')
+            ->orderBy('appointment_date', 'desc')
+            ->get();
 
-    // Load medicine groups for the modal
-    $medicineGroups = MedicineGroup::where('is_active', true)
-        ->withCount('medicines')
-        ->orderBy('name')
-        ->get();
+        // Load medicine groups for the modal
+        $medicineGroups = MedicineGroup::where('is_active', true)
+            ->withCount('medicines')
+            ->orderBy('name')
+            ->get();
 
-    return view('pages.patients.patient-details', compact(
-        'patient', 
-        'medicineGroups', 
-        'latestAppointment',
-        'appointmentsWithReports'  // ✅ Pass this to view
-    ));
-}
+        return view('pages.patients.patient-details', compact(
+            'patient',
+            'medicineGroups',
+            'latestAppointment',
+            'appointmentsWithReports'  // ✅ Pass this to view
+        ));
+    }
     /**
      * Show the form for editing the specified resource.
      */
@@ -390,42 +390,41 @@ class PatientController extends Controller
     }
 
     // For deleting a report
-   /**
- * Delete report from appointment
- */
-public function deleteReport(Request $request, $appointmentDate, $reportIndex)
-{
-    try {
-        // Find appointment by date (since we don't have appointment ID in the combined list)
-        $appointment = Appointment::whereDate('appointment_date', $appointmentDate)
-            ->whereNotNull('reports')
-            ->first();
+    /**
+     * Delete report from appointment
+     */
+    public function deleteReport(Request $request, $appointmentDate, $reportIndex)
+    {
+        try {
+            // Find appointment by date (since we don't have appointment ID in the combined list)
+            $appointment = Appointment::whereDate('appointment_date', $appointmentDate)
+                ->whereNotNull('reports')
+                ->first();
 
-        if (!$appointment) {
-            return redirect()->back()->with('error', 'Appointment not found');
+            if (!$appointment) {
+                return redirect()->back()->with('error', 'Appointment not found');
+            }
+
+            $reports = $appointment->reports ?? [];
+
+            if (!isset($reports[$reportIndex])) {
+                return redirect()->back()->with('error', 'Report not found');
+            }
+
+            // Delete file from storage
+            if (Storage::disk('public')->exists($reports[$reportIndex])) {
+                Storage::disk('public')->delete($reports[$reportIndex]);
+            }
+
+            // Remove from array and re-index
+            unset($reports[$reportIndex]);
+            $appointment->update(['reports' => array_values($reports)]);
+
+            return redirect()->back()->with('success', 'Report deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete report: ' . $e->getMessage());
         }
-
-        $reports = $appointment->reports ?? [];
-
-        if (!isset($reports[$reportIndex])) {
-            return redirect()->back()->with('error', 'Report not found');
-        }
-
-        // Delete file from storage
-        if (Storage::disk('public')->exists($reports[$reportIndex])) {
-            Storage::disk('public')->delete($reports[$reportIndex]);
-        }
-
-        // Remove from array and re-index
-        unset($reports[$reportIndex]);
-        $appointment->update(['reports' => array_values($reports)]);
-
-        return redirect()->back()->with('success', 'Report deleted successfully');
-
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'Failed to delete report: ' . $e->getMessage());
     }
-}
     public function assignMedicineGroup(Request $request, Patient $patient)
     {
         $validated = $request->validate([
@@ -750,24 +749,18 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
     {
         $validated = $request->validate([
             'medicine_group_id' => 'required|exists:medicine_groups,id',
-
-            // Group medicines
             'medicines' => 'nullable|array',
             'medicines.*.assign' => 'nullable|in:1',
             'medicines.*.medicine_id' => 'nullable|exists:medicines,id',
-            'medicines.*.custom_name' => 'nullable|string|max:255',  // ✅ Added
+            'medicines.*.custom_name' => 'nullable|string|max:255',
             'medicines.*.dosage' => 'nullable|string|max:50',
             'medicines.*.quantity' => 'nullable|string|max:50',
             'medicines.*.patient_medicine_id' => 'nullable|exists:patient_medicines,id',
-
-            // Extra medicines (outside group)
             'extra_medicines' => 'nullable|array',
             'extra_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
-            'extra_medicines.*.custom_name' => 'nullable|string|max:255',  // ✅ Added
+            'extra_medicines.*.custom_name' => 'nullable|string|max:255',
             'extra_medicines.*.dosage' => 'nullable|string|max:50',
             'extra_medicines.*.quantity' => 'nullable|string|max:50',
-
-            // Common fields
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
@@ -780,20 +773,18 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
         $group = MedicineGroup::with('medicines')->findOrFail($validated['medicine_group_id']);
 
         if (!empty($validated['medicines'])) {
-            foreach ($validated['medicines'] as $item) {
+            foreach ($validated['medicines'] as $index => $item) {
                 if (empty($item['assign'])) continue;
 
                 $medicineId = $item['medicine_id'] ?? null;
-                $customName = $item['custom_name'] ?? null;  // ✅ Get custom name
-
-                // Get medicine details if medicine_id exists
+                $customName = $item['custom_name'] ?? null;
                 $medicine = $medicineId ? Medicine::find($medicineId) : null;
 
                 $data = [
                     'patient_id' => $patient->id,
                     'medicine_group_id' => $group->id,
                     'medicine_id' => $medicineId,
-                    'custom_name' => $customName,  // ✅ Save custom name
+                    'custom_name' => $customName,
                     'dosage' => $item['dosage'] ?? ($medicine ? $medicine->dosage : null),
                     'quantity' => $item['quantity'] ?? ($medicine ? $medicine->quantity : null),
                     'route' => $medicine ? $medicine->route : null,
@@ -801,15 +792,20 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
                     'start_date' => $validated['start_date'] ?? null,
                     'end_date' => $validated['end_date'] ?? null,
                     'notes' => $validated['notes'] ?? null,
+                    // ✅ sort_order HATA DIYA - Update mein change nahi hoga
                     'is_active' => true,
                 ];
 
                 if (!empty($item['patient_medicine_id'])) {
+                    // ✅ UPDATING EXISTING - sort_order touch nahi karenge
                     PatientMedicine::where('id', $item['patient_medicine_id'])
                         ->where('patient_id', $patient->id)
                         ->update($data);
                     $updatedCount++;
                 } else {
+                    // ✅ NEW MEDICINE - sort_order set karo
+                    $data['sort_order'] = $index + 1;
+
                     $exists = PatientMedicine::where('patient_id', $patient->id)
                         ->where(function ($q) use ($medicineId, $customName) {
                             if ($medicineId) {
@@ -829,13 +825,12 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
             }
         }
 
-        // ===== EXTRA MEDICINES (Outside Group) =====
+        // ===== EXTRA MEDICINES =====
         if (!empty($validated['extra_medicines'])) {
-            foreach ($validated['extra_medicines'] as $extraMed) {
+            foreach ($validated['extra_medicines'] as $index => $extraMed) {
                 $medicineId = $extraMed['medicine_id'] ?? null;
-                $customName = $extraMed['custom_name'] ?? null;  // ✅ Get custom name
+                $customName = $extraMed['custom_name'] ?? null;
 
-                // Skip if both are empty
                 if (empty($medicineId) && empty($customName)) continue;
 
                 $medicine = $medicineId ? Medicine::find($medicineId) : null;
@@ -844,7 +839,7 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
                     'patient_id' => $patient->id,
                     'medicine_group_id' => null,
                     'medicine_id' => $medicineId,
-                    'custom_name' => $customName,  // ✅ Save custom name
+                    'custom_name' => $customName,
                     'dosage' => $extraMed['dosage'] ?? ($medicine ? $medicine->dosage : null),
                     'quantity' => $extraMed['quantity'] ?? ($medicine ? $medicine->quantity : null),
                     'route' => $medicine ? $medicine->route : null,
@@ -853,6 +848,7 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
                     'end_date' => $validated['end_date'] ?? null,
                     'notes' => $validated['notes'] ?? null,
                     'is_active' => true,
+                    // ✅ sort_order sirf new medicines ke liye
                 ];
 
                 $exists = PatientMedicine::where('patient_id', $patient->id)
@@ -867,9 +863,14 @@ public function deleteReport(Request $request, $appointmentDate, $reportIndex)
                     ->first();
 
                 if ($exists) {
+                    // ✅ UPDATING - sort_order change nahi karenge
                     $exists->update($data);
                     $updatedCount++;
                 } else {
+                    // ✅ NEW - sort_order set karo
+                    $data['sort_order'] = PatientMedicine::where('patient_id', $patient->id)
+                        ->max('sort_order') + 1;
+
                     PatientMedicine::create($data);
                     $assignedCount++;
                 }
