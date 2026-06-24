@@ -13,6 +13,7 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WhatsAppController;
 
 // ============ ROOT ROUTE ============
 // Option A: Redirect root to login (Recommended)
@@ -232,3 +233,31 @@ Route::delete('/appointments/{appointment}/reports/{index}', [AppointmentControl
     ->name('appointments.reports.delete');
     Route::delete('/appointments/reports/{date}/{index}', [AppointmentController::class, 'deleteReport'])
     ->name('appointments.reports.delete');
+
+    // Send Welcome Letter to a specific patient
+Route::get('/send-welcome/{id}', [WhatsAppController::class, 'sendWelcomeLetter']);
+
+// Test route to manually trigger medicine reminders
+Route::get('/test-reminders', [WhatsAppController::class, 'sendExpiryReminders']);
+Route::get('/test-myop', function() {
+    // Check .env file exists
+    $envPath = base_path('.env');
+    $envExists = file_exists($envPath);
+    
+    // Read .env file directly
+    $envContent = '';
+    if ($envExists) {
+        $envContent = file_get_contents($envPath);
+    }
+    
+    // Check if config is cached
+    $configCached = file_exists(base_path('bootstrap/cache/config.php'));
+    
+    return response()->json([
+        'ENV_File_Exists' => $envExists ? 'YES' : 'NO',
+        'ENV_File_Path' => $envPath,
+        'Config_Cached' => $configCached ? 'YES (This is the problem!)' : 'NO',
+        'ENV_Content_First_500_Chars' => substr($envContent, 0, 500),
+        'env()_test' => env('MYOPERATOR_API_KEY'),
+    ]);
+});
