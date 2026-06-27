@@ -17,36 +17,40 @@
             margin: 0;
         }
 
-html,
-body {
-    width: 210mm;
-    min-height: 297mm; /* fixed height hata do */
-    margin: 0;
-    padding: 0;
-    font-family: DejaVu Sans, sans-serif;
-    font-size: 12px;
-    color: #000;
-    overflow-x: hidden;
-    overflow-y: auto; /* scroll enable */
-    background: transparent;
-}
+        html,
+        body {
+            width: 210mm;
+            min-height: 297mm;
+            /* fixed height hata do */
+            margin: 0;
+            padding: 0;
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 12px;
+            color: #000;
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* scroll enable */
+            background: transparent;
+        }
 
-body {
-    position: relative;
-}
+        body {
+            position: relative;
+        }
 
         /* =========================
-           LETTERHEAD BACKGROUND
-        ========================== */
+   LETTERHEAD BACKGROUND
+========================= */
+        .letterhead-bg {
+            position: absolute;
+            /* ✅ Changed from fixed to absolute */
+            top: 0;
+            left: 0;
+            width: 210mm;
+            min-height: 100%;
+            /* ✅ Changed from fixed height to min-height */
+            z-index: -1;
 
-      .letterhead-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 210mm;
-    height: 297mm;
-    z-index: -1;
-}
+        }
 
         .letterhead-bg img {
             width: 100%;
@@ -242,76 +246,78 @@ body {
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
+                position: relative;
             }
 
             .preview-toolbar {
                 display: none !important;
             }
         }
+
         /* =========================
    DIAGNOSIS TABLE STYLE
 ========================= */
 
-.diagnosis-layout {
-    padding: 0;
-    background: transparent;
-}
+        .diagnosis-layout {
+            padding: 0;
+            background: transparent;
+        }
 
-.diagnosis-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    background: rgba(255,255,255,0.96);
-}
+        .diagnosis-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            background: rgba(255, 255, 255, 0.96);
+        }
 
-.diagnosis-table td {
-    border: 1px solid #000;
-    vertical-align: top;
-    padding: 8px;
-}
+        .diagnosis-table td {
+            border: 1px solid #000;
+            vertical-align: top;
+            padding: 8px;
+        }
 
-.symptom-col {
-    width: 28%;
-}
+        .symptom-col {
+            width: 28%;
+        }
 
-.medicine-col {
-    width: 44%;
-}
+        .medicine-col {
+            width: 44%;
+        }
 
-.table-heading {
-    font-size: 11px;
-    font-weight: bold;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #000;
-    text-transform: uppercase;
-}
+        .table-heading {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #000;
+            text-transform: uppercase;
+        }
 
-.symptom-list {
-    margin: 0;
-    padding-left: 14px;
-}
+        .symptom-list {
+            margin: 0;
+            padding-left: 14px;
+        }
 
-.symptom-list li {
-    font-size: 11px;
-    margin-bottom: 4px;
-    line-height: 1.3;
-}
+        .symptom-list li {
+            font-size: 11px;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
 
-.medicine-list-new {
-    margin: 0;
-    padding-left: 16px;
-}
+        .medicine-list-new {
+            margin: 0;
+            padding-left: 16px;
+        }
 
-.medicine-list-new li {
-    font-size: 11px;
-    margin-bottom: 5px;
-    line-height: 1.4;
-}
+        .medicine-list-new li {
+            font-size: 11px;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
 
-.medicine-list-new strong {
-    font-weight: bold;
-}
+        .medicine-list-new strong {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -427,71 +433,71 @@ body {
 
         </div>
 
-      {{-- SYMPTOMS + MEDICINE LAYOUT --}}
-<div class="section diagnosis-layout">
+        {{-- SYMPTOMS + MEDICINE LAYOUT --}}
+        <div class="section diagnosis-layout">
 
-    <table class="diagnosis-table">
+            <table class="diagnosis-table">
 
-        <tr>
-            {{-- EXISTING SYMPTOMS --}}
-            <td class="symptom-col">
+                <tr>
+                    {{-- EXISTING SYMPTOMS --}}
+                    <td class="symptom-col">
 
-                <div class="table-heading">
-                    Existing Symptoms
-                </div>
+                        <div class="table-heading">
+                            Existing Symptoms
+                        </div>
 
-                <ul class="symptom-list">
-                    @foreach ($existingSymptoms ?? [] as $sym)
-                        <li>{{ $sym }}</li>
-                    @endforeach
-                </ul>
+                        <ul class="symptom-list">
+                            @foreach ($existingSymptoms ?? [] as $sym)
+                                <li>{{ $sym }}</li>
+                            @endforeach
+                        </ul>
 
-            </td>
+                    </td>
 
-          
 
-            {{-- MEDICINES --}}
-            <td class="medicine-col">
 
-                <div class="table-heading">
-                    Medicine
-                </div>
+                    {{-- MEDICINES --}}
+                    <td class="medicine-col">
 
-                <ol class="medicine-list-new">
+                        <div class="table-heading">
+                            Medicine
+                        </div>
 
-                  @foreach ($medicines as $index => $med)
-    <li>
-        <strong>
-            {{-- ✅ Show custom_name if exists, otherwise show original medicine name --}}
-            {{ $med['custom_name'] ?? $med['name'] ?? ($med->custom_name ?? ($med->name ?? '-')) }}
-        </strong>
+                        <ol class="medicine-list-new">
 
-        @if(!empty($med['dosage']) || !empty($med->dosage))
-            —
-            {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
-        @endif
+                            @foreach ($medicines as $index => $med)
+                                <li>
+                                    <strong>
+                                        {{-- ✅ Show custom_name if exists, otherwise show original medicine name --}}
+                                        {{ $med['custom_name'] ?? ($med['name'] ?? ($med->custom_name ?? ($med->name ?? '-'))) }}
+                                    </strong>
 
-        @if(!empty($med['quantity']) || !empty($med->quantity))
-            → 
-            {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
-        @endif
+                                    @if (!empty($med['dosage']) || !empty($med->dosage))
+                                        —
+                                        {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
+                                    @endif
 
-        @if(!empty($med['instructions']) || !empty($med->instructions))
-            <span class="text-muted">
-                ({{ $med['instructions'] ?? ($med->instructions ?? '') }})
-            </span>
-        @endif
-    </li>
-@endforeach
-                </ol>
+                                    @if (!empty($med['quantity']) || !empty($med->quantity))
+                                        →
+                                        {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+                                    @endif
 
-            </td>
+                                    @if (!empty($med['instructions']) || !empty($med->instructions))
+                                        <span class="text-muted">
+                                            ({{ $med['instructions'] ?? ($med->instructions ?? '') }})
+                                        </span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ol>
 
-        </tr>
+                    </td>
 
-    </table>
+                </tr>
 
-</div>
+            </table>
+
+        </div>
 
         {{-- SIGNATURE --}}
         <div class="signature">

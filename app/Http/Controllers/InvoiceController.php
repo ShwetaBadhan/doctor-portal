@@ -209,60 +209,68 @@ class InvoiceController extends Controller
         return view('pages.invoices.edit', compact('invoice', 'patients', 'company'));
     }
 
-    public function update(Request $request, Invoice $invoice)
+   public function update(Request $request, Invoice $invoice)
     {
         $validated = $request->validate([
             'invoice_date' => 'required|date',
-            'patient_id' => 'nullable|exists:patients,id',  // ✅ 'id' column use karein
+            'patient_id' => 'nullable|exists:patients,id',
             'patient_name' => 'required|string|max:255',
             'patient_mobile' => 'nullable|string|max:20',
             'patient_address' => 'nullable|string|max:500',
+            'is_paid' => 'nullable|boolean', 
             'items' => 'required|array|min:1',
             'items.*.name' => 'required|string|max:255',
             'items.*.hsn' => 'nullable|string|max:50',
-            'items.*.quantity' => 'required|integer|min:1',  // ✅ Editable Qty
-            'items.*.amount' => 'required|numeric|min:0',    // ✅ Direct Line Total
+            'items.*.quantity' => 'required|numeric|min:0.01', 
+            'items.*.amount' => 'required|numeric|min:0',
             'items.*.tax_type' => 'required|in:IGST,CGST+SGST,NONE',
             'items.*.tax_percent' => 'nullable|numeric|min:0|max:100',
             'terms' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // 🔢 Calculate totals (same as store)
+        // 🔢 Calculate totals (EXACT SAME AS STORE METHOD)
         $taxableAmount = 0;
         $igstTotal = 0;
         $cgstTotal = 0;
         $sgstTotal = 0;
+        $grandTotal = 0;
 
-        $items = collect($validated['items'])->map(function ($item) use (&$taxableAmount, &$igstTotal, &$cgstTotal, &$sgstTotal) {
-            $lineTotal = round($item['amount'], 2);
+        $items = collect($validated['items'])->map(function ($item) use (&$taxableAmount, &$igstTotal, &$cgstTotal, &$sgstTotal, &$grandTotal) {
+            $qty = (float) $item['quantity'];
+            $amount = (float) $item['amount']; 
             $taxPercent = $item['tax_percent'] ?? 0;
             $taxType = $item['tax_type'];
+            
             $taxAmount = 0;
-
-            if ($taxType === 'IGST' && $taxPercent > 0) {
-                $taxAmount = round(($lineTotal * $taxPercent) / 100, 2);
-                $igstTotal += $taxAmount;
-            } elseif ($taxType === 'CGST+SGST' && $taxPercent > 0) {
-                $taxAmount = round(($lineTotal * $taxPercent) / 100, 2);
-                $cgstTotal += round($taxAmount / 2, 2);
-                $sgstTotal += round($taxAmount / 2, 2);
+            if ($taxPercent > 0 && $taxType !== 'NONE') {
+                $taxAmount = ($amount * $taxPercent) / 100;
+                if ($taxType === 'IGST') {
+                    $igstTotal += $taxAmount;
+                } elseif ($taxType === 'CGST+SGST') {
+                    $cgstTotal += $taxAmount / 2;
+                    $sgstTotal += $taxAmount / 2;
+                }
             }
-
-            $taxableAmount += $lineTotal;
+            
+            $lineTotal = $amount + $taxAmount;
+            $unitPrice = $qty > 0 ? $amount / $qty : 0;
+            
+            $taxableAmount += $amount;
+            $grandTotal += $lineTotal;
 
             return [
                 'name' => $item['name'],
                 'hsn' => $item['hsn'] ?? null,
-                'quantity' => (int) $item['quantity'],
-                'amount' => $lineTotal,
+                'quantity' => $qty,
+                'unit_price' => round($unitPrice, 2),   
+                'amount' => round($amount, 2),
                 'tax_type' => $taxType,
                 'tax_percent' => $taxPercent,
-                'tax_amount' => $taxAmount,
+                'tax_amount' => round($taxAmount, 2),
+                'line_total' => round($lineTotal, 2),  
             ];
         });
-
-        $totalAmount = $taxableAmount + $igstTotal + $cgstTotal + $sgstTotal;
 
         $invoice->update([
             'invoice_date' => $validated['invoice_date'],
@@ -275,15 +283,16 @@ class InvoiceController extends Controller
             'igst_amount' => round($igstTotal, 2),
             'cgst_amount' => round($cgstTotal, 2),
             'sgst_amount' => round($sgstTotal, 2),
-            'total_amount' => round($totalAmount, 2),
+            'total_amount' => round($grandTotal, 2),
+            'is_paid' => (bool) ($validated['is_paid'] ?? false), // ✅ Status update किया (Fix for "status update nhi ho rha")
             'terms' => $validated['terms'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        return redirect()->route('invoices.index', $invoice)
+        // ✅ Redirect fix (index route में $invoice parameter pass नहीं करते)
+        return redirect()->route('invoices.index')
             ->with('success', 'Invoice updated successfully!');
-    }
-    public function destroy(Invoice $invoice)
+    }    public function destroy(Invoice $invoice)
     {
         $invoice->delete();
         return redirect()->route('invoices.index')

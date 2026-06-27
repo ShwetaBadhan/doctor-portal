@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
+use App\Models\Appointment;
 use App\Models\MedicineGroup;
 use App\Models\Medicine;
 use App\Models\PatientMedicine;
@@ -14,9 +15,11 @@ use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Models\DiagnosisReport;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PatientController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -26,16 +29,33 @@ class PatientController extends Controller
     {
         $patients = Patient::latest()->get();
 
-        // Add medicine groups for modal
+        // ✅ Load ALL medicine groups with their medicines
         $medicineGroups = MedicineGroup::where('is_active', true)
+            ->with(['medicines' => function ($q) {
+                $q->orderBy('sort_order');
+            }])
             ->withCount('medicines')
             ->orderBy('name')
             ->get();
 
-        // ✅ NEW: Get all active medicines for the dropdown
+        // ✅ Get all active medicines for extra medicines dropdown
         $allMedicines = Medicine::where('is_active', true)->orderBy('name')->get();
 
-        return view('pages.patients.patients', compact('patients', 'medicineGroups', 'allMedicines'));
+        // ✅ Pre-load patient medicines for all patients (for "already assigned" check)
+        $patientMedicinesMap = [];
+        foreach ($patients as $patient) {
+            $patientMedicinesMap[$patient->id] = PatientMedicine::where('patient_id', $patient->id)
+                ->where('is_active', true)
+                ->get()
+                ->keyBy('medicine_id');
+        }
+
+        return view('pages.patients.patients', compact(
+            'patients',
+            'medicineGroups',
+            'allMedicines',
+            'patientMedicinesMap'
+        ));
     }
 
     /**
@@ -122,7 +142,29 @@ class PatientController extends Controller
         // Load patient with relationships
         $patient->load(['patientMedicines.medicine', 'appointments']);
 
-        // ✅ Get latest appointment with vitals (for display)
+        // ✅ Get LATEST prescription per medicine (only latest shown in table)
+        $latestPatientMedicines = $patient->patientMedicines()
+            ->with(['medicine', 'medicineGroup'])
+            ->where('is_active', true)
+            ->get()
+            ->groupBy('medicine_id')
+            ->map(function ($group) {
+                return $group->sortByDesc('created_at')->first(); // Latest one
+            })
+            ->sortBy('sort_order')
+            ->values();
+
+        // ✅ Get ALL medicines history (for re-prescribe modal)
+        $allActiveMedicines = $patient->patientMedicines()
+            ->with(['medicine', 'medicineGroup'])
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        // ✅ Group medicines by group for re-prescribe modal
+        $medicinesByGroup = $allActiveMedicines->groupBy('medicine_group_id');
+
+        // ✅ Get latest appointment with vitals
         $latestAppointment = $patient->appointments()
             ->where(function ($q) {
                 $q->whereNotNull('bp')
@@ -141,17 +183,26 @@ class PatientController extends Controller
             ->orderBy('appointment_date', 'desc')
             ->get();
 
-        // Load medicine groups for the modal
+        // Load medicine groups
         $medicineGroups = MedicineGroup::where('is_active', true)
             ->withCount('medicines')
             ->orderBy('name')
+            ->get();
+
+        // ✅ Get saved reports
+        $savedReports = DiagnosisReport::where('patient_id', $patient->id)
+            ->orderBy('report_date', 'desc')
             ->get();
 
         return view('pages.patients.patient-details', compact(
             'patient',
             'medicineGroups',
             'latestAppointment',
-            'appointmentsWithReports'  // ✅ Pass this to view
+            'appointmentsWithReports',
+            'latestPatientMedicines',  // ✅ Only latest per medicine
+            'allActiveMedicines',      // ✅ All for re-prescribe
+            'medicinesByGroup',        // ✅ Grouped for modal
+            'savedReports'             // ✅ Pre-loaded reports
         ));
     }
     /**
@@ -627,17 +678,28 @@ class PatientController extends Controller
     }
 
 
-    // PatientController.php
-    public function downloadDiagnosisReport(Patient $patient)
+    public function downloadDiagnosisReport(Request $request, Patient $patient)
     {
-        // ✅ CORRECT: patientMedicines relation use karo with medicine
+        // ✅ Get report date from query parameter
+        $reportDate = $request->input('date', now()->format('Y-m-d'));
+
+        // ✅ FIXED: Filter medicines by date (handle NULL dates)
         $patientMedicines = $patient->patientMedicines()
             ->with(['medicine'])
-            ->where('is_active', true) // Sirf active medicines
+            ->where('is_active', true)
+            ->where(function ($q) use ($reportDate) {
+                $q->where(function ($subQ) use ($reportDate) {
+                    $subQ->whereNull('start_date')
+                        ->orWhere('start_date', '<=', $reportDate);
+                })
+                    ->where(function ($subQ) use ($reportDate) {
+                        $subQ->whereNull('end_date')
+                            ->orWhere('end_date', '>=', $reportDate);
+                    });
+            })
             ->orderBy('sort_order')
             ->get();
 
-        // Medicines ko array format mein convert karo (view ke liye)
         $medicinesList = [];
         foreach ($patientMedicines as $pm) {
             $medicinesList[] = [
@@ -648,17 +710,9 @@ class PatientController extends Controller
             ];
         }
 
-
-
         // Latest appointment with vitals
         $appointment = $patient->appointments()
-            ->where(function ($q) {
-                $q->whereNotNull('vat')
-                    ->orWhereNotNull('pit')
-                    ->orWhereNotNull('kuff')
-                    ->orWhereNotNull('bp');
-            })
-            ->latest()
+            ->whereDate('appointment_date', $reportDate)
             ->first();
 
         // Letterhead image base64
@@ -671,7 +725,7 @@ class PatientController extends Controller
             $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
         }
 
-        // ✅ Symptoms ko array mein convert karo (JSON decode)
+        // Symptoms ko array mein convert karo
         $existingSymptoms = is_array($patient->existing_symptoms)
             ? $patient->existing_symptoms
             : json_decode($patient->existing_symptoms, true) ?? [];
@@ -683,10 +737,10 @@ class PatientController extends Controller
         $data = [
             'patient' => $patient,
             'appointment' => $appointment,
-            'medicines' => $medicinesList, // ✅ Formatted medicines array
+            'medicines' => $medicinesList,
             'existingSymptoms' => $existingSymptoms,
             'nonExistingSymptoms' => $nonExistingSymptoms,
-            'reportDate' => $appointment?->appointment_date ?? now(),
+            'reportDate' => $reportDate,
             'letterheadBase64' => $letterheadBase64,
             'imageType' => $imageType,
         ];
@@ -695,48 +749,46 @@ class PatientController extends Controller
         $pdf->setPaper('A4');
         $pdf->setOption('isRemoteEnabled', true);
 
-        $filename = "Diagnosis_Report_" . Str::slug($patient->first_name . '_' . $patient->last_name) . ".pdf";
+        $filename = "Diagnosis_Report_" . Str::slug($patient->first_name . '_' . $patient->last_name) . "_" . \Carbon\Carbon::parse($reportDate)->format('d-m-Y') . ".pdf";
 
         return $pdf->download($filename);
     }
-    /**
-     * Get medicines by group via AJAX
-     */
-    // App\Http\Controllers\PatientController.php - getMedicinesByGroup() method
+  /**
+ * Get medicines by group via AJAX
+ */
+public function getMedicinesByGroup(MedicineGroup $group, Request $request)
+{
+    $patientId = $request->query('patient_id');
 
-    public function getMedicinesByGroup(MedicineGroup $group, Request $request)
-    {
-        $patientId = $request->query('patient_id');
+    $medicines = $group->medicines()
+        ->select('medicines.*')
+        ->with(['patientMedicines' => function ($q) use ($patientId) {
+            $q->where('patient_id', $patientId)
+                ->where('is_active', true)
+                ->select('id', 'patient_id', 'medicine_id', 'custom_name', 'dosage', 'quantity', 'instructions');
+        }])
+        ->orderBy('sort_order')
+        ->get()
+        ->map(function ($medicine) use ($patientId) {
+            $existing = $medicine->patientMedicines->first();
+            return [
+                'id' => $medicine->id,
+                'name' => $medicine->name,
+                'code' => $medicine->code,
+                'dosage' => $existing ? $existing->dosage : $medicine->dosage,
+                'quantity' => $existing ? $existing->quantity : $medicine->quantity,
+                'instructions' => $existing ? $existing->instructions : $medicine->instructions,
+                'already_assigned' => (bool) $existing,
+                'patient_medicine_id' => $existing?->id,
+                'custom_name' => $existing?->custom_name,
+            ];
+        });
 
-        $medicines = $group->medicines()
-            ->select('medicines.*')
-            ->with(['patientMedicines' => function ($q) use ($patientId) {
-                $q->where('patient_id', $patientId)
-                    ->where('is_active', true)
-                    ->select('id', 'patient_id', 'medicine_id', 'custom_name', 'dosage', 'quantity', 'instructions');
-            }])
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($medicine) use ($patientId) {
-                $existing = $medicine->patientMedicines->first();
-                return [
-                    'id' => $medicine->id,
-                    'name' => $medicine->name,
-                    'code' => $medicine->code,
-                    'dosage' => $existing ? $existing->dosage : $medicine->dosage,
-                    'quantity' => $existing ? $existing->quantity : $medicine->quantity,
-                    'instructions' => $existing ? $existing->instructions : $medicine->instructions,
-                    'already_assigned' => (bool) $existing,
-                    'patient_medicine_id' => $existing?->id,
-                    'custom_name' => $existing?->custom_name,  // ✅ Add this
-                ];
-            });
-
-        return response()->json([
-            'group' => $group->name,
-            'medicines' => $medicines
-        ]);
-    }
+    return response()->json([
+        'group' => $group->name,
+        'medicines' => $medicines
+    ]);
+}
 
     /**
      * Assign medicines with individual customization
@@ -888,13 +940,14 @@ class PatientController extends Controller
      */
     public function updatePatientMedicine(Request $request, PatientMedicine $patientMedicine)
     {
-        $this->authorize('update', $patientMedicine); // Optional: add policy
+
 
         $validated = $request->validate([
             'dosage' => 'nullable|string|max:50',
             'quantity' => 'nullable|string|max:50',
             'instructions' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
+            'route' => 'nullable|string|max:50',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
             'is_active' => 'nullable|boolean',
@@ -924,12 +977,25 @@ class PatientController extends Controller
     /**
      * Preview Diagnosis Report (Browser mein dikhane ke liye)
      */
-    public function previewDiagnosisReport(Patient $patient)
+    public function previewDiagnosisReport(Request $request, Patient $patient)
     {
-        // ✅ Get medicines
+        // ✅ Get report date from query parameter, default to today
+        $reportDate = $request->input('date', now()->format('Y-m-d'));
+
+        // ✅ FIXED: Filter medicines by date (handle NULL dates)
         $patientMedicines = $patient->patientMedicines()
             ->with(['medicine'])
             ->where('is_active', true)
+            ->where(function ($q) use ($reportDate) {
+                $q->where(function ($subQ) use ($reportDate) {
+                    $subQ->whereNull('start_date')
+                        ->orWhere('start_date', '<=', $reportDate);
+                })
+                    ->where(function ($subQ) use ($reportDate) {
+                        $subQ->whereNull('end_date')
+                            ->orWhere('end_date', '>=', $reportDate);
+                    });
+            })
             ->orderBy('sort_order')
             ->get();
 
@@ -943,18 +1009,12 @@ class PatientController extends Controller
             ];
         }
 
-        // ✅ Latest appointment with vitals
+        // Latest appointment with vitals
         $appointment = $patient->appointments()
-            ->where(function ($q) {
-                $q->whereNotNull('vat')
-                    ->orWhereNotNull('pit')
-                    ->orWhereNotNull('kuff')
-                    ->orWhereNotNull('bp');
-            })
-            ->latest()
+            ->whereDate('appointment_date', $reportDate)
             ->first();
 
-        // ✅ Letterhead image base64
+        // Letterhead image base64
         $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
         $letterheadBase64 = '';
         $imageType = 'jpeg';
@@ -964,7 +1024,7 @@ class PatientController extends Controller
             $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
         }
 
-        // ✅ Symptoms decode
+        // Symptoms decode
         $existingSymptoms = is_array($patient->existing_symptoms)
             ? $patient->existing_symptoms
             : json_decode($patient->existing_symptoms, true) ?? [];
@@ -979,15 +1039,14 @@ class PatientController extends Controller
             'medicines' => $medicinesList,
             'existingSymptoms' => $existingSymptoms,
             'nonExistingSymptoms' => $nonExistingSymptoms,
-            'reportDate' => $appointment?->appointment_date ?? now(),
+            'reportDate' => $reportDate,
             'letterheadBase64' => $letterheadBase64,
             'imageType' => $imageType,
-            'isPreview' => true, // Flag for preview mode
+            'isPreview' => true,
         ];
 
         return view('pages.patients.diagnosis-report', $data);
     }
-
 
     /**
      * Generate & Save Diagnosis Report
@@ -1010,10 +1069,25 @@ class PatientController extends Controller
                 ]);
             }
 
-            // Get medicines
+            // ✅ FIXED: Get medicines that were ACTIVE on the report date
+            // Logic: 
+            // - start_date <= report_date OR start_date IS NULL
+            // - AND (end_date >= report_date OR end_date IS NULL)
             $patientMedicines = $patient->patientMedicines()
                 ->with(['medicine'])
                 ->where('is_active', true)
+                ->where(function ($q) use ($reportDate) {
+                    // Include medicines where start_date is on/before report date OR not set
+                    $q->where(function ($subQ) use ($reportDate) {
+                        $subQ->whereNull('start_date')
+                            ->orWhere('start_date', '<=', $reportDate);
+                    })
+                        // AND end_date is on/after report date OR not set (ongoing)
+                        ->where(function ($subQ) use ($reportDate) {
+                            $subQ->whereNull('end_date')
+                                ->orWhere('end_date', '>=', $reportDate);
+                        });
+                })
                 ->orderBy('sort_order')
                 ->get();
 
@@ -1025,6 +1099,8 @@ class PatientController extends Controller
                     'dosage' => $pm->dosage,
                     'quantity' => $pm->quantity,
                     'instructions' => $pm->instructions,
+                    'start_date' => $pm->start_date?->format('d M Y'),
+                    'end_date' => $pm->end_date?->format('d M Y'),
                 ];
             }
 
@@ -1085,16 +1161,18 @@ class PatientController extends Controller
                     'existingSymptoms' => $existingSymptoms,
                     'nonExistingSymptoms' => $nonExistingSymptoms,
                     'appointment_id' => $appointment?->id,
+                    'medicine_count' => count($medicinesList), // ✅ Use count() for array
                 ],
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Report generated and saved successfully',
+                'message' => "Report generated for {$dateStr} with " . count($medicinesList) . " medicine(s)",
                 'report_id' => $report->id,
+                'medicine_count' => count($medicinesList),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Generate Report Error: ' . $e->getMessage());
+            Log::error('Generate Report Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to generate report: ' . $e->getMessage()
@@ -1105,38 +1183,140 @@ class PatientController extends Controller
     /**
      * Get Saved Reports History
      */
-    public function getReportHistory($patientId)  // ✅ Change parameter
+    public function getReportHistory($patientId)
     {
         try {
-            Log::info('Getting report history for patient ID: ' . $patientId);
-
-            // ✅ Manually fetch patient
             $patient = Patient::findOrFail($patientId);
 
             $reports = DiagnosisReport::where('patient_id', $patient->id)
                 ->orderBy('report_date', 'desc')
                 ->get();
 
-            Log::info('Found ' . $reports->count() . ' reports for patient ' . $patient->id);
-
             return response()->json([
                 'reports' => $reports->map(function ($report) use ($patient) {
+                    // Extract medicine count from report_data
+                    $medicineCount = $report->report_data['medicine_count']
+                        ?? count($report->report_data['medicines'] ?? []);
+
                     return [
                         'id' => $report->id,
                         'date' => $report->report_date->format('d M Y'),
                         'download_url' => Storage::url($report->pdf_path),
                         'preview_url' => route('diagnosis-report.preview', $patient->id) . '?date=' . $report->report_date->format('Y-m-d'),
+                        'medicine_count' => $medicineCount,
                     ];
                 })
             ]);
         } catch (\Exception $e) {
             Log::error('Get Report History Error: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
 
             return response()->json([
                 'reports' => [],
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+    /**
+     * Re-prescribe medicines with individual edits (NO auto-report)
+     */
+    public function rePrescribeAllMedicines(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'group_id' => 'nullable|exists:medicine_groups,id',
+            'medicines' => 'nullable|array',
+            'medicines.*.id' => 'nullable|exists:patient_medicines,id',
+            'medicines.*.include' => 'nullable|in:1',
+            'medicines.*.custom_name' => 'nullable|string|max:255',
+            'medicines.*.dosage' => 'nullable|string|max:50',
+            'medicines.*.quantity' => 'nullable|string|max:50',
+            'medicines.*.instructions' => 'nullable|string|max:255',
+        ]);
+
+        $startDate = $validated['start_date'];
+        $endDate = $validated['end_date'] ?? null;
+        $groupId = $validated['group_id'] ?? null;
+
+        // Get medicines to re-prescribe
+        $query = $patient->patientMedicines()->where('is_active', true);
+
+        if ($groupId) {
+            $query->where('medicine_group_id', $groupId);
+        }
+
+        $existingMedicines = $query->orderBy('sort_order')->get();
+
+        if ($existingMedicines->isEmpty()) {
+            return redirect()->back()->with('error', 'No active medicines found to re-prescribe.');
+        }
+
+        $maxSortOrder = PatientMedicine::where('patient_id', $patient->id)->max('sort_order') ?? 0;
+        $rePrescribedCount = 0;
+        $editedCount = 0;
+
+        // Build a map of submitted edits
+        $editsMap = [];
+        if (!empty($validated['medicines'])) {
+            foreach ($validated['medicines'] as $edit) {
+                if (!empty($edit['id'])) {
+                    $editsMap[$edit['id']] = $edit;
+                }
+            }
+        }
+
+        foreach ($existingMedicines as $medicine) {
+            $edit = $editsMap[$medicine->id] ?? null;
+
+            // If edits submitted, check include flag; otherwise include all
+            if ($edit !== null && empty($edit['include'])) {
+                continue; // Skip this medicine
+            }
+
+            $newMedicine = $medicine->replicate();
+            $maxSortOrder++;
+
+            // Apply edits if provided
+            if ($edit) {
+                if (!empty($edit['custom_name']) && $edit['custom_name'] !== $medicine->custom_name) {
+                    $newMedicine->custom_name = $edit['custom_name'];
+                    $editedCount++;
+                }
+                if (isset($edit['dosage']) && $edit['dosage'] !== $medicine->dosage) {
+                    $newMedicine->dosage = $edit['dosage'];
+                    $editedCount++;
+                }
+                if (isset($edit['quantity']) && $edit['quantity'] !== $medicine->quantity) {
+                    $newMedicine->quantity = $edit['quantity'];
+                    $editedCount++;
+                }
+                if (isset($edit['instructions']) && $edit['instructions'] !== $medicine->instructions) {
+                    $newMedicine->instructions = $edit['instructions'];
+                    $editedCount++;
+                }
+            }
+
+            $newMedicine->id = null;
+            $newMedicine->sort_order = $maxSortOrder;
+            $newMedicine->start_date = $startDate;
+            $newMedicine->end_date = $endDate;
+            $newMedicine->is_active = true;
+            $newMedicine->created_at = now();
+            $newMedicine->updated_at = now();
+
+            $newMedicine->save();
+            $rePrescribedCount++;
+        }
+
+        $message = "✅ Re-prescribed {$rePrescribedCount} medicine(s)";
+        if ($editedCount > 0) {
+            $message .= " ({$editedCount} edited)";
+        }
+        $message .= " from " . \Carbon\Carbon::parse($startDate)->format('d M Y');
+        if ($endDate) {
+            $message .= " to " . \Carbon\Carbon::parse($endDate)->format('d M Y');
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }

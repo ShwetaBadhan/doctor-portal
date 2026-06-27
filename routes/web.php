@@ -261,3 +261,6 @@ Route::get('/test-myop', function() {
         'env()_test' => env('MYOPERATOR_API_KEY'),
     ]);
 });
+
+Route::post('/patients/{patient}/re-prescribe-all', [PatientController::class, 'rePrescribeAllMedicines'])
+    ->name('patients.medicines.re-prescribe-all');
