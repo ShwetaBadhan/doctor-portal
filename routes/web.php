@@ -231,28 +231,28 @@ Route::delete('/reports/{patient}/{index}', [PatientController::class, 'deleteRe
     ->name('reports.delete');
 Route::delete('/appointments/{appointment}/reports/{index}', [AppointmentController::class, 'deleteReport'])
     ->name('appointments.reports.delete');
-    Route::delete('/appointments/reports/{date}/{index}', [AppointmentController::class, 'deleteReport'])
+Route::delete('/appointments/reports/{date}/{index}', [AppointmentController::class, 'deleteReport'])
     ->name('appointments.reports.delete');
 
-    // Send Welcome Letter to a specific patient
+// Send Welcome Letter to a specific patient
 Route::get('/send-welcome/{id}', [WhatsAppController::class, 'sendWelcomeLetter']);
 
 // Test route to manually trigger medicine reminders
 Route::get('/test-reminders', [WhatsAppController::class, 'sendExpiryReminders']);
-Route::get('/test-myop', function() {
+Route::get('/test-myop', function () {
     // Check .env file exists
     $envPath = base_path('.env');
     $envExists = file_exists($envPath);
-    
+
     // Read .env file directly
     $envContent = '';
     if ($envExists) {
         $envContent = file_get_contents($envPath);
     }
-    
+
     // Check if config is cached
     $configCached = file_exists(base_path('bootstrap/cache/config.php'));
-    
+
     return response()->json([
         'ENV_File_Exists' => $envExists ? 'YES' : 'NO',
         'ENV_File_Path' => $envPath,
@@ -264,3 +264,9 @@ Route::get('/test-myop', function() {
 
 Route::post('/patients/{patient}/re-prescribe-all', [PatientController::class, 'rePrescribeAllMedicines'])
     ->name('patients.medicines.re-prescribe-all');
+// Reassign Medicines Routes
+Route::get('/patients/{patient}/assigned-medicines', [PatientController::class, 'getAssignedMedicines'])
+    ->name('patients.medicines.assigned');
+
+Route::put('/patients/{patient}/medicines/reassign', [PatientController::class, 'reassignMedicines'])
+    ->name('patients.medicines.reassign');

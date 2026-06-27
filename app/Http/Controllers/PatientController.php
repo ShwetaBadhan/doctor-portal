@@ -15,10 +15,11 @@ use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Models\DiagnosisReport;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class PatientController extends Controller
 {
-     use AuthorizesRequests; 
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -890,12 +891,13 @@ class PatientController extends Controller
      */
     public function updatePatientMedicine(Request $request, PatientMedicine $patientMedicine)
     {
-        
+
 
         $validated = $request->validate([
             'dosage' => 'nullable|string|max:50',
             'quantity' => 'nullable|string|max:50',
             'instructions' => 'nullable|string|max:255',
+            'route' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
@@ -1140,5 +1142,121 @@ class PatientController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get all assigned medicines for a patient (AJAX)
+     */
+    public function getAssignedMedicines(Patient $patient)
+    {
+        $medicines = $patient->patientMedicines()
+            ->with(['medicine', 'medicineGroup'])
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function ($pm) {
+                return [
+                    'id' => $pm->id,
+                    'patient_medicine_id' => $pm->id,
+                    'medicine_id' => $pm->medicine_id,
+                    'medicine_name' => $pm->medicine?->name ?? 'Unknown',
+                    'medicine_code' => $pm->medicine?->code ?? null,
+                    'custom_name' => $pm->custom_name ?? ($pm->medicine?->name ?? 'Unknown'),
+                    'dosage' => $pm->dosage,
+                    'quantity' => $pm->quantity,
+                    'instructions' => $pm->instructions,
+                    'route' => $pm->route,
+                    'group_name' => $pm->medicineGroup?->name ?? 'Individual',
+                    'sort_order' => $pm->sort_order,
+                    'start_date' => $pm->start_date?->format('Y-m-d'),
+                    'end_date' => $pm->end_date?->format('Y-m-d'),
+                    'notes' => $pm->notes,
+                ];
+            });
+
+        return response()->json([
+            'medicines' => $medicines
+        ]);
+    }
+
+    /**
+     * Reassign/Update medicines for a patient (Bulk Update)
+     */
+    public function reassignMedicines(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'medicines' => 'nullable|array',
+            'medicines.*.keep' => 'nullable|in:1',
+            'medicines.*.patient_medicine_id' => 'required_with:medicines.*.keep|exists:patient_medicines,id',
+            'medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+            'medicines.*.custom_name' => 'nullable|string|max:255',
+            'medicines.*.dosage' => 'nullable|string|max:50',
+            'medicines.*.quantity' => 'nullable|string|max:50',
+            'medicines.*.route' => 'nullable|string|max:50',
+            'medicines.*.instructions' => 'nullable|string|max:500',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $updatedCount = 0;
+        $removedCount = 0;
+
+        // Get all current active medicines for this patient
+        $currentMedicines = $patient->patientMedicines()
+            ->where('is_active', true)
+            ->pluck('id')
+            ->toArray();
+
+        $keptIds = [];
+
+        if (!empty($validated['medicines'])) {
+            foreach ($validated['medicines'] as $item) {
+                if (!empty($item['keep'])) {
+                    $pmId = $item['patient_medicine_id'];
+                    $keptIds[] = $pmId;
+
+                    $updateData = [
+                        'custom_name' => $item['custom_name'] ?? null,
+                        'dosage' => $item['dosage'] ?? null,
+                        'quantity' => $item['quantity'] ?? null,
+                        'route' => $item['route'] ?? null,
+                        'instructions' => $item['instructions'] ?? null,
+                    ];
+
+                    // Apply global dates/notes if provided
+                    if (!empty($validated['start_date'])) {
+                        $updateData['start_date'] = $validated['start_date'];
+                    }
+                    if (!empty($validated['end_date'])) {
+                        $updateData['end_date'] = $validated['end_date'];
+                    }
+                    if (!empty($validated['notes'])) {
+                        $updateData['notes'] = $validated['notes'];
+                    }
+
+                    PatientMedicine::where('id', $pmId)
+                        ->where('patient_id', $patient->id)
+                        ->update($updateData);
+
+                    $updatedCount++;
+                }
+            }
+        }
+
+        // Deactivate medicines that were unchecked (not kept)
+        $toRemove = array_diff($currentMedicines, $keptIds);
+        if (!empty($toRemove)) {
+            PatientMedicine::whereIn('id', $toRemove)
+                ->where('patient_id', $patient->id)
+                ->update(['is_active' => false]);
+            $removedCount = count($toRemove);
+        }
+
+        $message = [];
+        if ($updatedCount > 0) $message[] = "Updated {$updatedCount} medicine(s)";
+        if ($removedCount > 0) $message[] = "Removed {$removedCount} medicine(s)";
+
+        return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
     }
 }

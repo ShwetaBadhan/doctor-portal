@@ -511,6 +511,11 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0"><i class="ti ti-pills me-2 text-primary"></i>Prescribed Medicines</h6>
                         @can('assign-medicines-to-patients')
+                            {{-- ✅ NEW: Reassign Medicines Button --}}
+                            <button type="button" class="btn btn-warning btn-sm me-2" data-bs-toggle="modal"
+                                data-bs-target="#reassignMedicinesModal">
+                                <i class="ti ti-refresh me-1"></i> Reassign Medicines
+                            </button>
                             <!-- Assign Medicine Group Button -->
                             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                 data-bs-target="#assignMedicineModal">
@@ -1384,6 +1389,84 @@
             </div>
         </div>
     </div>
+    {{-- ✅ Reassign Medicines Modal --}}
+    <div class="modal fade" id="reassignMedicinesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="reassignMedicinesForm" action="{{ route('patients.medicines.reassign', $patient->id) }}"
+                    method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header sticky-top bg-white z-3">
+                        <h5 class="modal-title">
+                            <i class="ti ti-refresh me-2 text-warning"></i>Reassign / Edit Medicines
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+                        <p class="text-muted mb-3">
+                            Edit or remove medicines currently assigned to
+                            <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
+                        </p>
+
+                        {{-- Loading State --}}
+                        <div id="reassignLoading" class="text-center py-4">
+                            <div class="spinner-border text-warning" role="status"></div>
+                            <p class="mt-2 text-muted small">Loading assigned medicines...</p>
+                        </div>
+
+                        {{-- Medicines Container --}}
+                        <div id="reassignMedicinesContainer" class="d-none">
+                            {{-- Check All Header --}}
+                            <div
+                                class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom sticky-top bg-white z-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="reassignCheckAll">
+                                    <label class="form-check-label fw-medium" for="reassignCheckAll">
+                                        Select All (Keep Assigned)
+                                    </label>
+                                </div>
+                                <span class="badge bg-warning text-dark" id="reassignSelectedCount">0 selected</span>
+                            </div>
+
+                            {{-- Medicines List --}}
+                            <div id="reassignMedicinesList"
+                                style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                                {{-- Dynamic content --}}
+                            </div>
+
+                            {{-- Date & Notes Section --}}
+                            <div class="row mt-4 pt-3 border-top">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" name="start_date" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" name="end_date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">General Notes</label>
+                                <textarea name="notes" class="form-control" rows="2" placeholder="Optional instructions..."></textarea>
+                            </div>
+                        </div>
+
+                        {{-- Empty State --}}
+                        <div id="reassignEmpty" class="alert alert-warning d-none">
+                            <i class="ti ti-alert-circle me-2"></i>No medicines are currently assigned to this patient.
+                        </div>
+                    </div>
+                    <div class="modal-footer sticky-bottom bg-white border-top">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning" id="reassignSubmitBtn" disabled>
+                            <i class="ti ti-check me-1"></i> Update (<span id="reassignSubmitCount">0</span>)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
@@ -1391,6 +1474,180 @@
     <script>
         window.patientId = {{ $patient->id }};
         let extraMedicineCounter = 0;
+        // ===== REASSIGN MEDICINES MODAL LOGIC =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const reassignModal = document.getElementById('reassignMedicinesModal');
+            if (reassignModal) {
+                reassignModal.addEventListener('show.bs.modal', function() {
+                    loadReassignMedicines();
+                });
+            }
+
+            // Check All Handler
+            const reassignCheckAll = document.getElementById('reassignCheckAll');
+            if (reassignCheckAll) {
+                reassignCheckAll.addEventListener('change', function(e) {
+                    const checked = e.target.checked;
+                    document.querySelectorAll('.reassign-checkbox').forEach(cb => {
+                        cb.checked = checked;
+                        toggleReassignFields(cb, checked);
+                    });
+                    updateReassignSubmitButton();
+                });
+            }
+
+            // Dynamic checkbox handler
+            const reassignList = document.getElementById('reassignMedicinesList');
+            if (reassignList) {
+                reassignList.addEventListener('change', function(e) {
+                    if (e.target.classList.contains('reassign-checkbox')) {
+                        toggleReassignFields(e.target, e.target.checked);
+                        updateReassignSubmitButton();
+                    }
+                });
+            }
+
+            // Form submit handler
+            const reassignForm = document.getElementById('reassignMedicinesForm');
+            if (reassignForm) {
+                reassignForm.addEventListener('submit', function(e) {
+                    const checked = document.querySelectorAll('.reassign-checkbox:checked').length;
+                    if (checked === 0) {
+                        e.preventDefault();
+                        Swal.fire('Warning', 'Please select at least one medicine to keep/update',
+                            'warning');
+                    }
+                });
+            }
+        });
+
+        function loadReassignMedicines() {
+            const loading = document.getElementById('reassignLoading');
+            const container = document.getElementById('reassignMedicinesContainer');
+            const empty = document.getElementById('reassignEmpty');
+            const list = document.getElementById('reassignMedicinesList');
+
+            loading.classList.remove('d-none');
+            container.classList.add('d-none');
+            empty.classList.add('d-none');
+            list.innerHTML = '';
+
+            fetch(`/patients/{{ $patient->id }}/assigned-medicines`)
+                .then(res => {
+                    if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    loading.classList.add('d-none');
+                    if (!data.medicines || data.medicines.length === 0) {
+                        empty.classList.remove('d-none');
+                        return;
+                    }
+                    renderReassignMedicines(data.medicines);
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    loading.classList.add('d-none');
+                    empty.classList.remove('d-none');
+                    empty.innerHTML = `<i class="ti ti-alert-circle me-2"></i>Failed to load medicines: ${err.message}`;
+                });
+        }
+
+        function renderReassignMedicines(medicines) {
+            const container = document.getElementById('reassignMedicinesContainer');
+            const list = document.getElementById('reassignMedicinesList');
+
+            container.classList.remove('d-none');
+
+            list.innerHTML = medicines.map((med, i) => {
+                const route = med.route || '';
+                const dosage = med.dosage || '';
+                const quantity = med.quantity || '';
+                const instructions = med.instructions || '';
+                const displayName = med.custom_name || med.medicine_name || 'Unknown Medicine';
+                const groupName = med.group_name || 'Individual';
+
+                return `
+        <div class="card border-0 shadow-sm mb-2 reassign-card" data-id="${med.id}">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-start gap-2">
+                    <input class="form-check-input reassign-checkbox mt-1" type="checkbox"
+                        name="medicines[${i}][keep]" value="1"
+                        data-patient-medicine-id="${med.id}"
+                        checked>
+                    <input type="hidden" name="medicines[${i}][patient_medicine_id]" value="${med.id}">
+                    <input type="hidden" name="medicines[${i}][medicine_id]" value="${med.medicine_id || ''}">
+
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <input type="text"
+                                name="medicines[${i}][custom_name]"
+                                class="form-control form-control-sm"
+                                placeholder="Medicine name"
+                                value="${displayName}"
+                                required>
+                            <span class="badge bg-light text-dark border fs-10">${groupName}</span>
+                        </div>
+                        ${med.medicine_code ? `<small class="text-muted">Code: ${med.medicine_code}</small>` : ''}
+                    </div>
+
+                    <div class="reassign-fields" style="min-width: 280px;">
+                        <div class="row g-1">
+                            <div class="col-6">
+                               
+                                <input type="text" name="medicines[${i}][dosage]"
+                                    class="form-control form-control-sm"
+                                    placeholder="Dosage" value="${dosage}">
+                            </div>
+                            <div class="col-6">
+                               
+                                <input type="text" name="medicines[${i}][quantity]"
+                                    class="form-control form-control-sm"
+                                    placeholder="Qty" value="${quantity}">
+                            </div>
+                          
+                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+            }).join('');
+
+            updateReassignSelectAllState();
+            updateReassignSubmitButton();
+        }
+
+        function toggleReassignFields(checkbox, enable) {
+            const card = checkbox.closest('.reassign-card');
+            if (!card) return;
+            const fields = card.querySelector('.reassign-fields');
+            if (!fields) return;
+            fields.querySelectorAll('input, select, textarea').forEach(input => {
+                input.disabled = !enable;
+            });
+        }
+
+        function updateReassignSubmitButton() {
+            const checked = document.querySelectorAll('.reassign-checkbox:checked').length;
+            const selectedCountEl = document.getElementById('reassignSelectedCount');
+            const submitCountEl = document.getElementById('reassignSubmitCount');
+            const submitBtn = document.getElementById('reassignSubmitBtn');
+
+            if (selectedCountEl) selectedCountEl.textContent = `${checked} selected`;
+            if (submitCountEl) submitCountEl.textContent = checked;
+            if (submitBtn) submitBtn.disabled = checked === 0;
+        }
+
+        function updateReassignSelectAllState() {
+            const all = document.querySelectorAll('.reassign-checkbox');
+            const checked = document.querySelectorAll('.reassign-checkbox:checked');
+            const checkAll = document.getElementById('reassignCheckAll');
+            if (all.length > 0 && checkAll) {
+                checkAll.checked = all.length === checked.length;
+                checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+            }
+        }
 
         function confirmRemoveMedicine(id, name) {
             Swal.fire({
