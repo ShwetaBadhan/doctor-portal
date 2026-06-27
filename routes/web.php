@@ -270,3 +270,6 @@ Route::get('/patients/{patient}/assigned-medicines', [PatientController::class, 
 
 Route::put('/patients/{patient}/medicines/reassign', [PatientController::class, 'reassignMedicines'])
     ->name('patients.medicines.reassign');
+
+ // Medicine Expiry Reminder Test Route
+Route::get('/test-expiry-reminders', [WhatsAppController::class, 'sendExpiryReminders']);

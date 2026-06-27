@@ -1434,7 +1434,47 @@
                                 style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
                                 {{-- Dynamic content --}}
                             </div>
+                            {{-- ✅ NEW: Add New Medicines Section --}}
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-bold mb-3 text-primary">
+                                    <i class="ti ti-plus me-1"></i> Add New Medicines
+                                </h6>
 
+                                {{-- Medicine Group Selector --}}
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium">Select Medicine Group</label>
+                                    <select name="medicine_group_id" id="reassignGroupSelect" class="form-select">
+                                        <option value="">-- Select group to add medicines --</option>
+                                        @foreach ($medicineGroups as $group)
+                                            <option value="{{ $group->id }}">{{ $group->name }}
+                                                ({{ $group->medicines_count }} medicines)</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Group Medicines Container --}}
+                                <div id="reassignNewMedicinesContainer" class="d-none">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="reassignNewCheckAll">
+                                            <label class="form-check-label" for="reassignNewCheckAll">Select All</label>
+                                        </div>
+                                    </div>
+                                    <div id="reassignNewMedicinesList" style="max-height: 250px; overflow-y: auto;"></div>
+                                </div>
+
+                                {{-- Extra Medicines --}}
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold mb-0">Extra Medicines</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                            onclick="addReassignExtraMedicine()">
+                                            <i class="ti ti-plus me-1"></i> Add Extra Medicine
+                                        </button>
+                                    </div>
+                                    <div id="reassignExtraMedicinesContainer"></div>
+                                </div>
+                            </div>
                             {{-- Date & Notes Section --}}
                             <div class="row mt-4 pt-3 border-top">
                                 <div class="col-md-6 mb-3">
@@ -1511,10 +1551,20 @@
             const reassignForm = document.getElementById('reassignMedicinesForm');
             if (reassignForm) {
                 reassignForm.addEventListener('submit', function(e) {
-                    const checked = document.querySelectorAll('.reassign-checkbox:checked').length;
-                    if (checked === 0) {
+                    const checkedExisting = document.querySelectorAll('.reassign-checkbox:checked').length;
+                    const checkedNew = document.querySelectorAll('.reassign-new-checkbox:checked').length;
+                    let extraFilled = 0;
+                    document.querySelectorAll('#reassignExtraMedicinesContainer .extra-medicine-item')
+                        .forEach(item => {
+                            const select = item.querySelector('.extra-medicine-select');
+                            const nameField = item.querySelector('.extra-medicine-name');
+                            if ((select && select.value) || (nameField && nameField.value.trim()))
+                                extraFilled++;
+                        });
+
+                    if (checkedExisting === 0 && checkedNew === 0 && extraFilled === 0) {
                         e.preventDefault();
-                        Swal.fire('Warning', 'Please select at least one medicine to keep/update',
+                        Swal.fire('Warning', 'Please select at least one medicine to keep or add',
                             'warning');
                     }
                 });
@@ -1617,6 +1667,175 @@
             updateReassignSelectAllState();
             updateReassignSubmitButton();
         }
+       // Group select change handler for Reassign Modal (FIXED)
+document.addEventListener('DOMContentLoaded', function() {
+    const reassignGroupSelect = document.getElementById('reassignGroupSelect');
+    if (reassignGroupSelect) {
+        reassignGroupSelect.addEventListener('change', function() {
+            const groupId = this.value;
+            const container = document.getElementById('reassignNewMedicinesContainer');
+            const list = document.getElementById('reassignNewMedicinesList');
+            
+            if (!groupId) {
+                container.classList.add('d-none');
+                list.innerHTML = '';
+                return;
+            }
+            
+            // Show loading state
+            list.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div><p class="text-muted small mt-2 mb-0">Loading medicines...</p></div>';
+            container.classList.remove('d-none');
+            
+            // FIXED: Use correct patient ID
+            const patientId = {{ $patient->id }};
+            const url = `/medicine-groups/${groupId}/medicines?patient_id=${patientId}`;
+            
+            console.log('Fetching from:', url);
+            
+            fetch(url)
+                .then(res => {
+                    console.log('Response status:', res.status);
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    if (data.medicines && data.medicines.length > 0) {
+                        renderReassignNewMedicines(data.medicines);
+                    } else {
+                        list.innerHTML = '<div class="alert alert-warning small">No medicines found in this group</div>';
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    list.innerHTML = `<div class="alert alert-danger small"><strong>Failed to load medicines</strong><br>Error: ${err.message}</div>`;
+                });
+        });
+    }
+});
+
+     // Select All for New Medicines in Reassign Modal
+const reassignNewCheckAll = document.getElementById('reassignNewCheckAll');
+if (reassignNewCheckAll) {
+    reassignNewCheckAll.addEventListener('change', function(e) {
+        const checked = e.target.checked;
+        document.querySelectorAll('.reassign-new-checkbox').forEach(cb => {
+            cb.checked = checked;
+        });
+        updateReassignSubmitButton();
+    });
+}
+        // Update the renderReassignNewMedicines function
+function renderReassignNewMedicines(medicines) {
+    const container = document.getElementById('reassignNewMedicinesContainer');
+    const list = document.getElementById('reassignNewMedicinesList');
+    container.classList.remove('d-none');
+    
+    console.log('Rendering medicines:', medicines);
+    
+    list.innerHTML = medicines.map((med, i) => {
+        const dosage = med.dosage || '';
+        const quantity = med.quantity || '';
+        const displayName = med.custom_name || med.name || 'Unknown Medicine';
+        const code = med.code || '';
+        
+        return `
+        <div class="card border-0 shadow-sm mb-2 reassign-new-card" data-id="${med.id}">
+            <div class="card-body py-2 px-3">
+                <div class="d-flex align-items-start gap-2">
+                    <input class="form-check-input reassign-new-checkbox mt-1" type="checkbox"
+                        name="new_medicines[${i}][assign]" value="1" data-medicine-id="${med.id}">
+                    <input type="hidden" name="new_medicines[${i}][medicine_id]" value="${med.id}">
+                    <div class="flex-grow-1">
+                        <input type="text" name="new_medicines[${i}][custom_name]"
+                            class="form-control form-control-sm mb-1" placeholder="Medicine name" value="${displayName}">
+                        ${code ? `<small class="text-muted">Code: ${code}</small>` : ''}
+                    </div>
+                    <div class="reassign-new-fields" style="min-width: 200px;">
+                        <div class="row g-1">
+                            <div class="col-6">
+                                <input type="text" name="new_medicines[${i}][dosage]" class="form-control form-control-sm" placeholder="Dosage" value="${dosage}">
+                            </div>
+                            <div class="col-6">
+                                <input type="text" name="new_medicines[${i}][quantity]" class="form-control form-control-sm" placeholder="Qty" value="${quantity}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+    
+    // Update select all state after rendering
+    updateReassignNewSelectAllState();
+    updateReassignSubmitButton();
+}
+function updateReassignNewSelectAllState() {
+    const all = document.querySelectorAll('.reassign-new-checkbox');
+    const checked = document.querySelectorAll('.reassign-new-checkbox:checked');
+    const checkAll = document.getElementById('reassignNewCheckAll');
+    if (all.length > 0 && checkAll) {
+        checkAll.checked = all.length === checked.length;
+        checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+    }
+}
+        function addReassignExtraMedicine() {
+            reassignExtraMedicineCounter++;
+            const container = document.getElementById('reassignExtraMedicinesContainer');
+            const index = reassignExtraMedicineCounter;
+            const html = `
+    <div class="extra-medicine-item card border-0 bg-light mb-2" id="reassignExtraMed_${index}">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 text-primary"><i class="ti ti-pill me-1"></i>Extra Medicine ${index}</h6>
+                <button type="button" class="btn btn-sm btn-light text-danger" onclick="removeReassignExtraMedicine(${index})"><i class="ti ti-x"></i></button>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label small">Select Medicine</label>
+                    <select name="extra_medicines[${index}][medicine_id]" class="form-select form-select-sm extra-medicine-select" onchange="autoFillReassignExtraMedicine(this)">
+                        <option value="">-- Select medicine --</option>
+                        @foreach (\App\Models\Medicine::where('is_active', true)->orderBy('name')->get() as $med)
+                            <option value="{{ $med->id }}" data-name="{{ $med->name }}" data-dosage="{{ $med->dosage }}" data-quantity="{{ $med->quantity }}">{{ $med->name }} @if ($med->code)({{ $med->code }})@endif</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small">Medicine Name</label>
+                    <input type="text" name="extra_medicines[${index}][custom_name]" class="form-control form-control-sm extra-medicine-name" placeholder="Medicine name">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Dosage</label>
+                    <input type="text" name="extra_medicines[${index}][dosage]" class="form-control form-control-sm extra-dosage" placeholder="Dosage">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Quantity</label>
+                    <input type="text" name="extra_medicines[${index}][quantity]" class="form-control form-control-sm extra-quantity" placeholder="Qty">
+                </div>
+            </div>
+        </div>
+    </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function removeReassignExtraMedicine(index) {
+            const el = document.getElementById(`reassignExtraMed_${index}`);
+            if (el) el.remove();
+        }
+
+        function autoFillReassignExtraMedicine(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            if (!selectedOption.value) return;
+            const row = select.closest('.extra-medicine-item');
+            const nameField = row.querySelector('.extra-medicine-name');
+            if (nameField && selectedOption.dataset.name) nameField.value = selectedOption.dataset.name;
+            const dosageField = row.querySelector('.extra-dosage');
+            if (dosageField && selectedOption.dataset.dosage) dosageField.value = selectedOption.dataset.dosage;
+            const qtyField = row.querySelector('.extra-quantity');
+            if (qtyField && selectedOption.dataset.quantity) qtyField.value = selectedOption.dataset.quantity;
+        }
 
         function toggleReassignFields(checkbox, enable) {
             const card = checkbox.closest('.reassign-card');
@@ -1629,14 +1848,26 @@
         }
 
         function updateReassignSubmitButton() {
-            const checked = document.querySelectorAll('.reassign-checkbox:checked').length;
+            const checkedExisting = document.querySelectorAll('.reassign-checkbox:checked').length;
+            const checkedNew = document.querySelectorAll('.reassign-new-checkbox:checked').length;
+
+            // Count extra medicines
+            let extraFilled = 0;
+            document.querySelectorAll('#reassignExtraMedicinesContainer .extra-medicine-item').forEach(item => {
+                const select = item.querySelector('.extra-medicine-select');
+                const nameField = item.querySelector('.extra-medicine-name');
+                if ((select && select.value) || (nameField && nameField.value.trim())) extraFilled++;
+            });
+
+            const total = checkedExisting + checkedNew + extraFilled;
+
             const selectedCountEl = document.getElementById('reassignSelectedCount');
             const submitCountEl = document.getElementById('reassignSubmitCount');
             const submitBtn = document.getElementById('reassignSubmitBtn');
 
-            if (selectedCountEl) selectedCountEl.textContent = `${checked} selected`;
-            if (submitCountEl) submitCountEl.textContent = checked;
-            if (submitBtn) submitBtn.disabled = checked === 0;
+            if (selectedCountEl) selectedCountEl.textContent = `${total} selected`;
+            if (submitCountEl) submitCountEl.textContent = total;
+            if (submitBtn) submitBtn.disabled = total === 0;
         }
 
         function updateReassignSelectAllState() {
