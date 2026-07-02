@@ -76,7 +76,7 @@ class InvoiceController extends Controller
         $company = [
             'name' => 'E-Bio-Cares',
             'address' => 'VPO PHOOLPUR 144026, NEAR LAMBRA JALANDHAR',
-            'gstin' => '03BHTPS6858P1Z4',
+            'gstin' => '03AAHCH1707P1ZJ',
             'pan' => 'BHTPS6858P',
             'contact' => '98720-01445, 98885-01445',
             'website' => 'www.ebiocares.in'
@@ -284,7 +284,7 @@ class InvoiceController extends Controller
             'cgst_amount' => round($cgstTotal, 2),
             'sgst_amount' => round($sgstTotal, 2),
             'total_amount' => round($grandTotal, 2),
-            'is_paid' => (bool) ($validated['is_paid'] ?? false), // ✅ Status update किया (Fix for "status update nhi ho rha")
+            'is_paid' => (bool) ($validated['is_paid'] ?? false), 
             'terms' => $validated['terms'] ?? null,
             'notes' => $validated['notes'] ?? null,
         ]);

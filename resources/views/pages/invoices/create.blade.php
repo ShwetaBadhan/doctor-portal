@@ -270,7 +270,7 @@
         </td>
 
         <td>
-            <input type="text" name="items[][hsn]" class="form-control" placeholder="HSN"
+            <input type="text" name="items[][hsn]" class="form-control" value="3004"
                 style="min-width: 100px; height: 42px; font-size: 14px;">
         </td>
 
