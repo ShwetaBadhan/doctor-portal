@@ -182,6 +182,7 @@
 
                 <div class="invoice-title">
                     <h2>TAX INVOICE</h2>
+                    <p><strong>GST NO.:</strong> 03BHTPS6858P1Z4</p>
                     <p><strong>No:</strong> {{ $invoice->invoice_number }}</p>
                     <p><strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d M Y') }}</p>
                 </div>
