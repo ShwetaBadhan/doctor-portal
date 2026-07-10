@@ -75,7 +75,6 @@
                                         $steps = [
                                             1 => ['icon' => 'ti ti-user', 'label' => 'Basic Info'],
                                             2 => ['icon' => 'ti ti-map-pin', 'label' => 'Address'],
-
                                             3 => ['icon' => 'ti ti-notes', 'label' => 'Symptoms'],
                                             4 => ['icon' => 'ti ti-pills', 'label' => 'Treatment'],
                                             5 => ['icon' => 'ti ti-file', 'label' => 'Documents'],
@@ -348,23 +347,20 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label mb-1 fw-medium">Pincode<span
-                                                    class="text-danger ms-1">*</span></label>
-                                            <input type="text"
-                                                class="form-control @error('pincode') is-invalid @enderror"
-                                                name="pincode" value="{{ old('pincode') }}" required>
-                                            @error('pincode')
-                                                <span class="invalid-feedback">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
+                                     <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label mb-1 fw-medium">Pincode</label>
+                    <input type="text"
+                        class="form-control @error('pincode') is-invalid @enderror"
+                        name="pincode" value="{{ old('pincode') }}">
+                    @error('pincode')
+                        <span class="invalid-feedback">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
                                 </div>
                             </div>
                         </div>
-
-
 
                         <!-- Step 4: Symptoms Assessment (Checkboxes) -->
                         <div class="card step-content" data-step="3">
@@ -393,7 +389,6 @@
                                             'Stool Trained',
                                             'Concentration',
                                         ],
-
                                         'ADHD' => [
                                             'ADHD',
                                             'Super Hyper',
@@ -415,7 +410,6 @@
                                             'Self Cry',
                                         ],
                                     ];
-
                                 @endphp
 
                                 <div class="row">
@@ -425,16 +419,13 @@
                                             <label class="form-label fw-medium text-primary">
                                                 <i class="ti ti-circle-check me-1"></i>Existing Symptoms
                                             </label>
-
                                             <div class="checkbox-grid border rounded p-3 bg-light"
                                                 style="max-height: 500px; overflow-y: auto;">
-
                                                 @foreach ($symptomsByCategory as $category => $symptoms)
                                                     <div class="mb-3">
                                                         <h6 class="fw-bold text-dark border-bottom pb-1">
                                                             {{ $category }}
                                                         </h6>
-
                                                         @foreach ($symptoms as $symptom)
                                                             <div class="form-check mb-1">
                                                                 <input class="form-check-input symptom-checkbox"
@@ -442,7 +433,6 @@
                                                                     value="{{ $symptom }}"
                                                                     id="exist_{{ str_replace(' ', '_', $symptom) }}"
                                                                     {{ in_array($symptom, old('existing_symptoms', [])) ? 'checked' : '' }}>
-
                                                                 <label class="form-check-label small"
                                                                     for="exist_{{ str_replace(' ', '_', $symptom) }}">
                                                                     {{ $symptom }}
@@ -451,7 +441,6 @@
                                                         @endforeach
                                                     </div>
                                                 @endforeach
-
                                             </div>
                                         </div>
                                     </div>
@@ -462,16 +451,13 @@
                                             <label class="form-label fw-medium text-danger">
                                                 <i class="ti ti-circle-x me-1"></i>Non-Existing Symptoms
                                             </label>
-
                                             <div class="checkbox-grid border rounded p-3 bg-light"
                                                 style="max-height: 500px; overflow-y: auto;">
-
                                                 @foreach ($symptomsByCategory as $category => $symptoms)
                                                     <div class="mb-3">
                                                         <h6 class="fw-bold text-dark border-bottom pb-1">
                                                             {{ $category }}
                                                         </h6>
-
                                                         @foreach ($symptoms as $symptom)
                                                             <div class="form-check mb-1">
                                                                 <input class="form-check-input symptom-checkbox"
@@ -479,7 +465,6 @@
                                                                     value="{{ $symptom }}"
                                                                     id="nonexist_{{ str_replace(' ', '_', $symptom) }}"
                                                                     {{ in_array($symptom, old('non_existing_symptoms', [])) ? 'checked' : '' }}>
-
                                                                 <label class="form-check-label small"
                                                                     for="nonexist_{{ str_replace(' ', '_', $symptom) }}">
                                                                     {{ $symptom }}
@@ -488,12 +473,10 @@
                                                         @endforeach
                                                     </div>
                                                 @endforeach
-
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
 
                                 <!-- C.P & Medical Notes -->
                                 <div class="row mt-4">
@@ -594,11 +577,8 @@
                                                 <span class="invalid-feedback d-block">{{ $message }}</span>
                                             @enderror
                                         </div>
-
                                         <!-- File Preview Area -->
-                                        <div id="file-preview" class="mt-3">
-                                            <!-- Preview items will be added here by JS -->
-                                        </div>
+                                        <div id="file-preview" class="mt-3"></div>
                                     </div>
                                 </div>
                             </div>
@@ -628,131 +608,28 @@
 
     <!-- Minimal CSS for Steps -->
     <style>
-        .progress-steps {
-            counter-reset: step;
-        }
-
-        .step-item {
-            position: relative;
-            z-index: 1;
-            flex: 1;
-        }
-
-        .step-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-            margin: 0 auto 4px;
-            transition: all 0.2s;
-        }
-
-        .step-item.active .step-icon {
-            background: #2E37A4 !important;
-            color: #fff !important;
-        }
-
-        .step-item.active small {
-            color: #2E37A4 !important;
-            font-weight: 500;
-        }
-
-        .progress-line {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #e9ecef;
-            z-index: 0;
-        }
-
-        .progress-line.active {
-            background: #2E37A4;
-        }
-
-        .step-content {
-            display: none;
-        }
-
-        .step-content.active {
-            display: block;
-        }
-
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px 12px;
-        }
-
-        .form-check-inline {
-            margin-right: 0;
-            margin-bottom: 2px;
-        }
-
-        /* File preview styles */
-        .file-preview-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            border: 1px solid #e9ecef;
-            border-radius: 6px;
-            background: #f8f9fa;
-            margin-bottom: 8px;
-        }
-
-        .file-preview-item .file-icon {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #e9ecef;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .file-preview-item .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-preview-item .file-name {
-            font-weight: 500;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
-
-        .file-preview-item .file-size {
-            font-size: 11px;
-            color: #6c757d;
-        }
-
-        .file-preview-item .file-remove {
-            color: #dc3545;
-            cursor: pointer;
-            padding: 4px;
-        }
-
+        .progress-steps { counter-reset: step; }
+        .step-item { position: relative; z-index: 1; flex: 1; }
+        .step-icon { width: 40px; height: 40px; font-size: 18px; margin: 0 auto 4px; transition: all 0.2s; }
+        .step-item.active .step-icon { background: #2E37A4 !important; color: #fff !important; }
+        .step-item.active small { color: #2E37A4 !important; font-weight: 500; }
+        .progress-line { position: absolute; top: 20px; left: 0; right: 0; height: 2px; background: #e9ecef; z-index: 0; }
+        .progress-line.active { background: #2E37A4; }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; }
+        .form-check-inline { margin-right: 0; margin-bottom: 2px; }
+        .file-preview-item { display: flex; align-items: center; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 6px; background: #f8f9fa; margin-bottom: 8px; }
+        .file-preview-item .file-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #e9ecef; border-radius: 4px; margin-right: 10px; }
+        .file-preview-item .file-info { flex: 1; min-width: 0; }
+        .file-preview-item .file-name { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        .file-preview-item .file-size { font-size: 11px; color: #6c757d; }
+        .file-preview-item .file-remove { color: #dc3545; cursor: pointer; padding: 4px; }
         @media (max-width: 768px) {
-            .checkbox-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .progress-steps {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .step-item {
-                flex: 0 0 30%;
-            }
-
-            .file-preview-item .file-name {
-                max-width: 150px;
-            }
+            .checkbox-grid { grid-template-columns: 1fr; }
+            .progress-steps { flex-wrap: wrap; gap: 8px; }
+            .step-item { flex: 0 0 30%; }
+            .file-preview-item .file-name { max-width: 150px; }
         }
     </style>
 
@@ -761,7 +638,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ✅ Variables
             let currentStep = 1;
             const totalSteps = 5;
             const steps = document.querySelectorAll('.step-content');
@@ -791,61 +667,43 @@
                     }
                 });
 
-                // Update hidden fields when country changes
                 function updateHiddenFields() {
                     if (iti) {
                         const countryData = iti.getSelectedCountryData();
                         document.getElementById('countryCode').value = '+' + countryData.dialCode;
                         document.getElementById('phoneCountryIso').value = countryData.iso2.toUpperCase();
-
-                        console.log('Selected Country:', countryData.iso2.toUpperCase(),
-                            '| Dial Code:', countryData.dialCode);
                     }
                 }
 
-                // When user manually changes flag
                 phoneInput.addEventListener('countrychange', function() {
                     updateHiddenFields();
-
                     const countryData = iti.getSelectedCountryData();
-                    const flagIcon = countryData.iso2.toUpperCase();
-
                     Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: `Country: ${countryData.name} (${flagIcon})`,
-                        showConfirmButton: false,
-                        timer: 1500,
-                        timerProgressBar: false
+                        toast: true, position: 'top-end', icon: 'info',
+                        title: `Country: ${countryData.name} (${countryData.iso2.toUpperCase()})`,
+                        showConfirmButton: false, timer: 1500
                     });
                 });
 
-                // Validate on blur
+                // ✅ Validate on blur (Removed hardcoded length check)
                 phoneInput.addEventListener('blur', function() {
                     const number = phoneInput.value.replace(/\D/g, '');
-
-                    if (number.length < 7) {
+                    if (number.length === 0) {
                         phoneInput.classList.add('is-invalid');
                         phoneInput.classList.remove('is-valid');
                     } else {
                         phoneInput.classList.remove('is-invalid');
                         phoneInput.classList.add('is-valid');
                     }
-
                     updateHiddenFields();
                 });
 
-                // Remove invalid class on input
                 phoneInput.addEventListener('input', function() {
                     this.value = this.value.replace(/\D/g, '');
                     phoneInput.classList.remove('is-invalid');
                 });
 
-                // Set initial values
-                setTimeout(() => {
-                    updateHiddenFields();
-                }, 100);
+                setTimeout(() => { updateHiddenFields(); }, 100);
             }
 
             // ✅ Form Submit Handler
@@ -854,18 +712,15 @@
                     if (iti && phoneInput) {
                         const number = phoneInput.value.replace(/\D/g, '');
                         const countryCode = document.getElementById('countryCode').value;
-
-                        // Combine country code + number for storage
                         const fullNumber = countryCode + number;
-                        phoneInput.value = fullNumber; // Save as +919876543210
+                        phoneInput.value = fullNumber;
 
-                        // Validation
-                        if (number.length < 10) {
+                        // ✅ Validation (Removed 10 digits limit, accepts any valid length)
+                        if (number.length === 0) {
                             e.preventDefault();
                             Swal.fire({
-                                icon: 'error',
-                                title: 'Invalid Number',
-                                text: 'Please enter a valid phone number (minimum 10 digits)',
+                                icon: 'error', title: 'Invalid Number',
+                                text: 'Please enter a valid phone number',
                                 confirmButtonColor: '#dc3545'
                             });
                             phoneInput.focus();
@@ -875,18 +730,11 @@
                 });
             }
 
-            // ✅ Step Navigation Functions
             function showStep(step) {
                 steps.forEach(s => s.classList.remove('active'));
                 document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
-
-                stepItems.forEach((item, idx) => {
-                    item.classList.toggle('active', idx + 1 <= step);
-                });
-                progressLines.forEach((line, idx) => {
-                    line.classList.toggle('active', idx + 1 < step);
-                });
-
+                stepItems.forEach((item, idx) => { item.classList.toggle('active', idx + 1 <= step); });
+                progressLines.forEach((line, idx) => { line.classList.toggle('active', idx + 1 < step); });
                 prevBtn.disabled = (step === 1);
                 if (step === totalSteps) {
                     nextBtn.classList.add('d-none');
@@ -904,7 +752,7 @@
                 let valid = true;
 
                 required.forEach(field => {
-                    if (field.id === 'phoneInput') return; // Phone validated separately
+                    if (field.id === 'phoneInput') return;
                     if (!field.value.trim()) {
                         valid = false;
                         field.classList.add('is-invalid');
@@ -913,10 +761,10 @@
                     }
                 });
 
-                // ✅ Validate phone with intl-tel-input
+                // ✅ Validate phone (Removed 10 digits limit)
                 if (step === 1 && iti && phoneInput) {
                     const number = phoneInput.value.replace(/\D/g, '');
-                    if (number.length < 10) {
+                    if (number.length === 0) {
                         phoneInput.classList.add('is-invalid');
                         valid = false;
                     } else {
@@ -928,25 +776,18 @@
 
             function updateSymptomCounts() {
                 const existCount = document.querySelectorAll('input[name="existing_symptoms[]"]:checked').length;
-                const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked')
-                    .length;
-
+                const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked').length;
                 const existCountEl = document.getElementById('existing-count');
                 const nonExistCountEl = document.getElementById('non-existing-count');
-
                 if (existCountEl) existCountEl.textContent = existCount;
                 if (nonExistCountEl) nonExistCountEl.textContent = nonExistCount;
             }
 
-            // ✅ File Preview Functions
             function getFileIcon(ext) {
                 const icons = {
-                    'pdf': 'ti ti-file-text text-danger',
-                    'jpg': 'ti ti-photo text-primary',
-                    'jpeg': 'ti ti-photo text-primary',
-                    'png': 'ti ti-photo text-primary',
-                    'doc': 'ti ti-file-text text-info',
-                    'docx': 'ti ti-file-text text-info',
+                    'pdf': 'ti ti-file-text text-danger', 'jpg': 'ti ti-photo text-primary',
+                    'jpeg': 'ti ti-photo text-primary', 'png': 'ti ti-photo text-primary',
+                    'doc': 'ti ti-file-text text-info', 'docx': 'ti ti-file-text text-info',
                 };
                 return icons[ext.toLowerCase()] || 'ti ti-file text-muted';
             }
@@ -968,18 +809,17 @@
                     const item = document.createElement('div');
                     item.className = 'file-preview-item';
                     item.innerHTML = `
-                <div class="file-icon"><i class="${iconClass} fs-14"></i></div>
-                <div class="file-info">
-                    <div class="file-name" title="${file.name}">${file.name}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
-                </div>
-                <div class="file-remove" data-index="${index}"><i class="ti ti-x fs-14"></i></div>
-            `;
+                        <div class="file-icon"><i class="${iconClass} fs-14"></i></div>
+                        <div class="file-info">
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <div class="file-remove" data-index="${index}"><i class="ti ti-x fs-14"></i></div>
+                    `;
                     filePreview.appendChild(item);
                 });
             }
 
-            // ✅ File Remove Handler
             if (filePreview) {
                 filePreview.addEventListener('click', function(e) {
                     const removeBtn = e.target.closest('.file-remove');
@@ -997,22 +837,15 @@
             }
 
             if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    updateFilePreview(e.target.files);
-                });
+                fileInput.addEventListener('change', function(e) { updateFilePreview(e.target.files); });
             }
 
-            // ✅ Navigation Buttons
             nextBtn.addEventListener('click', () => {
                 if (validateStep(currentStep)) {
-                    if (currentStep < totalSteps) {
-                        currentStep++;
-                        showStep(currentStep);
-                    }
+                    if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
                 } else {
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Incomplete Form',
+                        icon: 'warning', title: 'Incomplete Form',
                         text: 'Please fill all required fields in this step.',
                         confirmButtonColor: '#2E37A4'
                     });
@@ -1020,22 +853,14 @@
             });
 
             prevBtn.addEventListener('click', () => {
-                if (currentStep > 1) {
-                    currentStep--;
-                    showStep(currentStep);
-                }
+                if (currentStep > 1) { currentStep--; showStep(currentStep); }
             });
 
             resetBtn.addEventListener('click', () => {
                 Swal.fire({
-                    title: 'Reset Form?',
-                    text: 'All entered data will be cleared.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, reset',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#ffc107',
-                    cancelButtonColor: '#6c757d'
+                    title: 'Reset Form?', text: 'All entered data will be cleared.',
+                    icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, reset',
+                    cancelButtonText: 'Cancel', confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.reset();
@@ -1043,40 +868,27 @@
                         currentStep = 1;
                         showStep(1);
                         if (filePreview) filePreview.innerHTML = '';
-                        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove(
-                            'is-invalid'));
-
-                        // Re-initialize intl-tel-input after reset
+                        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
                         if (phoneInput) {
                             iti = window.intlTelInput(phoneInput, {
-                                initialCountry: "in",
-                                nationalMode: true,
-                                autoHideDialCode: true,
+                                initialCountry: "in", nationalMode: true, autoHideDialCode: true,
                                 separateDialCode: false,
                                 utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
                                 preferredCountries: ['in', 'us', 'gb', 'ae', 'ca', 'au'],
                             });
                         }
-
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Reset!',
-                            text: 'Form has been cleared.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 2000
+                            icon: 'success', title: 'Reset!', text: 'Form has been cleared.',
+                            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
                         });
                     }
                 });
             });
 
-            // ✅ Symptom Checkboxes
             document.querySelectorAll('.symptom-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateSymptomCounts);
             });
 
-            // ✅ Initialize first step
             showStep(1);
         });
     </script>

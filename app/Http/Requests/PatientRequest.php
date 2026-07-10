@@ -35,7 +35,7 @@ class PatientRequest extends FormRequest
             'country' => 'required|string',
             'state' => 'required|string',
             'city' => 'required|string',
-            'pincode' => 'required|string|max:20',
+           'pincode' => 'nullable|string|max:20', 
             
          
             

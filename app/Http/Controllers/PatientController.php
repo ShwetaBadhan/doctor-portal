@@ -131,7 +131,6 @@ class PatientController extends Controller
                 return;
             }
 
-            // Phone number format karo
             $phone = preg_replace('/[^0-9]/', '', $patient->phone);
             $countryCode = '91';
             
