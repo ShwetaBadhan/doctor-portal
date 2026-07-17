@@ -347,17 +347,17 @@
                                             @enderror
                                         </div>
                                     </div>
-                                     <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label mb-1 fw-medium">Pincode</label>
-                    <input type="text"
-                        class="form-control @error('pincode') is-invalid @enderror"
-                        name="pincode" value="{{ old('pincode') }}">
-                    @error('pincode')
-                        <span class="invalid-feedback">{{ $message }}</span>
-                    @enderror
-                </div>
-            </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label mb-1 fw-medium">Pincode</label>
+                                            <input type="text"
+                                                class="form-control @error('pincode') is-invalid @enderror"
+                                                name="pincode" value="{{ old('pincode') }}">
+                                            @error('pincode')
+                                                <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -527,6 +527,32 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Additional Symptoms Section -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card border bg-light">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-2">
+                                                <i class="ti ti-plus me-1 text-primary"></i> Additional Symptoms
+                                            </h6>
+                                            <p class="text-muted small mb-3">
+                                                Type any symptoms not listed above and press <strong>Enter</strong> or click
+                                                <strong>Add</strong>.
+                                            </p>
+                                            <div class="d-flex gap-2 mb-3">
+                                                <input type="text" id="customSymptomInput" class="form-control"
+                                                    placeholder="e.g., Frequent headaches, Dizziness, Nausea...">
+                                                <button type="button" class="btn btn-primary" id="addCustomSymptomBtn">
+                                                    <i class="ti ti-plus me-1"></i> Add
+                                                </button>
+                                            </div>
+                                            <div id="customSymptomsContainer" class="d-flex flex-wrap gap-2">
+                                                <!-- Added symptoms will appear here as badges -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Step 5: Treatment -->
@@ -608,28 +634,130 @@
 
     <!-- Minimal CSS for Steps -->
     <style>
-        .progress-steps { counter-reset: step; }
-        .step-item { position: relative; z-index: 1; flex: 1; }
-        .step-icon { width: 40px; height: 40px; font-size: 18px; margin: 0 auto 4px; transition: all 0.2s; }
-        .step-item.active .step-icon { background: #2E37A4 !important; color: #fff !important; }
-        .step-item.active small { color: #2E37A4 !important; font-weight: 500; }
-        .progress-line { position: absolute; top: 20px; left: 0; right: 0; height: 2px; background: #e9ecef; z-index: 0; }
-        .progress-line.active { background: #2E37A4; }
-        .step-content { display: none; }
-        .step-content.active { display: block; }
-        .checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; }
-        .form-check-inline { margin-right: 0; margin-bottom: 2px; }
-        .file-preview-item { display: flex; align-items: center; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 6px; background: #f8f9fa; margin-bottom: 8px; }
-        .file-preview-item .file-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #e9ecef; border-radius: 4px; margin-right: 10px; }
-        .file-preview-item .file-info { flex: 1; min-width: 0; }
-        .file-preview-item .file-name { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-        .file-preview-item .file-size { font-size: 11px; color: #6c757d; }
-        .file-preview-item .file-remove { color: #dc3545; cursor: pointer; padding: 4px; }
+        .progress-steps {
+            counter-reset: step;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            margin: 0 auto 4px;
+            transition: all 0.2s;
+        }
+
+        .step-item.active .step-icon {
+            background: #2E37A4 !important;
+            color: #fff !important;
+        }
+
+        .step-item.active small {
+            color: #2E37A4 !important;
+            font-weight: 500;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 0;
+        }
+
+        .progress-line.active {
+            background: #2E37A4;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px 12px;
+        }
+
+        .form-check-inline {
+            margin-right: 0;
+            margin-bottom: 2px;
+        }
+
+        .file-preview-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+        }
+
+        .file-preview-item .file-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .file-preview-item .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-preview-item .file-name {
+            font-weight: 500;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .file-preview-item .file-size {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .file-preview-item .file-remove {
+            color: #dc3545;
+            cursor: pointer;
+            padding: 4px;
+        }
+
         @media (max-width: 768px) {
-            .checkbox-grid { grid-template-columns: 1fr; }
-            .progress-steps { flex-wrap: wrap; gap: 8px; }
-            .step-item { flex: 0 0 30%; }
-            .file-preview-item .file-name { max-width: 150px; }
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-steps {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .step-item {
+                flex: 0 0 30%;
+            }
+
+            .file-preview-item .file-name {
+                max-width: 150px;
+            }
         }
     </style>
 
@@ -679,9 +807,12 @@
                     updateHiddenFields();
                     const countryData = iti.getSelectedCountryData();
                     Swal.fire({
-                        toast: true, position: 'top-end', icon: 'info',
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
                         title: `Country: ${countryData.name} (${countryData.iso2.toUpperCase()})`,
-                        showConfirmButton: false, timer: 1500
+                        showConfirmButton: false,
+                        timer: 1500
                     });
                 });
 
@@ -703,7 +834,9 @@
                     phoneInput.classList.remove('is-invalid');
                 });
 
-                setTimeout(() => { updateHiddenFields(); }, 100);
+                setTimeout(() => {
+                    updateHiddenFields();
+                }, 100);
             }
 
             // ✅ Form Submit Handler
@@ -719,7 +852,8 @@
                         if (number.length === 0) {
                             e.preventDefault();
                             Swal.fire({
-                                icon: 'error', title: 'Invalid Number',
+                                icon: 'error',
+                                title: 'Invalid Number',
                                 text: 'Please enter a valid phone number',
                                 confirmButtonColor: '#dc3545'
                             });
@@ -733,8 +867,12 @@
             function showStep(step) {
                 steps.forEach(s => s.classList.remove('active'));
                 document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
-                stepItems.forEach((item, idx) => { item.classList.toggle('active', idx + 1 <= step); });
-                progressLines.forEach((line, idx) => { line.classList.toggle('active', idx + 1 < step); });
+                stepItems.forEach((item, idx) => {
+                    item.classList.toggle('active', idx + 1 <= step);
+                });
+                progressLines.forEach((line, idx) => {
+                    line.classList.toggle('active', idx + 1 < step);
+                });
                 prevBtn.disabled = (step === 1);
                 if (step === totalSteps) {
                     nextBtn.classList.add('d-none');
@@ -776,7 +914,8 @@
 
             function updateSymptomCounts() {
                 const existCount = document.querySelectorAll('input[name="existing_symptoms[]"]:checked').length;
-                const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked').length;
+                const nonExistCount = document.querySelectorAll('input[name="non_existing_symptoms[]"]:checked')
+                    .length;
                 const existCountEl = document.getElementById('existing-count');
                 const nonExistCountEl = document.getElementById('non-existing-count');
                 if (existCountEl) existCountEl.textContent = existCount;
@@ -785,9 +924,12 @@
 
             function getFileIcon(ext) {
                 const icons = {
-                    'pdf': 'ti ti-file-text text-danger', 'jpg': 'ti ti-photo text-primary',
-                    'jpeg': 'ti ti-photo text-primary', 'png': 'ti ti-photo text-primary',
-                    'doc': 'ti ti-file-text text-info', 'docx': 'ti ti-file-text text-info',
+                    'pdf': 'ti ti-file-text text-danger',
+                    'jpg': 'ti ti-photo text-primary',
+                    'jpeg': 'ti ti-photo text-primary',
+                    'png': 'ti ti-photo text-primary',
+                    'doc': 'ti ti-file-text text-info',
+                    'docx': 'ti ti-file-text text-info',
                 };
                 return icons[ext.toLowerCase()] || 'ti ti-file text-muted';
             }
@@ -837,15 +979,21 @@
             }
 
             if (fileInput) {
-                fileInput.addEventListener('change', function(e) { updateFilePreview(e.target.files); });
+                fileInput.addEventListener('change', function(e) {
+                    updateFilePreview(e.target.files);
+                });
             }
 
             nextBtn.addEventListener('click', () => {
                 if (validateStep(currentStep)) {
-                    if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        showStep(currentStep);
+                    }
                 } else {
                     Swal.fire({
-                        icon: 'warning', title: 'Incomplete Form',
+                        icon: 'warning',
+                        title: 'Incomplete Form',
                         text: 'Please fill all required fields in this step.',
                         confirmButtonColor: '#2E37A4'
                     });
@@ -853,14 +1001,22 @@
             });
 
             prevBtn.addEventListener('click', () => {
-                if (currentStep > 1) { currentStep--; showStep(currentStep); }
+                if (currentStep > 1) {
+                    currentStep--;
+                    showStep(currentStep);
+                }
             });
 
             resetBtn.addEventListener('click', () => {
                 Swal.fire({
-                    title: 'Reset Form?', text: 'All entered data will be cleared.',
-                    icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, reset',
-                    cancelButtonText: 'Cancel', confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d'
+                    title: 'Reset Form?',
+                    text: 'All entered data will be cleared.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, reset',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#ffc107',
+                    cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.reset();
@@ -868,18 +1024,26 @@
                         currentStep = 1;
                         showStep(1);
                         if (filePreview) filePreview.innerHTML = '';
-                        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove(
+                            'is-invalid'));
                         if (phoneInput) {
                             iti = window.intlTelInput(phoneInput, {
-                                initialCountry: "in", nationalMode: true, autoHideDialCode: true,
+                                initialCountry: "in",
+                                nationalMode: true,
+                                autoHideDialCode: true,
                                 separateDialCode: false,
                                 utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
                                 preferredCountries: ['in', 'us', 'gb', 'ae', 'ca', 'au'],
                             });
                         }
                         Swal.fire({
-                            icon: 'success', title: 'Reset!', text: 'Form has been cleared.',
-                            toast: true, position: 'top-end', showConfirmButton: false, timer: 2000
+                            icon: 'success',
+                            title: 'Reset!',
+                            text: 'Form has been cleared.',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000
                         });
                     }
                 });
@@ -890,6 +1054,105 @@
             });
 
             showStep(1);
+        });
+    </script>
+    <script>
+        // ==========================================
+        // Additional Symptoms Logic
+        // ==========================================
+        let additionalSymptoms = [];
+
+        // Load old input if validation failed and page was redirected back
+        @if (old('additional_symptoms'))
+            try {
+                const oldData = @json(old('additional_symptoms'));
+                if (Array.isArray(oldData)) {
+                    additionalSymptoms = oldData;
+                } else if (typeof oldData === 'string') {
+                    additionalSymptoms = JSON.parse(oldData);
+                }
+            } catch (e) {
+                console.error('Error parsing old additional symptoms', e);
+            }
+        @endif
+
+        function renderAdditionalSymptoms() {
+            const container = document.getElementById('customSymptomsContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            additionalSymptoms.forEach((symptom, index) => {
+                // Create badge
+                const badge = document.createElement('span');
+                badge.className =
+                    'badge bg-primary bg-opacity-10 text-primary border border-primary d-flex align-items-center gap-2 p-2';
+                badge.innerHTML = `
+            ${symptom}
+            <button type="button" class="btn-close btn-close-sm text-primary" 
+                    style="font-size: 10px;" 
+                    aria-label="Remove" 
+                    onclick="removeAdditionalSymptom(${index})"></button>
+        `;
+                container.appendChild(badge);
+
+                // Create hidden input for form submission (Laravel will receive this as an array)
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'additional_symptoms[]';
+                hiddenInput.value = symptom;
+                container.appendChild(hiddenInput);
+            });
+        }
+
+        function addAdditionalSymptom() {
+            const input = document.getElementById('customSymptomInput');
+            if (!input) return;
+
+            const value = input.value.trim();
+            if (value && !additionalSymptoms.includes(value)) {
+                additionalSymptoms.push(value);
+                renderAdditionalSymptoms();
+                input.value = '';
+                input.focus();
+            } else if (additionalSymptoms.includes(value)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Already Added',
+                    text: 'This symptom is already in the list.',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        // Make function globally accessible for the onclick attribute
+        window.removeAdditionalSymptom = function(index) {
+            additionalSymptoms.splice(index, 1);
+            renderAdditionalSymptoms();
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAdditionalSymptoms();
+
+            const addBtn = document.getElementById('addCustomSymptomBtn');
+            const customInput = document.getElementById('customSymptomInput');
+
+            if (addBtn) {
+                addBtn.addEventListener('click', addAdditionalSymptom);
+            }
+
+            if (customInput) {
+                customInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addAdditionalSymptom();
+                    }
+                });
+            }
         });
     </script>
 @endsection

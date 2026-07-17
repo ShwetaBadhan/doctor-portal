@@ -21,7 +21,6 @@
         body {
             width: 210mm;
             min-height: 297mm;
-            /* fixed height hata do */
             margin: 0;
             padding: 0;
             font-family: DejaVu Sans, sans-serif;
@@ -29,7 +28,6 @@
             color: #000;
             overflow-x: hidden;
             overflow-y: auto;
-            /* scroll enable */
             background: transparent;
         }
 
@@ -38,18 +36,15 @@
         }
 
         /* =========================
-   LETTERHEAD BACKGROUND
-========================= */
+           LETTERHEAD BACKGROUND
+        ========================== */
         .letterhead-bg {
             position: absolute;
-            /* ✅ Changed from fixed to absolute */
             top: 0;
             left: 0;
             width: 210mm;
             min-height: 100%;
-            /* ✅ Changed from fixed height to min-height */
             z-index: -1;
-
         }
 
         .letterhead-bg img {
@@ -61,7 +56,6 @@
         /* =========================
            CONTENT
         ========================== */
-
         .content {
             position: relative;
             z-index: 2;
@@ -71,7 +65,6 @@
         /* =========================
            TABLES
         ========================== */
-
         .patient-info-table,
         .vitals-table,
         .symptoms-grid {
@@ -109,7 +102,6 @@
         /* =========================
            SECTION
         ========================== */
-
         .section {
             background: rgba(255, 255, 255, 0.96);
             padding: 10px;
@@ -128,7 +120,6 @@
         /* =========================
            SYMPTOMS
         ========================== */
-
         .symptoms-grid td {
             width: 33.33%;
             vertical-align: top;
@@ -146,7 +137,6 @@
         /* =========================
            MEDICINES
         ========================== */
-
         .medicine-list {
             padding-left: 18px;
             font-size: 11px;
@@ -173,7 +163,6 @@
         /* =========================
            SIGNATURE
         ========================== */
-
         .signature {
             margin-top: 35px;
             text-align: right;
@@ -185,7 +174,6 @@
         /* =========================
            PREVIEW TOOLBAR
         ========================== */
-
         .preview-toolbar {
             position: fixed;
             top: 0;
@@ -236,7 +224,6 @@
         /* =========================
            PRINT
         ========================== */
-
         @media print {
 
             html,
@@ -255,9 +242,8 @@
         }
 
         /* =========================
-   DIAGNOSIS TABLE STYLE
-========================= */
-
+           DIAGNOSIS TABLE STYLE
+        ========================== */
         .diagnosis-layout {
             padding: 0;
             background: transparent;
@@ -326,25 +312,13 @@
     {{-- PREVIEW TOOLBAR --}}
     @if (isset($isPreview) && $isPreview)
         <div class="preview-toolbar">
-
             <div class="title">
                 Diagnosis Report Preview - {{ $patient->patient_id }}
             </div>
-
             <div class="buttons">
-
-                <button onclick="window.history.back()" class="back">
-                    Back
-                </button>
-
-
-
-                <a href="{{ route('diagnosis-report.download', $patient->id) }}" class="download">
-                    Download PDF
-                </a>
-
+                <button onclick="window.history.back()" class="back">Back</button>
+                <a href="{{ route('diagnosis-report.download', $patient->id) }}" class="download">Download PDF</a>
             </div>
-
         </div>
     @endif
 
@@ -360,36 +334,28 @@
 
         {{-- PATIENT INFO --}}
         <table class="patient-info-table">
-
             <tr>
                 <td class="label">Patient Name</td>
                 <td>{{ strtoupper($patient->first_name . ' ' . $patient->last_name) }}</td>
-
                 <td class="label">Patient ID</td>
                 <td>{{ $patient->patient_id }}</td>
             </tr>
-
             <tr>
                 <td class="label">Age</td>
                 <td>{{ $patient->age ?? '-' }}</td>
-
                 <td class="label">Gender</td>
                 <td>{{ $patient->gender ?? '-' }}</td>
             </tr>
-
             <tr>
                 <td class="label">Date</td>
                 <td>{{ $reportDate ? date('d-m-Y', strtotime($reportDate)) : now()->format('d-m-Y') }}</td>
-
                 <td class="label">Weight</td>
                 <td>{{ $patient->weight ? $patient->weight . ' KG' : '-' }}</td>
             </tr>
-
         </table>
 
         {{-- VITALS --}}
         <table class="vitals-table">
-
             <thead>
                 <tr>
                     <th>Delusion</th>
@@ -403,7 +369,6 @@
                     <th>Nails</th>
                 </tr>
             </thead>
-
             <tbody>
                 <tr>
                     <td>{{ $appointment->delusion ?? ($patient->delusion ?? '-') }}</td>
@@ -417,69 +382,54 @@
                     <td>{{ $appointment->nails ?? ($patient->nails ?? '-') }}</td>
                 </tr>
             </tbody>
-
         </table>
 
         {{-- DIAGNOSIS --}}
         <div class="section">
-
-            <div class="section-title">
-                Diagnosis
-            </div>
-
+            <div class="section-title">Diagnosis</div>
             <div>
                 {{ $patient->medical_notes ?? 'AUTISM, ADHD, SPEECH DISORDER' }}
             </div>
-
         </div>
 
         {{-- SYMPTOMS + MEDICINE LAYOUT --}}
         <div class="section diagnosis-layout">
-
             <table class="diagnosis-table">
-
                 <tr>
-                    {{-- EXISTING SYMPTOMS --}}
+                    {{-- EXISTING SYMPTOMS (Now includes Additional Symptoms) --}}
                     <td class="symptom-col">
+                        <div class="table-heading">Existing Symptoms</div>
 
-                        <div class="table-heading">
-                            Existing Symptoms
-                        </div>
+                        @php
+                            // ✅ Merge predefined existing symptoms with custom additional symptoms
+                            $existing = is_array($existingSymptoms) ? $existingSymptoms : [];
+                            $additional = is_array($patient->additional_symptoms) ? $patient->additional_symptoms : [];
+                            $allExistingSymptoms = array_unique(array_merge($existing, $additional));
+                        @endphp
 
                         <ul class="symptom-list">
-                            @foreach ($existingSymptoms ?? [] as $sym)
+                            @foreach ($allExistingSymptoms as $sym)
                                 <li>{{ $sym }}</li>
                             @endforeach
                         </ul>
-
                     </td>
-
-
 
                     {{-- MEDICINES --}}
                     <td class="medicine-col">
-
-                        <div class="table-heading">
-                            Medicine
-                        </div>
-
+                        <div class="table-heading">Medicine</div>
                         <ol class="medicine-list-new">
-
                             @foreach ($medicines as $index => $med)
                                 <li>
                                     <strong>
-                                        {{-- ✅ Show custom_name if exists, otherwise show original medicine name --}}
                                         {{ $med['custom_name'] ?? ($med['name'] ?? ($med->custom_name ?? ($med->name ?? '-'))) }}
                                     </strong>
 
                                     @if (!empty($med['dosage']) || !empty($med->dosage))
-                                        —
-                                        {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
+                                        — {{ $med['dosage'] ?? ($med->dosage ?? '-') }}
                                     @endif
 
                                     @if (!empty($med['quantity']) || !empty($med->quantity))
-                                        →
-                                        {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
+                                        → {{ $med['quantity'] ?? ($med->quantity ?? '-') }}
                                     @endif
 
                                     @if (!empty($med['instructions']) || !empty($med->instructions))
@@ -490,13 +440,9 @@
                                 </li>
                             @endforeach
                         </ol>
-
                     </td>
-
                 </tr>
-
             </table>
-
         </div>
 
         {{-- SIGNATURE --}}

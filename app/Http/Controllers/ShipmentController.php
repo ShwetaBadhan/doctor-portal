@@ -138,14 +138,33 @@ class ShipmentController extends Controller
             'recipient_city' => 'required|string|max:100',
             'recipient_state' => 'required|string|max:100',
             'recipient_pincode' => 'required|string|max:10',
+            'recipient_country' => 'required|string|max:100',
             'courier_name' => 'nullable|string|max:100',
             'tracking_number' => 'nullable|string|max:100|unique:shipments,tracking_number,' . $shipment->id,
             'items' => 'required|array|min:1',
+            'items.*.name' => 'required|string|max:255',
+            'items.*.quantity' => 'required|numeric|min:1',
             'remarks' => 'nullable|string|max:1000',
-            'recipient_country' => 'required|string|max:100',
+
+            // ✅ ADDED: Status validation
+            'status' => 'required|in:pending,packed,dispatched,delivered,cancelled',
         ]);
 
-        $shipment->update($validated);
+        // Prepare data for update
+        $updateData = $validated;
+
+        // ✅ Auto-set timestamps based on status (same logic as your quick update)
+        if ($validated['status'] === 'packed' && !$shipment->packed_at) {
+            $updateData['packed_at'] = now();
+        }
+        if ($validated['status'] === 'dispatched' && !$shipment->dispatched_at) {
+            $updateData['dispatched_at'] = now();
+        }
+        if ($validated['status'] === 'delivered' && !$shipment->delivered_at) {
+            $updateData['delivered_at'] = now();
+        }
+
+        $shipment->update($updateData);
 
         return redirect()->route('shipments.show', $shipment)
             ->with('success', 'Shipment updated successfully!');

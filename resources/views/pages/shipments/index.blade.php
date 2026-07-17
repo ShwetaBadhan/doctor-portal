@@ -118,10 +118,22 @@
                                         <br><small class="text-muted">Inv: {{ $shipment->invoice->invoice_number }}</small>
                                     @endif
                                 </td>
+                                
+                                {{-- ✅ UPDATED: Clickable Patient Name --}}
                                 <td>
-                                    <div class="fw-medium">{{ $shipment->recipient_name }}</div>
-                                    <small class="text-muted">{{ $shipment->recipient_phone }}</small>
+                                    @if($shipment->patient_id)
+                                        <a href="{{ route('patients.show', $shipment->patient_id) }}" 
+                                           class="fw-medium text-primary text-decoration-none hover-underline" 
+                                           title="View Patient Details">
+                                            {{ $shipment->recipient_name }}
+                                            <i class="ti ti-external-link fs-12 ms-1"></i>
+                                        </a>
+                                    @else
+                                        <div class="fw-medium">{{ $shipment->recipient_name }}</div>
+                                    @endif
+                                    <small class="text-muted d-block">{{ $shipment->recipient_phone }}</small>
                                 </td>
+                                
                                 <td>
                                     {{ $shipment->recipient_city }}, {{ $shipment->recipient_state }}
                                     <br><small class="text-muted">{{ $shipment->recipient_country ?? 'India' }}</small>
@@ -148,7 +160,6 @@
                                                 <i class="ti ti-edit"></i>
                                             </a>
                                         @endcan
-                                      
                                     </div>
                                 </td>
                             </tr>
@@ -168,8 +179,6 @@
                         </tbody>
                     </table>
                 </div>
-
-               
             </div>
         </div>
     </div>
@@ -199,4 +208,11 @@ function updateStatus(shipmentId, newStatus) {
     });
 }
 </script>
+
+<style>
+/* Optional: Adds a nice underline effect on hover for the patient name */
+.hover-underline:hover {
+    text-decoration: underline !important;
+}
+</style>
 @endsection

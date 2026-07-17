@@ -11,47 +11,52 @@ class Patient extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'patient_id',
-        'first_name',
-        'last_name',
-        'phone',
-        'email',
-        'dob',
-        'gender',
-        'blood_group',
-        'age',
-        'primary_doctor',
-        'status',
-        'address_1',
-        'address_2',
-        'country',
-        'state',
-        'city',
-        'pincode',
-        'existing_symptoms',
-        'non_existing_symptoms',
-        'cp',
-        'cp_movement',
-        'medical_notes',
-        'medicine',
-        'therapy_history',
-        'remarks',
-        'profile_image',
-        'test_reports',
-        'care_of_relation',
-        'care_of_name',
-        'phone_country_iso',
-    ];
+    // app/Models/Patient.php
 
-    protected $casts = [
-        'dob' => 'date',
-        'existing_symptoms' => 'array',
-        'non_existing_symptoms' => 'array',
-        'cp_movement' => 'array',
-        'test_reports' => 'array',
-    ];
+// app/Models/Patient.php
 
+protected $fillable = [
+    'patient_id',
+    'first_name',
+    'last_name',
+    'phone',
+    'email',
+    'dob',
+    'gender',
+    'blood_group',
+    'age',
+    'primary_doctor',
+    'status',
+    'address_1',
+    'address_2',
+    'country',
+    'state',
+    'city',
+    'pincode',
+    'existing_symptoms',
+    'non_existing_symptoms',
+    'additional_symptoms', // ✅ ADD THIS LINE
+    'cp',
+    'cp_movement',
+    'medical_notes',
+    'medicine',
+    'therapy_history',
+    'remarks',
+    'profile_image',
+    'test_reports',
+    'care_of_relation',
+    'care_of_name',
+    'phone_country_iso',
+];
+
+protected $casts = [
+    'dob' => 'date',
+    'existing_symptoms' => 'array',
+    'non_existing_symptoms' => 'array',
+    'additional_symptoms' => 'array', // ✅ ADD THIS LINE (Laravel will handle JSON automatically)
+    'cp_movement' => 'array',
+    'test_reports' => 'array',
+];
     /**
      * ✅ NEW: Generate unique patient ID with all initials + country code + serial number
      * Example: Shweta Badhan, Care of: Ramesh, Jalandhar, Punjab, India → SBRJPIN4501

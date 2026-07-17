@@ -52,7 +52,7 @@ class PatientController extends Controller
         return view('pages.patients.create-patients', compact('symptoms', 'diagnoses'));
     }
 
-   public function store(PatientRequest $request)
+    public function store(PatientRequest $request)
     {
         $data = $request->validated();
 
@@ -72,20 +72,20 @@ class PatientController extends Controller
         $data['phone_country_iso'] = $countryIso;
         $data['age'] = Patient::calculateAge($data['dob']);
 
-        // ✅ Handle symptom arrays
-        $symptomFields = [
-            'existing_autism', 'existing_adhd', 'existing_cp',
-            'non_existing_autism', 'non_existing_adhd', 'non_existing_cp',
-            'additional_symptoms'
-        ];
+       // ✅ Handle symptom arrays
+$symptomFields = [
+    'existing_autism', 'existing_adhd', 'existing_cp',
+    'non_existing_autism', 'non_existing_adhd', 'non_existing_cp',
+    // ✅ REMOVED 'additional_symptoms' from here
+];
 
-        foreach ($symptomFields as $field) {
-            if (isset($data[$field]) && is_array($data[$field])) {
-                $data[$field] = json_encode(array_values($data[$field]));
-            } else {
-                $data[$field] = json_encode([]);
-            }
-        }
+foreach ($symptomFields as $field) {
+    if (isset($data[$field]) && is_array($data[$field])) {
+        $data[$field] = json_encode(array_values($data[$field]));
+    } else {
+        $data[$field] = json_encode([]);
+    }
+}
 
         // Handle Profile Image
         if ($request->hasFile('profile_image')) {
@@ -104,7 +104,7 @@ class PatientController extends Controller
 
         $patient = Patient::create($data);
 
-      
+
         if (!empty($patient->phone)) {
             $this->sendAutoWelcomeWhatsApp($patient);
         }
@@ -133,7 +133,7 @@ class PatientController extends Controller
 
             $phone = preg_replace('/[^0-9]/', '', $patient->phone);
             $countryCode = '91';
-            
+
             if (strlen($phone) > 10) {
                 $countryCode = substr($phone, 0, 2);
                 $phone = substr($phone, 2);
@@ -174,9 +174,8 @@ class PatientController extends Controller
                 'status_code' => $response->status(),
                 'response' => $response->json() ?? $response->body()
             ]);
-
         } catch (\Exception $e) {
-         
+
             Log::error('Auto Welcome WhatsApp Failed', [
                 'patient_id' => $patient->id,
                 'error' => $e->getMessage()
@@ -294,25 +293,24 @@ class PatientController extends Controller
         // Recalculate Age
         $data['age'] = Patient::calculateAge($data['dob']);
 
-        // ✅ Handle NEW symptom arrays (store as JSON)
-        $symptomFields = [
-            'existing_autism',
-            'existing_adhd',
-            'existing_cp',
-            'non_existing_autism',
-            'non_existing_adhd',
-            'non_existing_cp',
-            'additional_symptoms'
-        ];
+       // ✅ Handle NEW symptom arrays (store as JSON)
+$symptomFields = [
+    'existing_autism',
+    'existing_adhd',
+    'existing_cp',
+    'non_existing_autism',
+    'non_existing_adhd',
+    'non_existing_cp',
+    // ✅ REMOVED 'additional_symptoms' from here
+];
 
-        foreach ($symptomFields as $field) {
-            if (isset($data[$field]) && is_array($data[$field])) {
-                $data[$field] = json_encode(array_values($data[$field]));
-            } elseif (!isset($data[$field])) {
-                // If field not sent (unchecked all), save empty array
-                $data[$field] = json_encode([]);
-            }
-        }
+foreach ($symptomFields as $field) {
+    if (isset($data[$field]) && is_array($data[$field])) {
+        $data[$field] = json_encode(array_values($data[$field]));
+    } elseif (!isset($data[$field])) {
+        $data[$field] = json_encode([]);
+    }
+}
 
         // Handle Profile Image
         if ($request->hasFile('profile_image')) {
@@ -576,76 +574,76 @@ class PatientController extends Controller
     /**
      * Send welcome letter via email with Letterhead Background
      */
-   public function sendWelcomeEmail(Request $request, Patient $patient)
-{
-    if (empty($patient->email)) {
-        return redirect()->back()->with('error', 'Patient does not have an email address.');
-    }
-
-    try {
-        $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
-        $letterheadBase64 = '';
-        $imageType = 'jpeg';
-
-        // ✅ Safer file reading with permission check
-        if (file_exists($letterheadPath) && is_readable($letterheadPath)) {
-            $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
-            $fileContent = file_get_contents($letterheadPath);
-            if ($fileContent !== false) {
-                $letterheadBase64 = base64_encode($fileContent);
-            } else {
-                Log::warning('Failed to read letterhead image content', ['path' => $letterheadPath]);
-            }
-        } else {
-            Log::warning('Letterhead image not found or not readable', ['path' => $letterheadPath]);
+    public function sendWelcomeEmail(Request $request, Patient $patient)
+    {
+        if (empty($patient->email)) {
+            return redirect()->back()->with('error', 'Patient does not have an email address.');
         }
 
-        $data = [
-            'patient' => $patient,
-            'letterheadBase64' => $letterheadBase64,
-            'imageType' => $imageType,
-            'generatedAt' => now(),
-            'forEmail' => true,
-        ];
+        try {
+            $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
+            $letterheadBase64 = '';
+            $imageType = 'jpeg';
 
-        $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
-        $pdf->setPaper('A4');
-        $pdf->setOption('isRemoteEnabled', true);
-
-        // ✅ Use config() instead of env() to survive config caching
-        $fromAddress = config('mail.from.address', 'noreply@yourdomain.com');
-        $fromName = config('mail.from.name', 'E-Bio-Cares');
-        
-        // Note: Add 'cc' => ['address' => env('MAIL_CC_ADDRESS')] to config/mail.php 
-        // or just use env() here ONLY IF you haven't run config:cache
-        $ccEmail = config('mail.cc.address') ?: env('MAIL_CC_ADDRESS');
-
-        Mail::send([], [], function ($message) use ($patient, $pdf, $fromAddress, $fromName, $ccEmail) {
-            $message->to($patient->email)
-                ->subject('Welcome to E-Bio-Cares')
-                ->from($fromAddress, $fromName)
-                ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
-                ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
-
-            if (!empty($ccEmail)) {
-                $message->cc($ccEmail);
+            // ✅ Safer file reading with permission check
+            if (file_exists($letterheadPath) && is_readable($letterheadPath)) {
+                $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
+                $fileContent = file_get_contents($letterheadPath);
+                if ($fileContent !== false) {
+                    $letterheadBase64 = base64_encode($fileContent);
+                } else {
+                    Log::warning('Failed to read letterhead image content', ['path' => $letterheadPath]);
+                }
+            } else {
+                Log::warning('Letterhead image not found or not readable', ['path' => $letterheadPath]);
             }
-        });
 
-        return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
-    } catch (\Exception $e) {
-        // ✅ Enhanced logging to give you the exact failure reason
-        Log::error('Welcome Email Failed', [
-            'patient_id' => $patient->id,
-            'patient_email' => $patient->email,
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-        
-        return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
+            $data = [
+                'patient' => $patient,
+                'letterheadBase64' => $letterheadBase64,
+                'imageType' => $imageType,
+                'generatedAt' => now(),
+                'forEmail' => true,
+            ];
+
+            $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
+            $pdf->setPaper('A4');
+            $pdf->setOption('isRemoteEnabled', true);
+
+            // ✅ Use config() instead of env() to survive config caching
+            $fromAddress = config('mail.from.address', 'noreply@yourdomain.com');
+            $fromName = config('mail.from.name', 'E-Bio-Cares');
+
+            // Note: Add 'cc' => ['address' => env('MAIL_CC_ADDRESS')] to config/mail.php 
+            // or just use env() here ONLY IF you haven't run config:cache
+            $ccEmail = config('mail.cc.address') ?: env('MAIL_CC_ADDRESS');
+
+            Mail::send([], [], function ($message) use ($patient, $pdf, $fromAddress, $fromName, $ccEmail) {
+                $message->to($patient->email)
+                    ->subject('Welcome to E-Bio-Cares')
+                    ->from($fromAddress, $fromName)
+                    ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
+                    ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
+
+                if (!empty($ccEmail)) {
+                    $message->cc($ccEmail);
+                }
+            });
+
+            return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
+        } catch (\Exception $e) {
+            // ✅ Enhanced logging to give you the exact failure reason
+            Log::error('Welcome Email Failed', [
+                'patient_id' => $patient->id,
+                'patient_email' => $patient->email,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
+        }
     }
-}
     // Download Patient Report (PDF)
     public function downloadReport(Patient $patient)
     {
@@ -980,6 +978,7 @@ class PatientController extends Controller
 
 
         $validated = $request->validate([
+            'custom_name' => 'nullable|string|max:255',
             'dosage' => 'nullable|string|max:50',
             'quantity' => 'nullable|string|max:50',
             'instructions' => 'nullable|string|max:255',
@@ -1268,144 +1267,294 @@ class PatientController extends Controller
     /**
      * Reassign/Update medicines for a patient (Bulk Update)
      */
-  public function reassignMedicines(Request $request, Patient $patient)
-{
-    $validated = $request->validate([
-        // Existing medicines validation
-        'medicines' => 'nullable|array',
-        'medicines.*.keep' => 'nullable|in:1',
-        'medicines.*.patient_medicine_id' => 'required_with:medicines.*.keep|exists:patient_medicines,id',
-        'medicines.*.custom_name' => 'nullable|string|max:255',
-        'medicines.*.dosage' => 'nullable|string|max:50',
-        'medicines.*.quantity' => 'nullable|string|max:50',
-        'medicines.*.route' => 'nullable|string|max:50',
-        'medicines.*.instructions' => 'nullable|string|max:500',
-        
-        // ✅ New medicines validation
-        'medicine_group_id' => 'nullable|exists:medicine_groups,id',
-        'new_medicines' => 'nullable|array',
-        'new_medicines.*.assign' => 'nullable|in:1',
-        'new_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
-        'new_medicines.*.custom_name' => 'nullable|string|max:255',
-        'new_medicines.*.dosage' => 'nullable|string|max:50',
-        'new_medicines.*.quantity' => 'nullable|string|max:50',
-        
-        'extra_medicines' => 'nullable|array',
-        'extra_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
-        'extra_medicines.*.custom_name' => 'nullable|string|max:255',
-        'extra_medicines.*.dosage' => 'nullable|string|max:50',
-        'extra_medicines.*.quantity' => 'nullable|string|max:50',
-        
-        'start_date' => 'nullable|date',
-        'end_date' => 'nullable|date|after_or_equal:start_date',
-        'notes' => 'nullable|string|max:500',
-    ]);
+    public function reassignMedicines(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            // Existing medicines validation
+            'medicines' => 'nullable|array',
+            'medicines.*.keep' => 'nullable|in:1',
+            'medicines.*.patient_medicine_id' => 'required_with:medicines.*.keep|exists:patient_medicines,id',
+            'medicines.*.custom_name' => 'nullable|string|max:255',
+            'medicines.*.dosage' => 'nullable|string|max:50',
+            'medicines.*.quantity' => 'nullable|string|max:50',
+            'medicines.*.route' => 'nullable|string|max:50',
+            'medicines.*.instructions' => 'nullable|string|max:500',
 
-    $updatedCount = 0;
-    $removedCount = 0;
-    $assignedCount = 0;
+            // ✅ New medicines validation
+            'medicine_group_id' => 'nullable|exists:medicine_groups,id',
+            'new_medicines' => 'nullable|array',
+            'new_medicines.*.assign' => 'nullable|in:1',
+            'new_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+            'new_medicines.*.custom_name' => 'nullable|string|max:255',
+            'new_medicines.*.dosage' => 'nullable|string|max:50',
+            'new_medicines.*.quantity' => 'nullable|string|max:50',
 
-    // 1. Handle Existing Medicines (Update/Remove)
-    $currentMedicines = $patient->patientMedicines()->where('is_active', true)->pluck('id')->toArray();
-    $keptIds = [];
+            'extra_medicines' => 'nullable|array',
+            'extra_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+            'extra_medicines.*.custom_name' => 'nullable|string|max:255',
+            'extra_medicines.*.dosage' => 'nullable|string|max:50',
+            'extra_medicines.*.quantity' => 'nullable|string|max:50',
 
-    if (!empty($validated['medicines'])) {
-        foreach ($validated['medicines'] as $item) {
-            if (!empty($item['keep'])) {
-                $pmId = $item['patient_medicine_id'];
-                $keptIds[] = $pmId;
-                PatientMedicine::where('id', $pmId)->where('patient_id', $patient->id)->update([
-                    'custom_name' => $item['custom_name'] ?? null,
-                    'dosage' => $item['dosage'] ?? null,
-                    'quantity' => $item['quantity'] ?? null,
-                    'route' => $item['route'] ?? null,
-                    'instructions' => $item['instructions'] ?? null,
-                ]);
-                $updatedCount++;
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $updatedCount = 0;
+        $removedCount = 0;
+        $assignedCount = 0;
+
+        // 1. Handle Existing Medicines (Update/Remove)
+        $currentMedicines = $patient->patientMedicines()->where('is_active', true)->pluck('id')->toArray();
+        $keptIds = [];
+
+        if (!empty($validated['medicines'])) {
+            foreach ($validated['medicines'] as $item) {
+                if (!empty($item['keep'])) {
+                    $pmId = $item['patient_medicine_id'];
+                    $keptIds[] = $pmId;
+                    PatientMedicine::where('id', $pmId)->where('patient_id', $patient->id)->update([
+                        'custom_name' => $item['custom_name'] ?? null,
+                        'dosage' => $item['dosage'] ?? null,
+                        'quantity' => $item['quantity'] ?? null,
+                        'route' => $item['route'] ?? null,
+                        'instructions' => $item['instructions'] ?? null,
+                    ]);
+                    $updatedCount++;
+                }
             }
         }
-    }
 
-    $toRemove = array_diff($currentMedicines, $keptIds);
-    if (!empty($toRemove)) {
-        PatientMedicine::whereIn('id', $toRemove)->where('patient_id', $patient->id)->update(['is_active' => false]);
-        $removedCount = count($toRemove);
-    }
+        $toRemove = array_diff($currentMedicines, $keptIds);
+        if (!empty($toRemove)) {
+            PatientMedicine::whereIn('id', $toRemove)->where('patient_id', $patient->id)->update(['is_active' => false]);
+            $removedCount = count($toRemove);
+        }
 
-    // 2. Handle New Group Medicines
-    $groupId = $validated['medicine_group_id'] ?? null;
-    if ($groupId && !empty($validated['new_medicines'])) {
-        foreach ($validated['new_medicines'] as $item) {
-            if (empty($item['assign'])) continue;
-            $medicineId = $item['medicine_id'] ?? null;
-            $medicine = $medicineId ? Medicine::find($medicineId) : null;
-            
-            $exists = PatientMedicine::where('patient_id', $patient->id)
-                ->where('medicine_id', $medicineId)->where('is_active', true)->exists();
-                
-            if (!$exists) {
-                PatientMedicine::create([
-                    'patient_id' => $patient->id,
-                    'medicine_group_id' => $groupId,
-                    'medicine_id' => $medicineId,
-                    'custom_name' => $item['custom_name'] ?? ($medicine ? $medicine->name : null),
-                    'dosage' => $item['dosage'] ?? ($medicine ? $medicine->dosage : null),
-                    'quantity' => $item['quantity'] ?? ($medicine ? $medicine->quantity : null),
-                    'route' => $medicine ? $medicine->route : null,
-                    'instructions' => $medicine ? $medicine->instructions : null,
-                    'start_date' => $validated['start_date'] ?? null,
-                    'end_date' => $validated['end_date'] ?? null,
-                    'notes' => $validated['notes'] ?? null,
-                    'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
-                    'is_active' => true,
-                ]);
-                $assignedCount++;
+        // 2. Handle New Group Medicines
+        $groupId = $validated['medicine_group_id'] ?? null;
+        if ($groupId && !empty($validated['new_medicines'])) {
+            foreach ($validated['new_medicines'] as $item) {
+                if (empty($item['assign'])) continue;
+                $medicineId = $item['medicine_id'] ?? null;
+                $medicine = $medicineId ? Medicine::find($medicineId) : null;
+
+                $exists = PatientMedicine::where('patient_id', $patient->id)
+                    ->where('medicine_id', $medicineId)->where('is_active', true)->exists();
+
+                if (!$exists) {
+                    PatientMedicine::create([
+                        'patient_id' => $patient->id,
+                        'medicine_group_id' => $groupId,
+                        'medicine_id' => $medicineId,
+                        'custom_name' => $item['custom_name'] ?? ($medicine ? $medicine->name : null),
+                        'dosage' => $item['dosage'] ?? ($medicine ? $medicine->dosage : null),
+                        'quantity' => $item['quantity'] ?? ($medicine ? $medicine->quantity : null),
+                        'route' => $medicine ? $medicine->route : null,
+                        'instructions' => $medicine ? $medicine->instructions : null,
+                        'start_date' => $validated['start_date'] ?? null,
+                        'end_date' => $validated['end_date'] ?? null,
+                        'notes' => $validated['notes'] ?? null,
+                        'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
+                        'is_active' => true,
+                    ]);
+                    $assignedCount++;
+                }
             }
         }
-    }
 
-    // 3. Handle Extra Medicines
-    if (!empty($validated['extra_medicines'])) {
-        foreach ($validated['extra_medicines'] as $extraMed) {
-            $medicineId = $extraMed['medicine_id'] ?? null;
-            $customName = $extraMed['custom_name'] ?? null;
-            if (empty($medicineId) && empty($customName)) continue;
-            
-            $medicine = $medicineId ? Medicine::find($medicineId) : null;
-            
-            $exists = PatientMedicine::where('patient_id', $patient->id)
-                ->where(function ($q) use ($medicineId, $customName) {
-                    if ($medicineId) $q->where('medicine_id', $medicineId);
-                    elseif ($customName) $q->where('custom_name', $customName);
-                })
-                ->where('is_active', true)->exists();
-                
-            if (!$exists) {
-                PatientMedicine::create([
-                    'patient_id' => $patient->id,
-                    'medicine_group_id' => null,
-                    'medicine_id' => $medicineId,
-                    'custom_name' => $customName,
-                    'dosage' => $extraMed['dosage'] ?? ($medicine ? $medicine->dosage : null),
-                    'quantity' => $extraMed['quantity'] ?? ($medicine ? $medicine->quantity : null),
-                    'route' => $medicine ? $medicine->route : null,
-                    'instructions' => $medicine ? $medicine->instructions : null,
-                    'start_date' => $validated['start_date'] ?? null,
-                    'end_date' => $validated['end_date'] ?? null,
-                    'notes' => $validated['notes'] ?? null,
-                    'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
-                    'is_active' => true,
-                ]);
-                $assignedCount++;
+        // 3. Handle Extra Medicines
+        if (!empty($validated['extra_medicines'])) {
+            foreach ($validated['extra_medicines'] as $extraMed) {
+                $medicineId = $extraMed['medicine_id'] ?? null;
+                $customName = $extraMed['custom_name'] ?? null;
+                if (empty($medicineId) && empty($customName)) continue;
+
+                $medicine = $medicineId ? Medicine::find($medicineId) : null;
+
+                $exists = PatientMedicine::where('patient_id', $patient->id)
+                    ->where(function ($q) use ($medicineId, $customName) {
+                        if ($medicineId) $q->where('medicine_id', $medicineId);
+                        elseif ($customName) $q->where('custom_name', $customName);
+                    })
+                    ->where('is_active', true)->exists();
+
+                if (!$exists) {
+                    PatientMedicine::create([
+                        'patient_id' => $patient->id,
+                        'medicine_group_id' => null,
+                        'medicine_id' => $medicineId,
+                        'custom_name' => $customName,
+                        'dosage' => $extraMed['dosage'] ?? ($medicine ? $medicine->dosage : null),
+                        'quantity' => $extraMed['quantity'] ?? ($medicine ? $medicine->quantity : null),
+                        'route' => $medicine ? $medicine->route : null,
+                        'instructions' => $medicine ? $medicine->instructions : null,
+                        'start_date' => $validated['start_date'] ?? null,
+                        'end_date' => $validated['end_date'] ?? null,
+                        'notes' => $validated['notes'] ?? null,
+                        'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
+                        'is_active' => true,
+                    ]);
+                    $assignedCount++;
+                }
             }
         }
+
+        $message = [];
+        if ($updatedCount > 0) $message[] = "Updated {$updatedCount}";
+        if ($removedCount > 0) $message[] = "Removed {$removedCount}";
+        if ($assignedCount > 0) $message[] = "Added {$assignedCount}";
+
+        return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
     }
+    /**
+     * Bulk update multiple patient medicines at once
+     */
+    public function bulkUpdateMedicines(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            // Existing medicines
+            'medicines' => 'nullable|array',
+            'medicines.*.keep' => 'nullable|in:1',
+            'medicines.*.patient_medicine_id' => 'required_with:medicines.*.keep|exists:patient_medicines,id',
+            'medicines.*.custom_name' => 'nullable|string|max:255',
+            'medicines.*.dosage' => 'nullable|string|max:50',
+            'medicines.*.quantity' => 'nullable|string|max:50',
+            'medicines.*.route' => 'nullable|string|max:50',
+            'medicines.*.instructions' => 'nullable|string|max:500',
+            'medicines.*.start_date' => 'nullable|date',
+            'medicines.*.end_date' => 'nullable|date|after_or_equal:start_date',
+            'medicines.*.notes' => 'nullable|string|max:500',
 
-    $message = [];
-    if ($updatedCount > 0) $message[] = "Updated {$updatedCount}";
-    if ($removedCount > 0) $message[] = "Removed {$removedCount}";
-    if ($assignedCount > 0) $message[] = "Added {$assignedCount}";
+            // New Group Medicines
+            'medicine_group_id' => 'nullable|exists:medicine_groups,id',
+            'new_medicines' => 'nullable|array',
+            'new_medicines.*.assign' => 'nullable|in:1',
+            'new_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+            'new_medicines.*.custom_name' => 'nullable|string|max:255',
+            'new_medicines.*.dosage' => 'nullable|string|max:50',
+            'new_medicines.*.quantity' => 'nullable|string|max:50',
 
-    return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
-}
+            // Custom Extra Medicines
+            'extra_medicines' => 'nullable|array',
+            'extra_medicines.*.medicine_id' => 'nullable|exists:medicines,id',
+            'extra_medicines.*.custom_name' => 'nullable|string|max:255',
+            'extra_medicines.*.dosage' => 'nullable|string|max:50',
+            'extra_medicines.*.quantity' => 'nullable|string|max:50',
+
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $updatedCount = 0;
+        $removedCount = 0;
+        $assignedCount = 0;
+
+        // 1. Handle Existing Medicines (Update/Remove)
+        $currentMedicines = $patient->patientMedicines()->where('is_active', true)->pluck('id')->toArray();
+        $keptIds = [];
+
+        if (!empty($validated['medicines'])) {
+            foreach ($validated['medicines'] as $item) {
+                if (!empty($item['keep'])) {
+                    $pmId = $item['patient_medicine_id'];
+                    $keptIds[] = $pmId;
+                    PatientMedicine::where('id', $pmId)->where('patient_id', $patient->id)->update([
+                        'custom_name' => $item['custom_name'] ?? null,
+                        'dosage' => $item['dosage'] ?? null,
+                        'quantity' => $item['quantity'] ?? null,
+                        'route' => $item['route'] ?? null,
+                        'instructions' => $item['instructions'] ?? null,
+                        'start_date' => $item['start_date'] ?? null,
+                        'end_date' => $item['end_date'] ?? null,
+                        'notes' => $item['notes'] ?? null,
+                    ]);
+                    $updatedCount++;
+                }
+            }
+        }
+
+        $toRemove = array_diff($currentMedicines, $keptIds);
+        if (!empty($toRemove)) {
+            PatientMedicine::whereIn('id', $toRemove)->where('patient_id', $patient->id)->update(['is_active' => false]);
+            $removedCount = count($toRemove);
+        }
+
+        // 2. Handle New Group Medicines
+        $groupId = $validated['medicine_group_id'] ?? null;
+        if ($groupId && !empty($validated['new_medicines'])) {
+            foreach ($validated['new_medicines'] as $item) {
+                if (empty($item['assign'])) continue;
+                $medicineId = $item['medicine_id'] ?? null;
+                $medicine = $medicineId ? Medicine::find($medicineId) : null;
+
+                $exists = PatientMedicine::where('patient_id', $patient->id)
+                    ->where('medicine_id', $medicineId)->where('is_active', true)->exists();
+
+                if (!$exists) {
+                    PatientMedicine::create([
+                        'patient_id' => $patient->id,
+                        'medicine_group_id' => $groupId,
+                        'medicine_id' => $medicineId,
+                        'custom_name' => $item['custom_name'] ?? ($medicine ? $medicine->name : null),
+                        'dosage' => $item['dosage'] ?? ($medicine ? $medicine->dosage : null),
+                        'quantity' => $item['quantity'] ?? ($medicine ? $medicine->quantity : null),
+                        'route' => $medicine ? $medicine->route : null,
+                        'instructions' => $medicine ? $medicine->instructions : null,
+                        'start_date' => $validated['start_date'] ?? null,
+                        'end_date' => $validated['end_date'] ?? null,
+                        'notes' => $validated['notes'] ?? null,
+                        'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
+                        'is_active' => true,
+                    ]);
+                    $assignedCount++;
+                }
+            }
+        }
+
+        // 3. Handle Custom Extra Medicines
+        if (!empty($validated['extra_medicines'])) {
+            foreach ($validated['extra_medicines'] as $extraMed) {
+                $medicineId = $extraMed['medicine_id'] ?? null;
+                $customName = $extraMed['custom_name'] ?? null;
+                if (empty($medicineId) && empty($customName)) continue;
+
+                $medicine = $medicineId ? Medicine::find($medicineId) : null;
+
+                $exists = PatientMedicine::where('patient_id', $patient->id)
+                    ->where(function ($q) use ($medicineId, $customName) {
+                        if ($medicineId) $q->where('medicine_id', $medicineId);
+                        elseif ($customName) $q->where('custom_name', $customName);
+                    })
+                    ->where('is_active', true)->exists();
+
+                if (!$exists) {
+                    PatientMedicine::create([
+                        'patient_id' => $patient->id,
+                        'medicine_group_id' => null,
+                        'medicine_id' => $medicineId,
+                        'custom_name' => $customName,
+                        'dosage' => $extraMed['dosage'] ?? ($medicine ? $medicine->dosage : null),
+                        'quantity' => $extraMed['quantity'] ?? ($medicine ? $medicine->quantity : null),
+                        'route' => $medicine ? $medicine->route : null,
+                        'instructions' => $medicine ? $medicine->instructions : null,
+                        'start_date' => $validated['start_date'] ?? null,
+                        'end_date' => $validated['end_date'] ?? null,
+                        'notes' => $validated['notes'] ?? null,
+                        'sort_order' => PatientMedicine::where('patient_id', $patient->id)->max('sort_order') + 1,
+                        'is_active' => true,
+                    ]);
+                    $assignedCount++;
+                }
+            }
+        }
+
+        $message = [];
+        if ($updatedCount > 0) $message[] = "Updated {$updatedCount}";
+        if ($removedCount > 0) $message[] = "Removed {$removedCount}";
+        if ($assignedCount > 0) $message[] = "Added {$assignedCount}";
+
+        return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
+    }
 }
