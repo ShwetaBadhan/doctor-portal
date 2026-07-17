@@ -192,13 +192,9 @@
                                         <div class="mb-3">
                                             <label class="form-label mb-1 fw-medium">Phone Number<span
                                                     class="text-danger ms-1">*</span></label>
-                                            <input type="tel"
-                                                class="form-control @error('phone') is-invalid @enderror"
-                                                name="phone"
-                                                id="phoneInput"
-                                                value="{{ old('phone', $patient->phone) }}"
-                                                placeholder="Enter phone number"
-                                                required>
+                                            <input type="tel" class="form-control @error('phone') is-invalid @enderror"
+                                                name="phone" id="phoneInput" value="{{ old('phone', $patient->phone) }}"
+                                                placeholder="Enter phone number" required>
                                             <input type="hidden" name="country_code" id="countryCode"
                                                 value="{{ old('country_code', '+' . ltrim($patient->phone_country_iso ?? 'IN', '+')) }}">
                                             <input type="hidden" name="phone_country_iso" id="phoneCountryIso"
@@ -217,8 +213,9 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label mb-1 fw-medium">Email Address</label>
-                                            <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                                name="email" value="{{ old('email', $patient->email) }}">
+                                            <input type="email"
+                                                class="form-control @error('email') is-invalid @enderror" name="email"
+                                                value="{{ old('email', $patient->email) }}">
                                             @error('email')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -386,11 +383,10 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label class="form-label mb-1 fw-medium">Pincode<span
-                                                    class="text-danger ms-1">*</span></label>
+                                            <label class="form-label mb-1 fw-medium">Pincode</label>
                                             <input type="text"
                                                 class="form-control @error('pincode') is-invalid @enderror"
-                                                name="pincode" value="{{ old('pincode', $patient->pincode) }}" required>
+                                                name="pincode" value="{{ old('pincode', $patient->pincode) }}">
                                             @error('pincode')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -573,8 +569,33 @@
                                         <div class="card border">
                                             <div class="card-body">
                                                 <h6 class="fw-bold mb-2">Medical Notes</h6>
-                                                <textarea class="form-control" name="medical_notes" rows="5"
-                                                    placeholder="Enter medical notes...">{{ old('medical_notes', $patient->medical_notes) }}</textarea>
+                                                <textarea class="form-control" name="medical_notes" rows="5" placeholder="Enter medical notes...">{{ old('medical_notes', $patient->medical_notes) }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Additional Symptoms Section -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card border bg-light">
+                                        <div class="card-body">
+                                            <h6 class="fw-bold mb-2">
+                                                <i class="ti ti-plus me-1 text-primary"></i> Additional Symptoms
+                                            </h6>
+                                            <p class="text-muted small mb-3">
+                                                Type any symptoms not listed above and press <strong>Enter</strong> or click
+                                                <strong>Add</strong>.
+                                            </p>
+                                            <div class="d-flex gap-2 mb-3">
+                                                <input type="text" id="customSymptomInput" class="form-control"
+                                                    placeholder="e.g., Frequent headaches, Dizziness, Nausea...">
+                                                <button type="button" class="btn btn-primary" id="addCustomSymptomBtn">
+                                                    <i class="ti ti-plus me-1"></i> Add
+                                                </button>
+                                            </div>
+                                            <div id="customSymptomsContainer" class="d-flex flex-wrap gap-2">
+                                                <!-- Added symptoms will appear here as badges -->
                                             </div>
                                         </div>
                                     </div>
@@ -636,10 +657,12 @@
                                                                 $icon = $icons[$ext] ?? 'ti ti-file text-muted';
                                                                 $fileName = basename($reportPath);
                                                             @endphp
-                                                            <div class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
+                                                            <div
+                                                                class="avatar avatar-lg bg-light rounded-circle mb-2 mx-auto">
                                                                 <i class="{{ $icon }} fs-24"></i>
                                                             </div>
-                                                            <p class="small text-truncate mb-2" title="{{ $fileName }}">
+                                                            <p class="small text-truncate mb-2"
+                                                                title="{{ $fileName }}">
                                                                 {{ $fileName }}</p>
                                                             <div class="btn-group btn-group-sm">
                                                                 <a href="{{ Storage::url($reportPath) }}"
@@ -1070,7 +1093,8 @@
                     confirmButtonColor: '#dc3545'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let removed = removeReportsInput.value ? JSON.parse(removeReportsInput.value) : [];
+                        let removed = removeReportsInput.value ? JSON.parse(removeReportsInput.value) :
+                            [];
                         removed.push(index);
                         removeReportsInput.value = JSON.stringify(removed);
                         event.target.closest('.col-md-4').style.display = 'none';
@@ -1137,5 +1161,97 @@
             // Initialize
             showStep(1);
         });
+    </script>
+
+    <script>
+        // ==========================================
+        // Additional Symptoms Logic for Edit
+        // ==========================================
+        let additionalSymptoms = [];
+
+        // Load existing additional symptoms from the patient model
+        @if ($patient->additional_symptoms)
+            @php
+                $existingAdditional = is_array($patient->additional_symptoms) ? $patient->additional_symptoms : json_decode($patient->additional_symptoms, true) ?? [];
+            @endphp
+            additionalSymptoms = @json($existingAdditional);
+        @endif
+
+        function renderAdditionalSymptoms() {
+            const container = document.getElementById('customSymptomsContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            additionalSymptoms.forEach((symptom, index) => {
+                // Create badge
+                const badge = document.createElement('span');
+                badge.className =
+                    'badge bg-primary bg-opacity-10 text-primary border border-primary d-flex align-items-center gap-2 p-2';
+                badge.innerHTML = `
+                        ${symptom}
+                        <button type="button" class="btn-close btn-close-sm text-primary" 
+                                style="font-size: 10px;" 
+                                aria-label="Remove" 
+                                onclick="removeAdditionalSymptom(${index})"></button>
+                    `;
+                container.appendChild(badge);
+
+                // Create hidden input for form submission (Laravel will receive this as an array)
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'additional_symptoms[]';
+                hiddenInput.value = symptom;
+                container.appendChild(hiddenInput);
+            });
+        }
+
+        function addAdditionalSymptom() {
+            const input = document.getElementById('customSymptomInput');
+            if (!input) return;
+
+            const value = input.value.trim();
+            if (value && !additionalSymptoms.includes(value)) {
+                additionalSymptoms.push(value);
+                renderAdditionalSymptoms();
+                input.value = '';
+                input.focus();
+            } else if (additionalSymptoms.includes(value)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Already Added',
+                    text: 'This symptom is already in the list.',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        // Make function globally accessible for the onclick attribute
+        window.removeAdditionalSymptom = function(index) {
+            additionalSymptoms.splice(index, 1);
+            renderAdditionalSymptoms();
+        };
+
+        // Initialize on load
+        renderAdditionalSymptoms();
+
+        const addBtn = document.getElementById('addCustomSymptomBtn');
+        const customInput = document.getElementById('customSymptomInput');
+
+        if (addBtn) {
+            addBtn.addEventListener('click', addAdditionalSymptom);
+        }
+
+        if (customInput) {
+            customInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addAdditionalSymptom();
+                }
+            });
+        }
     </script>
 @endsection
