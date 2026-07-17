@@ -576,57 +576,76 @@ class PatientController extends Controller
     /**
      * Send welcome letter via email with Letterhead Background
      */
-    public function sendWelcomeEmail(Request $request, Patient $patient)
-    {
-        if (empty($patient->email)) {
-            return redirect()->back()->with('error', 'Patient does not have an email address.');
-        }
-
-        try {
-            $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
-            $letterheadBase64 = '';
-            $imageType = 'jpeg';
-
-            if (file_exists($letterheadPath)) {
-                $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
-                $letterheadBase64 = base64_encode(file_get_contents($letterheadPath));
-            }
-
-            $data = [
-                'patient' => $patient,
-                'letterheadBase64' => $letterheadBase64,
-                'imageType' => $imageType,
-                'generatedAt' => now(),
-                'forEmail' => true,
-            ];
-
-            $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
-
-            // ✅ CC email from .env
-            $ccEmail = env('MAIL_CC_ADDRESS');
-
-            Mail::send([], [], function ($message) use ($patient, $pdf, $ccEmail) {
-                $message->to($patient->email)
-                    ->subject('Welcome to E-Bio-Cares')
-                    ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
-                    ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
-                    ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
-
-                // ✅ Add CC if exists in .env
-                if (!empty($ccEmail)) {
-                    $message->cc($ccEmail);
-                }
-            });
-
-            return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
-        } catch (\Exception $e) {
-            Log::error('Welcome Email Failed', [
-                'patient_id' => $patient->id,
-                'error' => $e->getMessage()
-            ]);
-            return redirect()->back()->with('error', 'Failed: ' . $e->getMessage());
-        }
+   public function sendWelcomeEmail(Request $request, Patient $patient)
+{
+    if (empty($patient->email)) {
+        return redirect()->back()->with('error', 'Patient does not have an email address.');
     }
+
+    try {
+        $letterheadPath = public_path('assets/img/letter/letter-head.jpg');
+        $letterheadBase64 = '';
+        $imageType = 'jpeg';
+
+        // ✅ Safer file reading with permission check
+        if (file_exists($letterheadPath) && is_readable($letterheadPath)) {
+            $imageType = pathinfo($letterheadPath, PATHINFO_EXTENSION);
+            $fileContent = file_get_contents($letterheadPath);
+            if ($fileContent !== false) {
+                $letterheadBase64 = base64_encode($fileContent);
+            } else {
+                Log::warning('Failed to read letterhead image content', ['path' => $letterheadPath]);
+            }
+        } else {
+            Log::warning('Letterhead image not found or not readable', ['path' => $letterheadPath]);
+        }
+
+        $data = [
+            'patient' => $patient,
+            'letterheadBase64' => $letterheadBase64,
+            'imageType' => $imageType,
+            'generatedAt' => now(),
+            'forEmail' => true,
+        ];
+
+        $pdf = Pdf::loadView('pages.patients.welcome-letter', $data);
+        $pdf->setPaper('A4');
+        $pdf->setOption('isRemoteEnabled', true);
+
+        // ✅ Use config() instead of env() to survive config caching
+        $fromAddress = config('mail.from.address', 'noreply@yourdomain.com');
+        $fromName = config('mail.from.name', 'E-Bio-Cares');
+        
+        // Note: Add 'cc' => ['address' => env('MAIL_CC_ADDRESS')] to config/mail.php 
+        // or just use env() here ONLY IF you haven't run config:cache
+        $ccEmail = config('mail.cc.address') ?: env('MAIL_CC_ADDRESS');
+
+        Mail::send([], [], function ($message) use ($patient, $pdf, $fromAddress, $fromName, $ccEmail) {
+            $message->to($patient->email)
+                ->subject('Welcome to E-Bio-Cares')
+                ->from($fromAddress, $fromName)
+                ->html(view('pages.patients.welcome-email-body', ['patient' => $patient])->render())
+                ->attachData($pdf->output(), 'welcome-letter-' . $patient->patient_id . '.pdf');
+
+            if (!empty($ccEmail)) {
+                $message->cc($ccEmail);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Welcome letter sent to ' . $patient->email);
+    } catch (\Exception $e) {
+        // ✅ Enhanced logging to give you the exact failure reason
+        Log::error('Welcome Email Failed', [
+            'patient_id' => $patient->id,
+            'patient_email' => $patient->email,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+        
+        return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
+    }
+}
     // Download Patient Report (PDF)
     public function downloadReport(Patient $patient)
     {
