@@ -1,8 +1,8 @@
 @extends('layout.master')
 @section('content')
     <!-- ========================
-                                           Start Page Content
-                                          ========================= -->
+                                               Start Page Content
+                                              ========================= -->
 
     <div class="page-wrapper">
 
@@ -345,8 +345,8 @@
     </div>
 
     <!-- ========================
-                                           End Page Content
-                                          ========================= -->
+                                               End Page Content
+                                              ========================= -->
 
     <!-- Start Delete Modal  -->
     <div class="modal fade" id="delete_modal">

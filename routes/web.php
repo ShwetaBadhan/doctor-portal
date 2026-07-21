@@ -14,6 +14,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WhatsAppController;
+use App\Http\Controllers\TreatmentLeadController;
 
 // ============ ROOT ROUTE ============
 // Option A: Redirect root to login (Recommended)
@@ -275,3 +276,6 @@ Route::put('/patients/{patient}/medicines/reassign', [PatientController::class, 
 Route::get('/test-expiry-reminders', [WhatsAppController::class, 'sendExpiryReminders']);
 Route::put('/patients/{patient}/medicines/bulk-update', [PatientController::class, 'bulkUpdateMedicines'])
     ->name('patients.medicines.bulk-update');
+
+
+    Route::get('/treatment-leads', [TreatmentLeadController::class, 'index'])->name('treatment-leads.index');

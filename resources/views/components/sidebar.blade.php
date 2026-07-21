@@ -47,7 +47,22 @@
                         </li>
                     </ul>
                 </li>
+                @can('view-treatment-leads')
+                    <li class="menu-title"><span>Website</span></li>
+                    <li>
+                        <ul>
 
+                            <!-- Dashboard -->
+                            <li>
+                                <a href="{{ route('treatment-leads.index') }}"
+                                    class="{{ request()->routeIs('treatment-leads.index') ? 'active' : '' }}">
+                                    <i class="ti ti-users"></i><span>Treatment Leads</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                @endcan
                 <li class="menu-title"><span>Clinic</span></li>
                 <li>
                     <ul>
