@@ -80,7 +80,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle datatable">
                         <thead class="table-light">
                             <tr>
                                 <th>Invoice #</th>
@@ -93,7 +93,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($invoices as $invoice)
+                            @foreach($invoices as $invoice)
                             <tr>
                                 <td>
                                     <a href="{{ route('invoices.download', $invoice) }}" 
@@ -147,17 +147,8 @@
                                     </div>
                                 </td>
                             </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="ti ti-file-invoice fs-1 mb-3 d-block"></i>
-                                    <p>No invoices found.</p>
-                                    <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm">
-                                        <i class="ti ti-plus me-1"></i> Create First Invoice
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforelse
+                           
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
