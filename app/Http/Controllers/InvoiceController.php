@@ -48,7 +48,7 @@ class InvoiceController extends Controller
     }
 
     // ✅ Get paginated results - ALWAYS assign to $invoices
-    $invoices = $query->latest('invoice_date')->paginate(15)->withQueryString();
+    $invoices = $query->latest('invoice_date')->get();
 
     // ✅ Always pass $invoices to view (even if empty)
     return view('pages.invoices.index', compact('invoices'));

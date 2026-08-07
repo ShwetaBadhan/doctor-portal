@@ -153,12 +153,7 @@
                     </table>
                 </div>
                 
-                <!-- Pagination -->
-                @if($invoices->hasPages())
-                <div class="mt-3">
-                    {{ $invoices->withQueryString()->links() }}
-                </div>
-                @endif
+             
             </div>
         </div>
     </div>
