@@ -611,7 +611,7 @@ foreach ($symptomFields as $field) {
             $pdf->setOption('isRemoteEnabled', true);
 
             // ✅ Use config() instead of env() to survive config caching
-            $fromAddress = config('mail.from.address', 'noreply@yourdomain.com');
+            $fromAddress = config('mail.from.address', 'info@ebiocares.in');
             $fromName = config('mail.from.name', 'E-Bio-Cares');
 
             // Note: Add 'cc' => ['address' => env('MAIL_CC_ADDRESS')] to config/mail.php 
