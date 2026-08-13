@@ -1557,4 +1557,32 @@ foreach ($symptomFields as $field) {
 
         return redirect()->back()->with('success', implode(' & ', $message) ?: 'No changes made.');
     }
+public function deletePatientReport($patientId, $reportIndex)
+{
+    $patient = Patient::findOrFail($patientId);
+
+    // Patient ke reports array ko get karein
+    $reports = $patient->test_reports ?? [];
+
+    // Check karein ke index exist karta hai ya nahi
+    if (!isset($reports[$reportIndex])) {
+        return back()->with('error', 'Report not found or already deleted.');
+    }
+
+    $filePath = $reports[$reportIndex];
+
+    // 1. Physical file ko Storage se delete karein
+    if (Storage::disk('public')->exists($filePath)) {
+        Storage::disk('public')->delete($filePath);
+    }
+
+    // 2. Array se report ko remove karein
+    unset($reports[$reportIndex]);
+
+    // 3. Array ko re-index karein aur Database me save karein
+    $patient->test_reports = array_values($reports);
+    $patient->save();
+
+    return back()->with('success', 'Report deleted successfully.');
+}
 }

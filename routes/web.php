@@ -85,6 +85,8 @@ Route::middleware('auth')->group(function () {
         ->name('diagnosis-report.preview');
 
 
+Route::delete('/reports/{patientId}/{reportIndex}', [PatientController::class, 'deletePatientReport'])
+    ->name('reports.patient.destroy');
     Route::get('/patients/{patient}/diagnosis-report/download', [PatientController::class, 'downloadDiagnosisReport'])
         ->name('diagnosis-report.download');
 });
